@@ -1,0 +1,13 @@
+
+--- NEW SESSION: 24/02/2021 14:55:33 ---
+/Simulation/Trunk/cableL0/cable.force = 3.81331
+/Simulation/Trunk/cableL0/cable.displacement = 1.94516e-08
+/Simulation/Trunk/cableL0/cable.color = 0.4 0.4 0.4 1
+/Simulation/Trunk/cableL0.time = 16.34
+
+--- NEW SESSION: 25/02/2021 11:28:19 ---
+//camera.position = 300 0 80
+//camera.orientation = 0 0.707107 0 0.707107
+//camera.lookAt = 0 0 80
+//camera.zNear = 4.95936
+//camera.zFar = 439.667
