@@ -8,18 +8,17 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
 
 from gym.envs.registration import register
 
 from gym import spaces
 import os
-import sys
 import numpy as np
 
 
-class TrunkEnv(AbstractEnv):
+class MazeEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -27,12 +26,13 @@ class TrunkEnv(AbstractEnv):
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
-    DEFAULT_CONFIG = {"scene": "Trunk",
+    DEFAULT_CONFIG = {"scene": "Maze",
                       "deterministic": True,
-                      "source": [300, 0, 80],
-                      "target": [0, 0, 80],
-                      "goalList": [[40, 40, 100], [-10, 20, 80]],
-                      "start_node": None,
+                      "source": [0, 200, 0],
+                      "target": [0, 0, 0],
+                      "goalList": [334, 317, 312, 301],
+                      "goal_node": 270,
+                      "start_node": 269,
                       "scale_factor": 5,
                       "timer_limit": 250,
                       "timeout": 50,
@@ -40,25 +40,25 @@ class TrunkEnv(AbstractEnv):
                       "render": 1,
                       "save_data": False,
                       "save_image": False,
-                      "save_path": path + "/Results" + "/Trunk",
-                      "planning": False,
+                      "save_path": path + "/Results" + "/Maze",
+                      "planning": True,
                       "discrete": True,
-                      "seed": None,
+                      "seed": 0,
                       "start_from_history": None,
-                      "python_version": "python3"
+                      "python_version": "python3.8",
+                      "zFar": 1000
                       }
 
-    def __init__(self, config = None):
+    def __init__(self, config=None):
         super().__init__(config)
-        nb_actions = 16
+        nb_actions = 6
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 66
+        dim_state = 13
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
 
     def step(self, action):
         return super().step(action)
@@ -94,6 +94,6 @@ class TrunkEnv(AbstractEnv):
 
 
 register(
-    id='trunk-v0',
-    entry_point='sofagym.env:TrunkEnv',
+    id='maze-v0',
+    entry_point='sofagym.env:MazeEnv',
 )

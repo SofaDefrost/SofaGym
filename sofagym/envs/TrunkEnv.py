@@ -8,17 +8,18 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
 
 from gym.envs.registration import register
 
 from gym import spaces
 import os
+import sys
 import numpy as np
 
 
-class TrunkCupEnv(AbstractEnv):
+class TrunkEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -26,10 +27,10 @@ class TrunkCupEnv(AbstractEnv):
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
-    DEFAULT_CONFIG = {"scene": "TrunkCup",
+    DEFAULT_CONFIG = {"scene": "Trunk",
                       "deterministic": True,
-                      "source": [500.0, 0, 100],
-                      "target": [0, 0, 100],
+                      "source": [300, 0, 80],
+                      "target": [0, 0, 80],
                       "goalList": [[40, 40, 100], [-10, 20, 80]],
                       "start_node": None,
                       "scale_factor": 5,
@@ -39,15 +40,15 @@ class TrunkCupEnv(AbstractEnv):
                       "render": 1,
                       "save_data": False,
                       "save_image": False,
-                      "save_path": path + "/Results" + "/TrunkCup",
+                      "save_path": path + "/Results" + "/Trunk",
                       "planning": False,
                       "discrete": True,
                       "seed": None,
                       "start_from_history": None,
-                      "python_version": "python3.8"
+                      "python_version": "python3"
                       }
 
-    def __init__(self, config=None):
+    def __init__(self, config = None):
         super().__init__(config)
         nb_actions = 16
         self.action_space = spaces.Discrete(nb_actions)
@@ -93,6 +94,6 @@ class TrunkCupEnv(AbstractEnv):
 
 
 register(
-    id='trunkcup-v0',
-    entry_point='sofagym.env:TrunkCupEnv',
+    id='trunk-v0',
+    entry_point='sofagym.env:TrunkEnv',
 )

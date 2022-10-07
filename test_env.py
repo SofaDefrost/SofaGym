@@ -18,7 +18,7 @@ import time
 import gym
 
 from sofagym import *
-
+from sofagym.envs import GripperEnv
 RANDOM = False
 
 import psutil

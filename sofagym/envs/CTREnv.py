@@ -8,10 +8,10 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Dec 01 2021"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
-from sofagym.env.common.viewer import LegacyViewer
-from sofagym.env.CTR.CTRToolbox import startCmd
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
+from sofagym.viewer import LegacyViewer
+from sofagym.envs.CTR.CTRToolbox import startCmd
 
 from gym.envs.registration import register
 

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Specific environment for the trunk (simplified).
+"""Specific environment for the gripper.
 """
 
-__authors__ = "emenager"
+__authors__ = ("emenager", "ekhairallah")
 __contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
 
 from gym.envs.registration import register
 
@@ -18,21 +18,20 @@ import os
 import numpy as np
 
 
-class MazeEnv(AbstractEnv):
-    """Sub-class of AbstractEnv, dedicated to the trunk scene.
+class GripperEnv(AbstractEnv):
+    """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
     """
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
-    DEFAULT_CONFIG = {"scene": "Maze",
+    DEFAULT_CONFIG = {"scene": "Gripper",
                       "deterministic": True,
-                      "source": [0, 200, 0],
-                      "target": [0, 0, 0],
-                      "goalList": [334, 317, 312, 301],
-                      "goal_node": 270,
-                      "start_node": 269,
+                      "source": [0, -80, 350],
+                      "target": [0, -80, 0],
+                      "goalList": [[0, 10, 0], [0, 20, 0], [0, 30, 0]],
+                      "start_node": None,
                       "scale_factor": 5,
                       "timer_limit": 250,
                       "timeout": 50,
@@ -40,25 +39,25 @@ class MazeEnv(AbstractEnv):
                       "render": 1,
                       "save_data": False,
                       "save_image": False,
-                      "save_path": path + "/Results" + "/Maze",
-                      "planning": True,
+                      "save_path": path + "/Results" + "/Gripper",
+                      "planning": False,
                       "discrete": True,
-                      "seed": 0,
+                      "seed": None,
                       "start_from_history": None,
-                      "python_version": "python3.8",
-                      "zFar": 1000
+                      "python_version": "python3"
                       }
 
     def __init__(self, config=None):
         super().__init__(config)
-        nb_actions = 6
+        nb_actions = 8
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 13
+        dim_state = 31
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
+        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
+                                            dtype='float32')
 
     def step(self, action):
         return super().step(action)
@@ -94,6 +93,6 @@ class MazeEnv(AbstractEnv):
 
 
 register(
-    id='maze-v0',
-    entry_point='sofagym.env:MazeEnv',
+    id='gripper-v0',
+    entry_point='sofagym.envs:GripperEnv',
 )

@@ -166,10 +166,10 @@ if __name__ == "__main__":
     s = xmlrpc.client.ServerProxy('http://localhost:' + port_rpc)
     s.registerInstance(0, os.getpid(), [])
 
-    _getState = importlib.import_module("sofagym.env."+scene+"."+scene+"Toolbox").getState
-    _getReward = importlib.import_module("sofagym.env."+scene+"."+scene+"Toolbox").getReward
-    _startCmd = importlib.import_module("sofagym.env."+scene+"."+scene+"Toolbox").startCmd
-    _getPos = importlib.import_module("sofagym.env."+scene+"."+scene+"Toolbox").getPos
+    _getState = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").getState
+    _getReward = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").getReward
+    _startCmd = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").startCmd
+    _getPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").getPos
 
     root = init_simulation(config, _startCmd, mode='simu')
 

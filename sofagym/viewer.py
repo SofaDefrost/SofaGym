@@ -24,8 +24,8 @@ from OpenGL.GLU import *
 import imageio
 import datetime
 
-from sofagym.env.common.rpc_server import get_position
-from sofagym.env.common.simulate import init_simulation, step_simulation
+from sofagym.rpc_server import get_position
+from sofagym.simulate import init_simulation, step_simulation
 
 
 class Viewer:
@@ -111,7 +111,7 @@ class Viewer:
 
         self.root = init_simulation(self.env.config, mode = 'visu')
         scene = self.env.config['scene']
-        self._setPos = importlib.import_module("sofagym.env."+scene+"."+scene+"Toolbox").setPos
+        self._setPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").setPos
 
         self.zFar = self.root.camera.zFar.value + zFar
 

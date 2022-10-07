@@ -1,4 +1,5 @@
 from sofagym.AbstractEnv import AbstractEnv
+import sofagym.envs
 from sofagym.header import header
 from sofagym.rpc_client import rpc_client
 from sofagym.rpc_server import rpc_server

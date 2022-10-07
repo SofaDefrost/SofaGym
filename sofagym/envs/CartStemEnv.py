@@ -8,8 +8,8 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
 from gym.envs.registration import register
 
 from gym import spaces

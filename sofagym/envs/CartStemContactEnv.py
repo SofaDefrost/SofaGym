@@ -8,29 +8,29 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
 from gym.envs.registration import register
 
 from gym import spaces
 import os
 import numpy as np
 
-class CatchTheObject(AbstractEnv):
+class CartStemContactEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
     """
     #Setting a default configuration
-    path = os.path.dirname(os.path.abspath(__file__))
+    path =  os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
-    DEFAULT_CONFIG = {"scene": "CatchTheObject",
+    DEFAULT_CONFIG = {"scene": "CartStemContact",
                       "deterministic": True,
-                      "source": [0, -70, 10],
+                      "source": [0, -50, 10],
                       "target": [0, 0, 10],
                       "goalList": [[7, 0, 20]],
                       "start_node": None,
-                      "scale_factor": 10,
+                      "scale_factor": 30,
                       "dt": 0.01,
                       "timer_limit": 30,
                       "timeout": 50,
@@ -38,7 +38,7 @@ class CatchTheObject(AbstractEnv):
                       "render": 0,
                       "save_data": False,
                       "save_image": False,
-                      "save_path": path + "/Results" + "/CartStem",
+                      "save_path": path + "/Results" + "/CartStemContact",
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
@@ -46,9 +46,11 @@ class CatchTheObject(AbstractEnv):
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
-                      "max_move": 10,
-                      "max_pressure": 15
+                      "init_x": 5,
+                      "cube_x": [-6, 6],
+                      "max_move": 7.5,
                       }
+
 
     def __init__(self, config = None):
         super().__init__(config)
@@ -58,7 +60,8 @@ class CatchTheObject(AbstractEnv):
         self.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype='float32')
         self.nb_actions = str(nb_actions)
 
-        dim_state = 5
+        dim_state = 8
+
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
@@ -76,10 +79,18 @@ class CatchTheObject(AbstractEnv):
             client_<scene>Env.py.
 
         """
-
         super().reset()
 
-        self.count = 0
+        low_cube, high_cube = -6+ 2*np.random.random(), 6 - 2*np.random.random()
+        self.config.update({'cube_x': [low_cube, high_cube]})
+        self.config.update({'init_x': (low_cube + 3) + (high_cube-low_cube-3)*np.random.random()})
+
+        if np.random.random() > 0.5:
+            x_goal = low_cube + 3.5*np.random.random()
+        else:
+            x_goal = high_cube - 3.5*np.random.random()
+        self.config.update({'goalList': [[x_goal, 0, 20]]})
+        self.config.update({'max_move': max(abs(low_cube-1), high_cube+1)})
         self.config.update({'goalPos': self.goal})
         # obs = super().reset()
         # return np.array(obs)
@@ -102,6 +113,6 @@ class CatchTheObject(AbstractEnv):
 
 
 register(
-    id='catchtheobject-v0',
-    entry_point='sofagym.env:CatchTheObject',
+    id='cartstemcontact-v0',
+    entry_point='sofagym.env:CartStemContactEnv',
 )

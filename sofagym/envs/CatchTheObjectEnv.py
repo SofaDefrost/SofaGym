@@ -8,45 +8,46 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-from sofagym.env.common.AbstractEnv import AbstractEnv
-from sofagym.env.common.rpc_server import start_scene
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
 from gym.envs.registration import register
 
 from gym import spaces
 import os
 import numpy as np
 
-class StemPendulumEnv(AbstractEnv):
+class CatchTheObject(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
     """
     #Setting a default configuration
-    path = path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
-    DEFAULT_CONFIG = {"scene": "StemPendulum",
+    DEFAULT_CONFIG = {"scene": "CatchTheObject",
                       "deterministic": True,
-                      "source": [0, 0, 30],
-                      "target": [0, 0, 0],
+                      "source": [0, -70, 10],
+                      "target": [0, 0, 10],
                       "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.01,
-                      "timer_limit": 50,
+                      "timer_limit": 30,
                       "timeout": 50,
                       "display_size": (1600, 800),
                       "render": 0,
                       "save_data": False,
                       "save_image": False,
-                      "save_path": path + "/Results" + "/StemPendulum",
+                      "save_path": path + "/Results" + "/CartStem",
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
-                      "python_version": "python3.8",
+                      "python_version": "python3.9",
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
-                      "max_torque": 500,
+                      "max_move": 10,
+                      "max_pressure": 15
                       }
 
     def __init__(self, config = None):
@@ -58,8 +59,8 @@ class StemPendulumEnv(AbstractEnv):
         self.nb_actions = str(nb_actions)
 
         dim_state = 5
-        low_coordinates = np.array([-2]*dim_state)
-        high_coordinates = np.array([2]*dim_state)
+        low_coordinates = np.array([-1]*dim_state)
+        high_coordinates = np.array([1]*dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
                                             dtype='float32')
 
@@ -75,6 +76,7 @@ class StemPendulumEnv(AbstractEnv):
             client_<scene>Env.py.
 
         """
+
         super().reset()
 
         self.count = 0
@@ -100,6 +102,6 @@ class StemPendulumEnv(AbstractEnv):
 
 
 register(
-    id='stempendulum-v0',
-    entry_point='sofagym.env:StemPendulumEnv',
+    id='catchtheobject-v0',
+    entry_point='sofagym.env:CatchTheObject',
 )

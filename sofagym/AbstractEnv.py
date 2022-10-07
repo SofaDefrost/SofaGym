@@ -17,8 +17,8 @@ import os
 
 import splib3
 
-from sofagym.env.common.viewer import Viewer
-from sofagym.env.common.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
+from sofagym.viewer import Viewer
+from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
 
 
 class AbstractEnv(gym.Env):
