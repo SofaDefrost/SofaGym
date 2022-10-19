@@ -19,6 +19,7 @@ import threading
 import subprocess
 import queue
 from os.path import dirname, abspath
+import sys
 import copy
 import time
 
@@ -525,7 +526,7 @@ def start_scene(config, nb_actions):
     # Run the first client
     def deferredStart():
         sdict = str(config)
-        subprocess.run([config['python_version'], path+"sofagym/rpc_client.py", sdict, str(nb_actions), str(port_rpc)],
+        subprocess.run([sys.executable, path+"sofagym/rpc_client.py", sdict, str(nb_actions), str(port_rpc)],
                        check=True)
 
     first_worker_thread = threading.Thread(target=deferredStart)
