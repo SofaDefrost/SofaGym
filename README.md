@@ -1,7 +1,49 @@
 # SofaGym
 
 Software toolkit to easily create an OpenAI Gym environment out of any SOFA scene.
-The toolkit provides an API based on the standard OpenAI Gym API, allowing to train classical Reinforcement Learning algorithms. The toolkit also comprises example scenes based on the SoftRobots plugin for SOFA to illustrate how to include SOFA simulations and train learning algorithms on them.
+
+The toolkit provides an API based on the standard OpenAI Gym API, allowing to train classical Reinforcement Learning algorithms. 
+
+The toolkit also comprises example scenes based on the SoftRobots plugin for SOFA to illustrate how to include SOFA simulations and train learning algorithms on them.
+
+## Installation
+### Prerequisites
+
+* SofaGym need a Sofa [installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/)
+with some plugins :
+  * SofaPython3
+  * SPLIB
+  * STLIB
+  * SoftRobots
+  * BeamAdapter
+
+(SoftRobots.Inverse)
+(Cosserat)
+(MOR) -> need verification
+
+* SofaGym have some python requierements 
+  * requierements.txt
+  * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
+
+  ```bash
+  pip install stable-baselines3
+  ```
+* Some env use [Actor with Variance Estimated Critic (AVEC)](https://github.com/yfletberliac/actor-with-variance-estimated-critic)
+
+```bash
+export SOFA_ROOT=/sofa/build_dir/
+export PYTHONPATH=/sofa/build_dir/lib/python3/site-packages:$PYTHONPATH
+#export PYTHONPATH=/AVEC_dir/:$PYTHONPATH
+```
+
+### Install
+
+
+```bash
+python setup.py bdist_wheel
+pip install -v -e .
+```
+
 
 ## Usage
 
@@ -16,7 +58,7 @@ Example of use
 
 ```python
 import gym
-import sofagym.env
+import sofagym.envs
 
 env = gym.make('trunk-v0')
 env.reset()
