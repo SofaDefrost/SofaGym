@@ -17,9 +17,10 @@ with some plugins :
   * SoftRobots
   * BeamAdapter
 
-(SoftRobots.Inverse)
+for some example
+(SoftRobots.Inverse)->private ?
 (Cosserat)
-(MOR) -> need verification
+(Model order Reduction) -> need verification
 
 * SofaGym have some python requierements 
   * requierements.txt
