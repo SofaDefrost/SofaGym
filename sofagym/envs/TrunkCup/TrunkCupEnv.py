@@ -94,5 +94,5 @@ class TrunkCupEnv(AbstractEnv):
 
 register(
     id='trunkcup-v0',
-    entry_point='sofagym.env:TrunkCupEnv',
+    entry_point='sofagym.envs:TrunkCupEnv',
 )

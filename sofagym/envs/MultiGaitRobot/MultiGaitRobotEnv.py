@@ -107,5 +107,5 @@ class MultiGaitRobotEnv(AbstractEnv):
 
 register(
     id='multigaitrobot-v0',
-    entry_point='sofagym.env:MultiGaitRobotEnv',
+    entry_point='sofagym.envs:MultiGaitRobotEnv',
 )

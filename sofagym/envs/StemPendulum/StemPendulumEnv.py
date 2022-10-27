@@ -101,5 +101,5 @@ class StemPendulumEnv(AbstractEnv):
 
 register(
     id='stempendulum-v0',
-    entry_point='sofagym.env:StemPendulumEnv',
+    entry_point='sofagym.envs:StemPendulumEnv',
 )

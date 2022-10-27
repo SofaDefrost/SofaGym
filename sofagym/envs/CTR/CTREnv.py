@@ -146,5 +146,5 @@ class ConcentricTubeRobotEnv(AbstractEnv):
 
 register(
     id='concentrictuberobot-v0',
-    entry_point='sofagym.env:ConcentricTubeRobotEnv',
+    entry_point='sofagym.envs:ConcentricTubeRobotEnv',
 )

@@ -18,7 +18,7 @@ import time
 import gym
 
 from sofagym import *
-from sofagym.envs import GripperEnv
+from sofagym.envs import *
 RANDOM = False
 
 import psutil
@@ -31,7 +31,7 @@ __import__('sofagym')
 name = ['multigaitrobot-v0',
         'gripper-v0', 'trunk-v0', 'trunkcup-v0', 'diamondrobot-v0',
         'maze-v0', 'simple_maze-v0', 'concentrictuberobot-v0']
-num = 1
+num = 2
 env_name = name[num]
 print("Start env ", env_name)
 

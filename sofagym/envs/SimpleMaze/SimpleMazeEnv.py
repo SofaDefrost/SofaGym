@@ -135,5 +135,5 @@ class SimpleMazeEnv(AbstractEnv):
 
 register(
     id='simple_maze-v0',
-    entry_point='sofagym.env:SimpleMazeEnv',
+    entry_point='sofagym.envs:SimpleMazeEnv',
 )

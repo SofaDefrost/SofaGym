@@ -114,5 +114,5 @@ class CartStemContactEnv(AbstractEnv):
 
 register(
     id='cartstemcontact-v0',
-    entry_point='sofagym.env:CartStemContactEnv',
+    entry_point='sofagym.envs:CartStemContactEnv',
 )

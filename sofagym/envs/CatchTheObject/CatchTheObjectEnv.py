@@ -103,5 +103,5 @@ class CatchTheObject(AbstractEnv):
 
 register(
     id='catchtheobject-v0',
-    entry_point='sofagym.env:CatchTheObject',
+    entry_point='sofagym.envs:CatchTheObject',
 )

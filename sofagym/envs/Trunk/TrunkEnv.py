@@ -95,5 +95,5 @@ class TrunkEnv(AbstractEnv):
 
 register(
     id='trunk-v0',
-    entry_point='sofagym.env:TrunkEnv',
+    entry_point='sofagym.envs:TrunkEnv',
 )

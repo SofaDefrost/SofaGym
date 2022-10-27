@@ -102,5 +102,5 @@ class BubbleMotionEnv(AbstractEnv):
 
 register(
     id='bubblemotion-v0',
-    entry_point='sofagym.env:BubbleMotionEnv',
+    entry_point='sofagym.envs:BubbleMotionEnv',
 )

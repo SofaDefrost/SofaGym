@@ -95,5 +95,5 @@ class MazeEnv(AbstractEnv):
 
 register(
     id='maze-v0',
-    entry_point='sofagym.env:MazeEnv',
+    entry_point='sofagym.envs:MazeEnv',
 )

@@ -107,5 +107,5 @@ class CartStemEnv(AbstractEnv):
 
 register(
     id='cartstem-v0',
-    entry_point='sofagym.env:CartStemEnv',
+    entry_point='sofagym.envs:CartStemEnv',
 )

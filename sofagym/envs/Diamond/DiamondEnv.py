@@ -126,5 +126,5 @@ class DiamondRobotEnv(AbstractEnv):
 
 register(
     id='diamondrobot-v0',
-    entry_point='sofagym.env:DiamondRobotEnv',
+    entry_point='sofagym.envs:DiamondRobotEnv',
 )
