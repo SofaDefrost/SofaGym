@@ -58,8 +58,7 @@ def createScene(root, config={"source": [0, 1000, 0],
     if True:
         root.addObject('DefaultPipeline')
         root.addObject('BruteForceDetection')
-        root.addObject('RuleBasedContactManager', responseParams="mu=0.0001", name='Response',
-                       response='FrictionContact')
+        root.addObject('RuleBasedContactManager', responseParams="mu=0.0001", name='Response', response='FrictionContactConstraint')
         root.addObject('LocalMinDistance', alarmDistance=6, contactDistance=0.1, angleCone=0.01)
         root.addObject('FreeMotionAnimationLoop')
         root.addObject('GenericConstraintSolver', tolerance="1e-6", maxIterations="1000")

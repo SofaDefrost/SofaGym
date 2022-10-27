@@ -67,7 +67,7 @@ def add_visuals_and_solvers(root, config, mode_simu=True, mode_visu=True):
 
         root.addObject('GenericConstraintSolver', maxIterations=500, tolerance=1e-8)
         root.addObject('BruteForceDetection', name="N2")
-        root.addObject('DefaultContactManager', name='Response', response="FrictionContact")
+        root.addObject('DefaultContactManager', name='Response', response="FrictionContactConstraint")
         root.addObject('LocalMinDistance', contactDistance=0.1, alarmDistance=1.0, name='localmindistance',
                        angleCone=0.2)
 

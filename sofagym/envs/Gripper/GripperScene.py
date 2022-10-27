@@ -62,7 +62,7 @@ def add_visuals_and_solvers(root, config, visu, simu):
         root.addObject('BruteForceDetection')
         root.addObject('LocalMinDistance', contactDistance=5.0, alarmDistance=10.0, name='localmindistance',
                        angleCone=0.2)
-        root.addObject('DefaultContactManager', name='Response', response='FrictionContact')
+        root.addObject('DefaultContactManager', name='Response', response='FrictionContactConstraint')
 
         root.addObject(AnimationManagerController(name="AnimationManager"))
 

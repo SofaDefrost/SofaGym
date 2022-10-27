@@ -143,7 +143,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 		rootNode.addObject('FreeMotionAnimationLoop')
 		rootNode.addObject('DefaultPipeline', verbose=0)
 		rootNode.addObject('BruteForceDetection', name="N2")
-		rootNode.addObject('DefaultContactManager', response="FrictionContact", responseParams="mu=0.8")
+		rootNode.addObject('DefaultContactManager', response="FrictionContactConstraint", responseParams="mu=0.8")
 		rootNode.addObject('LocalMinDistance', name="Proximity", alarmDistance=2, contactDistance=0.5, angleCone=0, coneFactor=0.5)
 
 	if visu:

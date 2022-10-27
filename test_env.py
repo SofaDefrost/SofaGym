@@ -28,10 +28,15 @@ py = psutil.Process(pid)
 sys.path.insert(0, os.getcwd()+"/..")
 
 __import__('sofagym')
-name = ['multigaitrobot-v0',
-        'gripper-v0', 'trunk-v0', 'trunkcup-v0', 'diamondrobot-v0',
-        'maze-v0', 'simple_maze-v0', 'concentrictuberobot-v0']
-num = 2
+name = ['multigaitrobot-v0',#[ERROR]   [RequiredPlugin(ModelOrderReduction)] Plugin not found: "ModelOrderReduction"
+        'gripper-v0',       #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
+        'trunk-v0',         #error
+        'trunkcup-v0',      #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
+        'diamondrobot-v0',  #[ERROR]   [SofaRuntime] TypeError: Animation.__init__() got an unexpected keyword argument 'realTimeClock'
+        'maze-v0',          #[ERROR]   [SofaRuntime] NotImplementedError: Importing your SOFA Scene Failed
+        'simple_maze-v0',   #[ERROR]   [SofaRuntime] ValueError: Object type Sphere<> was not created 
+        'concentrictuberobot-v0']   #[ERROR]   [SofaRuntime] TypeError: Animation.__init__() got an unexpected keyword argument 'realTimeClock'
+num = 3
 env_name = name[num]
 print("Start env ", env_name)
 
@@ -124,7 +129,7 @@ for i in range(10000000):
 
         action = strat_multi[idx-1]
         start_time = time.time()
-        state, reward, done, _ = env.step(action)
+        state, reward, done, _ = env.step(4)
         step_time = time.time()-start_time
         print("[INFO]   >>> Time:", step_time)
         rtf = env.config["dt"]*env.config["scale_factor"]/step_time
