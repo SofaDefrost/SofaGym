@@ -1,6 +1,6 @@
 # SofaGym
 
-Software toolkit to easily create an OpenAI Gym environment out of any SOFA scene.
+Software toolkit to easily create an [OpenAI Gym](https://github.com/openai/gym) environment out of any [SOFA](https://github.com/sofa-framework/sofa) scene.
 
 The toolkit provides an API based on the standard OpenAI Gym API, allowing to train classical Reinforcement Learning algorithms. 
 
@@ -9,42 +9,53 @@ The toolkit also comprises example scenes based on the SoftRobots plugin for SOF
 ## Installation
 ### Prerequisites
 
-* SofaGym need a Sofa [installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/)
-with some plugins :
-  * SofaPython3
-  * SPLIB
-  * STLIB
-  * SoftRobots
-  * BeamAdapter
+#### 1) SofaGym need a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.06
+with some mandatory plugins :
+* [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
+* [BeamAdapter](https://github.com/sofa-framework/BeamAdapter) (fetchable within sofa)
+* [SPLIB](https://github.com/SofaDefrost/SPLIB)
+* [STLIB](https://github.com/SofaDefrost/STLIB)
+* [SoftRobots](https://github.com/SofaDefrost/SoftRobots)
 
-for some example
-(SoftRobots.Inverse)->private ?
-(Cosserat)
-(Model order Reduction) -> need verification
+and optional plugins (for some examples): 
+* [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction)
 
-* SofaGym have some python requierements 
-  * requierements.txt
-  * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
+[comment]: <> (SoftRobots.Inverseand Cosserat)
 
-  ```bash
-  pip install stable-baselines3
-  ```
-* Some env use [Actor with Variance Estimated Critic (AVEC)](https://github.com/yfletberliac/actor-with-variance-estimated-critic)
+[Plugins installation](https://www.sofa-framework.org/community/doc/plugins/build-a-plugin-from-sources/#in-tree-build) with a in-tree build is preferred.
 
+
+
+#### 2) SofaGym python requierements :
+We use python3.
+mandatory : 
 ```bash
-export SOFA_ROOT=/sofa/build_dir/
-export PYTHONPATH=/sofa/build_dir/lib/python3/site-packages:$PYTHONPATH
-#export PYTHONPATH=/AVEC_dir/:$PYTHONPATH
+pip install gym psutil pygame glfw pyopengl imageio
 ```
+* requierements.txt
+* [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
+optional :
+* [Actor with Variance Estimated Critic (AVEC)](https://github.com/yfletberliac/actor-with-variance-estimated-critic)
+
+
 
 ### Install
-
-
 ```bash
 python setup.py bdist_wheel
 pip install -v -e .
 ```
 
+
+
+## Quick start
+
+```bash
+export SOFA_ROOT=/sofa/build_dir/
+export PYTHONPATH=/sofa/build_dir/lib/python3/site-packages:$PYTHONPATH
+```
+```python
+import sofagym
+```
 
 ## Usage
 
