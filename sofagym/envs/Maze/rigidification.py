@@ -29,7 +29,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
 import Sofa
-from stlib3.splib.numerics import Vec3, Quat
+from splib3.numerics import Vec3, Quat
 
 
 def Rigidify(targetObject, sourceObject, groupIndices, frames=None, name=None, frameOrientation=None):

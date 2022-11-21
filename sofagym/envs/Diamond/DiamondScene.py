@@ -17,7 +17,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from DiamondToolbox import rewardShaper, goalSetter
 
-from splib.animation import AnimationManagerController
+from splib3.animation import AnimationManagerController
 
 path = dirname(abspath(__file__))+'/mesh/'
 
@@ -71,7 +71,7 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
     rootNode.addObject('FreeMotionAnimationLoop')
     rootNode.addObject('GenericConstraintSolver', maxIterations=500, tolerance=1e-8)
 
-    rootNode.addObject(AnimationManagerController(name="AnimationManager"))
+    rootNode.addObject(AnimationManagerController(rootNode))
 
     # goal
     goal = rootNode.addChild('goal')

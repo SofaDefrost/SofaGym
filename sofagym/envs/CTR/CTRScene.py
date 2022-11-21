@@ -18,7 +18,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from os.path import dirname, abspath
 import SofaRuntime
-from splib.animation import AnimationManagerController
+from splib3.animation import AnimationManagerController
 
 from CTRToolbox import RewardShaper, GoalSetter
 
@@ -71,7 +71,7 @@ def add_visuals_and_solvers(root, config, mode_simu=True, mode_visu=True):
         root.addObject('LocalMinDistance', contactDistance=0.1, alarmDistance=1.0, name='localmindistance',
                        angleCone=0.2)
 
-        root.addObject(AnimationManagerController(name="AnimationManager"))
+        root.addObject(AnimationManagerController(root))
 
     return root, lcp_solver
 

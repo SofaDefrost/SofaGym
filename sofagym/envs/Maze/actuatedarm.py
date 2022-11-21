@@ -13,10 +13,10 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-from stlib3.splib.numerics import vec3
-from stlib3.splib.objectmodel import *
-from stlib3.stlib.visuals import VisualModel
-from stlib3.stlib.components import addOrientedBoxRoi
+from splib3.numerics import vec3
+from splib3.objectmodel import *
+from stlib3.visuals import VisualModel
+from stlib3.components import addOrientedBoxRoi
 
 from s90servo import ServoMotor
 

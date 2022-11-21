@@ -2,11 +2,11 @@
 """Toolbox: compute reward, create scene, ...
 """
 
-__authors__ = "PSC"
-__contact__ = "pierre.schegg@robocath.com"
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
-__copyright__ = "(c) 2021, Robocath, CNRS, Inria"
-__date__ = "Dec 01 2021"
+__copyright__ = "(c) 2020, Inria"
+__date__ = "Oct 7 2020"
 
 import numpy as np
 
@@ -15,7 +15,6 @@ import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
 from splib3.animation.animate import Animation
-
 
 SofaRuntime.importPlugin("SofaComponentAll")
 
@@ -75,13 +74,12 @@ class rewardShaper(Sofa.Core.Controller):
             The reward and the cost.
 
         """
-        tip = self.rootNode.Robot.Actuators.actuatedPoints.position[0]
-        current_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
+        trunkTips = self._computeTips()
+        current_dist = np.linalg.norm(np.array(trunkTips)-np.array(self.goal_pos))
         reward = max((self.prev_dist - current_dist)/self.prev_dist, 0)
-        if current_dist < self.prev_dist:
-            self.prev_dist = current_dist
+        self.prev_dist = current_dist
 
-        return min(3*reward**(1/2), 1.0), current_dist
+        return min(reward**(1/2), 1.0), current_dist
 
     def update(self):
         """Update function.
@@ -98,9 +96,29 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
 
-        tip = self.rootNode.Robot.Actuators.actuatedPoints.position[0]
-        self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
+        trunkTips = self._computeTips()
+        self.init_dist = np.linalg.norm(np.array(trunkTips)-np.array(self.goal_pos))
         self.prev_dist = self.init_dist
+
+    def _computeTips(self):
+        """Compute the position of the tip.
+
+        Parameters:
+        ----------
+            None.
+
+        Return:
+        ------
+            The position of the tip.
+        """
+        cables = self.rootNode.trunk.cables[:4]
+        size = len(cables)
+
+        trunkTips = np.zeros(3)
+        for cable in cables:
+            trunkTips += cable.meca.position[-1]/size
+
+        return trunkTips
 
 
 class goalSetter(Sofa.Core.Controller):
@@ -135,9 +153,6 @@ class goalSetter(Sofa.Core.Controller):
         """
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
-        self.rootNode = None
-        if kwargs["rootNode"]:
-            self.rootNode = kwargs["rootNode"]
         self.goalMO = None
         if kwargs["goalMO"]:
             self.goalMO = kwargs["goalMO"]
@@ -160,7 +175,7 @@ class goalSetter(Sofa.Core.Controller):
 
         """
         with self.goalMO.position.writeable() as position:
-            position[0] = self.goalPos
+            position += self.goalPos
 
     def set_mo_pos(self, goal):
         """Modify the goal.
@@ -170,7 +185,7 @@ class goalSetter(Sofa.Core.Controller):
         pass
 
 
-def _getGoalPos(root):
+def _getGoalPos(rootNode):
     """Get XYZ position of the goal.
 
     Parameters:
@@ -182,10 +197,10 @@ def _getGoalPos(root):
     -------
         The position of the goal.
     """
-    return root.goal.goalMO.position[0]
+    return rootNode.Goal.GoalMO.position[0]
 
 
-def getState(root):
+def getState(rootNode):
     """Compute the state of the environment/agent.
 
     Parameters:
@@ -198,7 +213,23 @@ def getState(root):
         State: list of float
             The state of the environment/agent.
     """
-    state = root.Robot.Actuators.actuatedPoints.position.value.tolist()
+    cs = 3
+
+    cables = rootNode.trunk.cables[:4]
+    nb_point = cables[0].meca.position.shape[0]
+
+    points = []
+    for i in range(nb_point):
+        point = np.zeros(3)
+        for cable in cables:
+            c = cable.meca.position[i]
+            point += c
+        point = [round(float(k), cs)/4 for k in point]
+        points += point
+
+    goalPos = _getGoalPos(rootNode).tolist()
+
+    state = points + goalPos
 
     return state
 
@@ -219,7 +250,7 @@ def getReward(root):
 
     reward, cost = root.Reward.getReward()
 
-    if cost <= 5.0:
+    if cost <= 1.0:
         return True, reward
 
     return False, reward
@@ -242,43 +273,39 @@ def startCmd(root, action, duration):
         None.
 
     """
-    cable_num, cable_disp = action_to_command(action)
-    startCmd_Diamond(root, (cable_num, cable_disp), duration)
+    num_cable, displacement = action_to_command(action)
+    startCmd_Trunk(root, root.trunk.cables[num_cable], displacement, duration)
 
 
-def displace(root, displacement, n_steps):
-    """Change the value of the angle.
+def displace(cable, displacement):
+    """Change the value of the cable in the finger.
 
     Parameters:
     ----------
-        acuator:
-            The motor we consider.
-        displacement: int
-            The increment for the angle.
+        fingers:
+            The finger.
+        displacement: float
+            The displacement.
 
     Returns:
     -------
         None.
+
     """
-
-    cable_num, cable_disp = displacement
-    cables = [root.Robot.Actuators.north, root.Robot.Actuators.west, root.Robot.Actuators.south,
-              root.Robot.Actuators.east]
-    cable = cables[cable_num - 1]
-    cable.value += cable_disp/n_steps
+    cable.cable.value = [cable.cable.value[0] + displacement]
 
 
-def startCmd_Diamond(root, displacement, duration):
+def startCmd_Trunk(rootNode, cable, displacement, duration):
     """Initialize the command.
 
     Parameters:
     ----------
         rootNode: <Sofa.Core>
-            The root.
-        acuator:
-            The motor we consider.
-        displacement: int
-            The increment for the angle.
+            The scene.
+        cable: <MechanicalObject>
+            The mechanical object of the cable to move.
+        displacement: float
+            The elements of the commande.
         duration: float
             Duration of the animation.
 
@@ -288,17 +315,16 @@ def startCmd_Diamond(root, displacement, duration):
     """
 
     # Definition of the elements of the animation
-    def executeAnimation(root, displacement, n_steps, factor):
-        displace(root, displacement, n_steps)
+    def executeAnimation(cable, displacement, factor):
+        displace(cable, displacement)
 
     # Add animation in the scene
-    root.AnimationManager.addAnimation(
+    rootNode.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"root": root,
-                    "displacement": displacement,
-                    "n_steps": duration},
-            duration=duration, mode="once"))#, realTimeClock=False
+            params={"cable": cable,
+                    "displacement": displacement},
+            duration=duration, mode="once", realTimeClock=False))
 
 
 def action_to_command(action):
@@ -314,23 +340,41 @@ def action_to_command(action):
         The command (number of the cabl and its displacement).
     """
     if action == 0:
-        return 1, 0.05
+        num_cable, displacement = 0, 1
     elif action == 1:
-        return 1, -0.05
+        num_cable, displacement = 1, 1
     elif action == 2:
-        return 2, 0.05
+        num_cable, displacement = 2, 1
     elif action == 3:
-        return 2, -0.05
+        num_cable, displacement = 3, 1
     elif action == 4:
-        return 3, 0.05
+        num_cable, displacement = 4, 1
     elif action == 5:
-        return 3, -0.05
+        num_cable, displacement = 5, 1
     elif action == 6:
-        return 4, 0.05
+        num_cable, displacement = 6, 1
     elif action == 7:
-        return 4, -0.05
+        num_cable, displacement = 7, 1
+    elif   action == 8:
+        num_cable, displacement = 0, -1
+    elif action == 9:
+        num_cable, displacement = 1, -1
+    elif action == 10:
+        num_cable, displacement = 2, -1
+    elif action == 11:
+        num_cable, displacement = 3, -1
+    elif action == 12:
+        num_cable, displacement = 4, -1
+    elif action == 13:
+        num_cable, displacement = 5, -1
+    elif action == 14:
+        num_cable, displacement = 6, -1
+    elif action == 15:
+        num_cable, displacement = 7, -1
     else:
-        raise NotImplementedError("Action is not in range 0 - 7")
+        raise NotImplementedError("Action must be in range 0 - 15")
+
+    return num_cable, displacement
 
 
 def getPos(root):
@@ -346,7 +390,7 @@ def getPos(root):
         _: list
             The position(s) of the object(s) of the scene.
     """
-    return
+    return root.Simulation.Trunk.dofs.position.value.tolist()
 
 
 def setPos(root, pos):
@@ -368,4 +412,4 @@ def setPos(root, pos):
         Don't forget to init the new value of the position.
 
     """
-    return
+    root.Simulation.Trunk.dofs.position.value = np.array(pos)

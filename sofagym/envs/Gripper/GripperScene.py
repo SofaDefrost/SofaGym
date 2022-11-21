@@ -3,7 +3,7 @@ import os
 import SofaRuntime
 import numpy as np
 
-from splib.animation import AnimationManagerController
+from splib3.animation import AnimationManagerController
 
 
 import sys
@@ -59,12 +59,14 @@ def add_visuals_and_solvers(root, config, visu, simu):
         root.addObject('FreeMotionAnimationLoop')
         root.addObject('GenericConstraintSolver', tolerance=1e-6, maxIterations=1000)
         root.addObject('DefaultPipeline', draw=False, depth=6, verbose=False)
-        root.addObject('BruteForceDetection')
+        root.addObject('BruteForceBroadPhase')
+        root.addObject('BVHNarrowPhase')
+    
         root.addObject('LocalMinDistance', contactDistance=5.0, alarmDistance=10.0, name='localmindistance',
                        angleCone=0.2)
         root.addObject('DefaultContactManager', name='Response', response='FrictionContactConstraint')
 
-        root.addObject(AnimationManagerController(name="AnimationManager"))
+        root.addObject(AnimationManagerController(root))
 
     return root
 
@@ -184,3 +186,41 @@ def createScene(root, config={"source": [-600.0, -25, 100],
 
     root = create_scene(root, config, visu=visu, simu=simu)
     return root
+
+
+def main():
+    import SofaRuntime
+    import Sofa.Gui
+    SofaRuntime.importPlugin("SofaOpenglVisual")
+    SofaRuntime.importPlugin("CImgPlugin")
+    SofaRuntime.importPlugin("SofaBaseMechanics")
+    SofaRuntime.importPlugin("SofaImplicitOdeSolver")
+
+
+    for i in range (6000):
+        root=Sofa.Core.Node("root")
+        createScene(root)
+        Sofa.Simulation.init(root)
+
+        # Run the simulation for 10 steps
+        for iteration in range(10):
+            Sofa.Simulation.animate(root, root.dt.value)
+
+        print("Simulation N°",i)
+
+    Sofa.Simulation.init(root)
+
+
+
+
+    Sofa.Gui.GUIManager.Init("myscene", "qglviewer")
+    Sofa.Gui.GUIManager.createGUI(root, __file__)
+    Sofa.Gui.GUIManager.SetDimension(1080, 1080)
+    Sofa.Gui.GUIManager.MainLoop(root)
+    Sofa.Gui.GUIManager.closeGUI()
+
+    print("End of simulation.")
+
+
+if __name__ == '__main__':
+    main()

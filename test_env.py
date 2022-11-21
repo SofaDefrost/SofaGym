@@ -32,11 +32,11 @@ name = ['multigaitrobot-v0',#[ERROR]   [RequiredPlugin(ModelOrderReduction)] Plu
         'gripper-v0',       #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
         'trunk-v0',         #error
         'trunkcup-v0',      #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
-        'diamondrobot-v0',  #[ERROR]   [SofaRuntime] TypeError: Animation.__init__() got an unexpected keyword argument 'realTimeClock'
+        'diamondrobot-v0',  # WORKING, only deprecated feature left
         'maze-v0',          #[ERROR]   [SofaRuntime] NotImplementedError: Importing your SOFA Scene Failed
         'simple_maze-v0',   #[ERROR]   [SofaRuntime] ValueError: Object type Sphere<> was not created 
-        'concentrictuberobot-v0']   #[ERROR]   [SofaRuntime] TypeError: Animation.__init__() got an unexpected keyword argument 'realTimeClock'
-num = 3
+        'concentrictuberobot-v0']  # WORKING, only deprecated feature left. Can crash with solver error=-nan
+num = 1
 env_name = name[num]
 print("Start env ", env_name)
 
@@ -128,8 +128,9 @@ for i in range(10000000):
         #CartStem [rd.uniform(-1, 1)]
 
         action = strat_multi[idx-1]
+        action = env.action_space.sample()
         start_time = time.time()
-        state, reward, done, _ = env.step(4)
+        state, reward, done, _ = env.step(action)
         step_time = time.time()-start_time
         print("[INFO]   >>> Time:", step_time)
         rtf = env.config["dt"]*env.config["scale_factor"]/step_time

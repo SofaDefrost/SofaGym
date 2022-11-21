@@ -15,8 +15,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
-
-from stlib3.splib.objectmodel import *
+from splib3.objectmodel import *
 import os
 mesh_path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
 
@@ -83,7 +82,7 @@ class ServoMotor(SofaObject):
 
     def __init__(self, parent, translation=[0.0, 0.0, 0.0], rotation=[0.0, 0.0, 0.0], scale=[1.0, 1.0, 1.0],
                  showServo=True, showWheel=False, indice=0):
-
+        self.node.addObject(RequiredPlugin name='ArticulatedSystemPlugin)
         self.node = parent.addChild("ServoMotor")
 
         # The inputs

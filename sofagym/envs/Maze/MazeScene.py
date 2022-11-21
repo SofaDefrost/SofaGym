@@ -15,11 +15,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
-from stlib3.stlib.physics.deformable import ElasticMaterialObject
-from stlib3.splib.objectmodel import SofaPrefab, SofaObject
-from stlib3.splib.numerics import *
-from stlib3.stlib.components import addOrientedBoxRoi
-from stlib3.stlib.physics.collision import CollisionMesh
+from stlib3.physics.deformable import ElasticMaterialObject
+from splib3.objectmodel import SofaPrefab, SofaObject
+from splib3.numerics import *
+from stlib3.components import addOrientedBoxRoi
+from stlib3.physics.collision import CollisionMesh
 
 from actuatedarm import ActuatedArm
 from rigidification import Rigidify
@@ -45,13 +45,13 @@ class Tripod(SofaObject):
                  rotation=[0.0, 0.0, 0.0]):
         self.node = parent.addChild(name)
         self.node.addChild("ElasticBody")
-        ElasticMaterialObject(self.node.ElasticBody, name="ElasticMaterialObject", translation=translation,
+        self.node.addChild(ElasticMaterialObject(self.node.ElasticBody, name="ElasticMaterialObject", translation=translation,
                               rotation=rotation, volumeMeshFileName=path_mesh + "tripod_coarse_04_test.vtk",
-                              youngModulus=1200, poissonRatio=0.45, totalMass=0.032)
+                              youngModulus=1200, poissonRatio=0.45, totalMass=0.032))
 
         self.translation = translation
         self.rotation = rotation
-        self.body = self.node.ElasticBody.ElasticMaterialObject
+        self.body = self.node.ElasticMaterialObject
 
         dist = radius
         numstep = numMotors
@@ -182,7 +182,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
                                                                          'SofaGeneralEngine', 'SofaGeneralRigid',
                                                                          'SofaImplicitOdeSolver', 'SofaLoader',
                                                                          'SofaMeshCollision', 'SofaMiscMapping',
-                                                                         'SofaRigid', 'SofaSimpleFem'])
+                                                                         'SofaRigid', 'SofaSimpleFem','ArticulatedSystemPlugin'])
 
     # VISU ###################
     if visu:
@@ -194,7 +194,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     scene.addObject('DefaultPipeline')
     scene.addObject('BruteForceDetection')
     scene.addObject('RuleBasedContactManager', responseParams="mu="+str(0.1), name='Response',
-                    response='FrictionContact')
+                    response='FrictionContactConstraint')
     scene.addObject('LocalMinDistance', alarmDistance=2, contactDistance=0.2, angleCone=0, coneFactor=0.5)
     rootNode.addObject('BackgroundSetting', color=[1, 1, 1, 1])
     # TRIPOD #################

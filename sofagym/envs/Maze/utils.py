@@ -7,8 +7,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
 
-from stlib3.stlib.scene import Scene as stScene
-from stlib3.splib.objectmodel import setData
+from stlib3.scene import Scene as stScene
+from splib3.objectmodel import setData
 
 
 def Modelling(parent):
