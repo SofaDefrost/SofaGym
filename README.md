@@ -20,7 +20,7 @@ with some mandatory plugins :
 and optional plugins (for some examples): 
 * [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction)
 
-[comment]: <> (SoftRobots.Inverseand Cosserat)
+[comment]: <> (SoftRobots.Inverse and Cosserat)
 
 [Plugins installation](https://www.sofa-framework.org/community/doc/plugins/build-a-plugin-from-sources/#in-tree-build) with a in-tree build is preferred.
 
