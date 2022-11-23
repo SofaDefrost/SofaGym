@@ -28,14 +28,14 @@ py = psutil.Process(pid)
 sys.path.insert(0, os.getcwd()+"/..")
 
 __import__('sofagym')
-name = ['multigaitrobot-v0',#[ERROR]   [RequiredPlugin(ModelOrderReduction)] Plugin not found: "ModelOrderReduction"
-        'gripper-v0',       #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
-        'trunk-v0',         #error
-        'trunkcup-v0',      #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
-        'diamondrobot-v0',  # WORKING, only deprecated feature left
-        'maze-v0',          #[ERROR]   [SofaRuntime] NotImplementedError: Importing your SOFA Scene Failed
-        'simple_maze-v0',   #[ERROR]   [SofaRuntime] ValueError: Object type Sphere<> was not created 
-        'concentrictuberobot-v0']  # WORKING, only deprecated feature left. Can crash with solver error=-nan
+name = ['multigaitrobot-v0',
+        'gripper-v0',       
+        'trunk-v0',         
+        'trunkcup-v0',      
+        'diamondrobot-v0',  
+        'maze-v0',          
+        'simple_maze-v0',   
+        'concentrictuberobot-v0']
 num = 1
 env_name = name[num]
 print("Start env ", env_name)
