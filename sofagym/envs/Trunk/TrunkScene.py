@@ -195,7 +195,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
                            response='FrictionContactConstraint')
         rootNode.addObject('LocalMinDistance', alarmDistance=10, contactDistance=5, angleCone=0.01)
 
-        rootNode.addObject(AnimationManagerController(name="AnimationManager"))
+        rootNode.addObject(AnimationManagerController(rootNode))
 
         rootNode.gravity.value = [0., -9810., 0.]
 

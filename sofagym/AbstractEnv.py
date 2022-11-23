@@ -8,8 +8,8 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Robocath, CNRS, Inria"
 __date__ = "Oct 7 2020"
 
-import gym
-from gym.utils import seeding
+import gymnasium as gym
+from gymnasium.utils import seeding
 
 import numpy as np
 import copy
@@ -147,7 +147,7 @@ class AbstractEnv(gym.Env):
         self.goal = None
         self.past_actions = []
 
-
+        
         self.num_envs = 40
 
         self.np_random = None
@@ -156,6 +156,7 @@ class AbstractEnv(gym.Env):
 
         self.viewer = None
         self.automatic_rendering_callback = None
+        
 
         self.timer = 0
         self.timeout = self.config["timeout"]
@@ -281,13 +282,20 @@ class AbstractEnv(gym.Env):
 
         Returns:
         -------
-            obs:
+            obs(ObsType):
                 The new state of the agent.
-            reward:
+            reward(float):
                 The reward obtain after applying the action in the current state.
-            done:
+            terminated(bool):
+                Whether the agent reaches the terminal state
+            truncated(bool):
+                Whether the truncation condition outside the scope of the MDP is satisfied. 
+                Typically, this is a timelimit, but could also be used to indicate an agent physically going out of bounds.
+            info(dict): 
+                additional information (not used here)
+            done(bool)(Deprecated):
                 Whether the goal is reached or not.
-            {}: additional information (not used here)
+            
         """
 
         # assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -301,20 +309,22 @@ class AbstractEnv(gym.Env):
         # Request results from the server.
         # print("[INFO]   >>> Result id:", result_id)
         results = get_result(result_id, timeout=self.timeout)
+
         obs = np.array(results["observation"])  # to work with baseline
         reward = results["reward"]
-        done = results["done"]
+        terminated = results["done"]
 
         # Avoid long explorations by using a timer.
+        truncated = False
         self.timer += 1
         if self.timer >= self.config["timer_limit"]:
             # reward = -150
-            done = True
+            truncated = True
+        info={}#(not use here)
 
         if self.config["planning"]:
             self.clean()
-
-        return obs, reward, done, {}
+        return obs, reward, terminated, truncated, info
 
     def async_step(self, action):
         """Executes one action in the environment.
@@ -363,7 +373,7 @@ class AbstractEnv(gym.Env):
 
         Returns:
         -------
-            None.
+            obs, info
 
         """
         self.close()
@@ -380,8 +390,8 @@ class AbstractEnv(gym.Env):
 
         self.timer = 0
         self.past_actions = []
-
-        return
+        
+        return 
 
     def render(self, mode='rgb_array'):
         """See the current state of the environment.

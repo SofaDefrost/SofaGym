@@ -138,6 +138,17 @@ It is possible to define new environments using SofaGym. For this purpose differ
 These different elements make it possible to create and personalise the task to be performed. See examples of environments for implementation.
 
 ## The environments
+```
+dev status:
+* multigaitrobot-v0 [ERROR]   [RequiredPlugin(ModelOrderReduction)] Plugin not found: "ModelOrderReduction"
+* gripper-v0 [ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
+* trunk-v0         #error
+* trunkcup-v0      #[ERROR]   [TetrahedronSetTopologyContainer(container)] Cannot find edge
+* diamondrobot-v0  #WORKING, only deprecated feature left
+* maze-v0          #[ERROR]   [SofaRuntime] NotImplementedError: Importing your SOFA Scene Failed
+* simple_maze-v0   #[ERROR]   [SofaRuntime] ValueError: Object type Sphere<> was not created 
+* concentrictuberobot-v0 #WORKING, only deprecated feature left. Can crash with solver error=-nan
+```
 
 ### Gripper
 

@@ -11,9 +11,9 @@ __date__ = "Oct 7 2020"
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 
-from gym import spaces
+from gymnasium import spaces
 import os
 import sys
 import numpy as np
@@ -57,8 +57,7 @@ class TrunkEnv(AbstractEnv):
         dim_state = 66
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
 
     def step(self, action):
         return super().step(action)
