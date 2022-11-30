@@ -29,8 +29,7 @@ def Finger(rootNode, fixingBox, visu, simu, pullPointLocation, control1='1', con
 
     model.addObject('MeshVTKLoader', name='loader', filename=VolumetricMeshPath, scale3d=[1, 1, 1],
                     translation=translation, rotation=rotation)
-    model.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
-
+    model.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra")
     model.addObject('TetrahedronSetTopologyModifier')
     model.addObject('TetrahedronSetGeometryAlgorithms', template='Vec3d')
 
