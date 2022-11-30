@@ -16,6 +16,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
 from splib3.objectmodel import *
+from stlib3.scene import Scene
 import os
 mesh_path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
 
@@ -82,9 +83,9 @@ class ServoMotor(SofaObject):
 
     def __init__(self, parent, translation=[0.0, 0.0, 0.0], rotation=[0.0, 0.0, 0.0], scale=[1.0, 1.0, 1.0],
                  showServo=True, showWheel=False, indice=0):
-        self.node.addObject(RequiredPlugin name='ArticulatedSystemPlugin)
+        
         self.node = parent.addChild("ServoMotor")
-
+        
         # The inputs
         self.node.addData(name="minAngle", group="S90Properties", help="min angle of rotation (in radians)",
                           type="float", value=-100)
@@ -103,10 +104,13 @@ class ServoMotor(SofaObject):
 
         # Angle of the wheel
         angle = self.node.addChild("Angle")
+        angle.addObject('RequiredPlugin', name='ArticulatedSystemPlugin')
         angle.addObject("MechanicalObject", name="dofs", template="Vec1d",
                         position=self.node.getData("angleIn").getLinkPath())
         # This component is used to constrain the angle to lie between a maximum and minimum value,
         # corresponding to the limit of the real servomotor
+        
+        
         angle.addObject("ArticulatedHierarchyContainer")
         angle.addObject("ArticulatedSystemMapping", input1=angle.dofs.getLinkPath(),
                         output=baseFrame.dofs.getLinkPath())
@@ -136,7 +140,6 @@ class ServoMotor(SofaObject):
 
 
 def createScene(rootNode):
-
     import math
 
     def animation(target, factor):
@@ -160,3 +163,8 @@ def createScene(rootNode):
     animate(animation, {"target": simulation.ServoMotor}, duration=5., mode="loop")
 
     return rootNode
+
+
+if __name__ == '__main__':
+    print("s90servo test")
+

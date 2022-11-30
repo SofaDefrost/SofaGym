@@ -19,8 +19,8 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-from common.header import addHeader as header
-from common.header import addVisu as visu
+from sofagym.header import addHeader as header
+from sofagym.header import addVisu as visu
 
 from CartStem import CartStem
 from CartStemToolbox import rewardShaper, sceneModerator, applyAction, goalSetter

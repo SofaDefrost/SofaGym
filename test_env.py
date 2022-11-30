@@ -164,3 +164,51 @@ strat_jimmy_0 = [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                  [-0.8, 0.2, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0]] + [[-0.8, 0.2, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0]]*100
 
 '''
+print("Start ...")
+for i in range(10000000):
+    print("\n--------------------------------")
+    print("EPISODE - ", i)
+    print("--------------------------------\n")
+    idx = 0
+    tot_reward = 0
+    tot_rtf = 0
+    done = False
+    while not done and idx < 100:
+        idx += 1
+        #multigaitrobot: [rd.uniform(-1, 1) for i in range(5)] - strat_multi[idx-1]
+        #gripper: rd.randint(0,7)
+        #trunk: rd.randint(0,15)
+        #trunkcup: rd.randint(0,15)
+        #diamondrobot: rd.randint(0,7)
+        #maze: rd.randint(0,6)
+        #simple_maze: rd.randint(0,3)
+        #concentrictuberobot: rd.randint(0,11)
+        #CartStem [rd.uniform(-1, 1)]
+        #action = strat_multi[idx-1]
+
+        action = env.action_space.sample()
+        start_time = time.time()
+        state, reward, done, _ = env.step(action)
+        step_time = time.time()-start_time
+        print("[INFO]   >>> Time:", step_time)
+        rtf = env.config["dt"]*env.config["scale_factor"]/step_time
+        print("[INFO]   >>> RTF:", rtf)
+        tot_reward+= reward
+        tot_rtf+= rtf
+        env.render()
+
+        print("Step ", idx, " action : ", action, " reward : ", reward, " done:", done)
+
+    print("[INFO]   >>> TOTAL REWARD IS:", tot_reward)
+    print("[INFO]   >>> FINAL REWARD IS:", reward)
+    print("[INFO]   >>> MEAN RTF IS:", tot_rtf/idx)
+    memoryUse = py.memory_info()[0]/2.**30
+    print("[INFO]   >>> Memory usage:", memoryUse)
+    print("[INFO]   >>> Object size:", sys.getsizeof(env))
+
+    env.reset()
+
+
+print(">> TOTAL REWARD IS:", tot_reward)
+env.close()
+print("... End.")

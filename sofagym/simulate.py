@@ -40,7 +40,7 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
     try:
         create_scene = importlib.import_module("sofagym.envs."+scene+"." + scene + "Scene").createScene
     except:
-        print("sofagym.env."+scene+"." + scene + "Scene")
+        print("sofagym.envs."+scene+"." + scene + "Scene")
         raise NotImplementedError("Importing your SOFA Scene Failed")
 
     # Load the scene

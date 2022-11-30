@@ -154,7 +154,9 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 	cylinder.addObject('EulerImplicitSolver')
 	cylinder.addObject('SparseLDLSolver', template="CompressedRowSparseMatrix3d")
 	cylinder.addObject('MeshVTKLoader', name='loader', filename=path+'cup.vtk', translation=[42, -50, 40], rotation=[-90, 0, 0])
-	cylinder.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+
+	#cylinder.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+	cylinder.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra")
 	cylinder.addObject('TetrahedronSetTopologyModifier')
 	cylinder.addObject('TetrahedronSetGeometryAlgorithms', template='Vec3d')
 	cylinder.addObject('MechanicalObject', name='tetras', template='Vec3d')
@@ -192,7 +194,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 	trunk.addObject('SparseLDLSolver', name='precond')
 
 	trunk.addObject('MeshVTKLoader', name='loader', filename=path+'trunk2.vtk')
-	trunk.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+	trunk.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra")
 	trunk.addObject('TetrahedronSetTopologyModifier')
 	trunk.addObject('TetrahedronSetGeometryAlgorithms', template='Vec3d')
 
