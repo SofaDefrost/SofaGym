@@ -18,7 +18,7 @@ import time
 import gym
 
 from sofagym import *
-
+from sofagym.envs import *
 RANDOM = False
 
 import psutil
@@ -29,9 +29,14 @@ sys.path.insert(0, os.getcwd()+"/..")
 
 __import__('sofagym')
 name = ['multigaitrobot-v0',
-        'gripper-v0', 'trunk-v0', 'trunkcup-v0', 'diamondrobot-v0',
-        'maze-v0', 'simple_maze-v0', 'concentrictuberobot-v0']
-num = 2
+        'gripper-v0',       
+        'trunk-v0',         
+        'trunkcup-v0',      
+        'diamondrobot-v0',  
+        'maze-v0',          
+        'simple_maze-v0',   
+        'concentrictuberobot-v0']
+num = 7
 env_name = name[num]
 print("Start env ", env_name)
 
@@ -121,8 +126,9 @@ for i in range(10000000):
         #simple_maze: rd.randint(0,3)
         #concentrictuberobot: rd.randint(0,11)
         #CartStem [rd.uniform(-1, 1)]
+        #action = strat_multi[idx-1]
 
-        action = strat_multi[idx-1]
+        action = env.action_space.sample()
         start_time = time.time()
         state, reward, done, _ = env.step(action)
         step_time = time.time()-start_time
