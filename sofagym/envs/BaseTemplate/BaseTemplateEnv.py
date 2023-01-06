@@ -11,15 +11,12 @@ __date__ = "Oct 7 2020"
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gym.envs.registration import register
-
-from gym import spaces
 import os
-import sys
 import numpy as np
 
+from gymnasium import spaces
 
-class TrunkEnv(AbstractEnv):
+class BaseEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -50,11 +47,11 @@ class TrunkEnv(AbstractEnv):
 
     def __init__(self, config = None):
         super().__init__(config)
-        nb_actions = 16
+        nb_actions = 2
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 66
+        dim_state = 10
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
@@ -73,7 +70,6 @@ class TrunkEnv(AbstractEnv):
 
         """
         super().reset()
-
         self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
 
@@ -93,7 +89,4 @@ class TrunkEnv(AbstractEnv):
         return list(range(int(self.nb_actions)))
 
 
-register(
-    id='trunk-v0',
-    entry_point='sofagym.envs:TrunkEnv',
-)
+

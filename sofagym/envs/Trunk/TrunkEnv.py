@@ -8,16 +8,15 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
+import os
+import sys
+
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gymnasium.envs.registration import register
-
 from gymnasium import spaces
-import os
-import sys
-import numpy as np
 
+import numpy as np
 
 class TrunkEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
@@ -92,7 +91,3 @@ class TrunkEnv(AbstractEnv):
         return list(range(int(self.nb_actions)))
 
 
-register(
-    id='trunk-v0',
-    entry_point='sofagym.envs:TrunkEnv',
-)

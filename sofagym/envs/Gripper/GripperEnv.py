@@ -94,8 +94,8 @@ class GripperEnv(AbstractEnv):
         """
         return list(range(int(self.nb_actions)))
 
-
+'''
 register(
     id='gripper-v0',
     entry_point='sofagym.envs:GripperEnv',
-)
+)'''
