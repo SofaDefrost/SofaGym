@@ -164,7 +164,8 @@ class Gripper:
                                 preconditioners='preconditioner', use_precond=True, update_step=1)
         external_part.addObject('MeshVTKLoader', name='loader', filename=self.path + "/mesh/Gripper_Volumetric.vtk",
                                 scale3d=scale, rotation=rotation, translation=translation)
-        external_part.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+        external_part.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra", name='container')
+
         external_part.addObject('TetrahedronSetTopologyModifier')
         external_part.addObject('MechanicalObject', name='tetras', template='Vec3', rx=0, dz=0)
         external_part.addObject('TetrahedronFEMForceField', template='Vec3', name='FEM', method='large',

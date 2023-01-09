@@ -64,11 +64,11 @@ class CartStemEnv(AbstractEnv):
 
 
     def step(self, action):
-        obs, reward, done, info = super().step(action)
+        obs, reward, terminated, truncated, info = super().step(action)
         if abs(obs[0]) > self.config["max_move"]:
-            done = True
+            terminated = True
 
-        return obs, reward, done, info
+        return obs, reward, terminated, truncated, info
 
     def reset(self):
         """Reset simulation.

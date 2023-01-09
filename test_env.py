@@ -17,7 +17,7 @@ import os
 import time
 import gymnasium as gym
 
-from sofagym import *
+import sofagym
 from sofagym.envs import *
 RANDOM = False
 
@@ -44,7 +44,7 @@ name = {0:'basetemplate-v0',
         13:'trunkcup-v0',    
         } 
 
-num = 2
+num = 12
 env_name = name[num]
 print("Start env ", env_name)
 

@@ -14,7 +14,7 @@ import Sofa
 import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
-from splib3.animation.animate import Animation
+from splib.animation.animate import Animation
 
 SofaRuntime.importPlugin("SofaComponentAll")
 

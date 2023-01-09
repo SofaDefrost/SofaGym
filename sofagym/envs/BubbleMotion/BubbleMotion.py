@@ -51,7 +51,7 @@ class BubbleMotion:
         board.addObject('EulerImplicitSolver', name='odesolver')
         board.addObject('SparseLDLSolver', name='preconditioner', template="CompressedRowSparseMatrixd")
         board.addObject('MeshVTKLoader', name='loader', filename=path + "/mesh/Board_Volumetric.vtk")
-        board.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+        board.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra", name='container')
         board.addObject('TetrahedronSetTopologyModifier')
         board.addObject('MechanicalObject', name='tetras', template='Vec3', rx=0, dz=0)
         board.addObject('TetrahedronFEMForceField', template='Vec3', name='FEM', method='large', poissonRatio=0.3,

@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-"""Specific environment for the trunk (simplified).
+"""Specific environment for the BaseTemplate.
 """
 
-__authors__ = "emenager"
-__contact__ = "etienne.menager@ens-rennes.fr"
-__version__ = "1.0.0"
-__copyright__ = "(c) 2020, Inria"
-__date__ = "Oct 7 2020"
-
-from sofagym.AbstractEnv import AbstractEnv
-from sofagym.rpc_server import start_scene
+__authors__ = "hunoutl"
+__contact__ = "leo.hunout@inria.fr"
+__version__ = "0.0.0"
+__copyright__ = "(c) 2023, Inria"
+__date__ = "Jan 9 2023"
 
 import os
 import numpy as np
 
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
+
 from gymnasium import spaces
 
-class BaseEnv(AbstractEnv):
+class BaseTemplateEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -24,7 +24,7 @@ class BaseEnv(AbstractEnv):
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
-    DEFAULT_CONFIG = {"scene": "Trunk",
+    DEFAULT_CONFIG = {"scene": "BaseTemplate",
                       "deterministic": True,
                       "source": [300, 0, 80],
                       "target": [0, 0, 80],
@@ -37,7 +37,7 @@ class BaseEnv(AbstractEnv):
                       "render": 1,
                       "save_data": False,
                       "save_image": False,
-                      "save_path": path + "/Results" + "/Trunk",
+                      "save_path": path + "/Results",
                       "planning": False,
                       "discrete": True,
                       "seed": None,

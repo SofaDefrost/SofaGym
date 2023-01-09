@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""Create the scene
+"""
+__authors__ = "hunoutl"
+__contact__ = "leo.hunout@inria.fr"
+__version__ = "0.0.0"
+__copyright__ = "(c) 2023, Inria"
+__date__ = "Jan 9 2023"
+
 import sys
 import pathlib
 
@@ -97,13 +106,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
         simulation.addObject('SparseLDLSolver', name='precond')
         simulation.addObject('GenericConstraintCorrection', solverName="precond")
 
-    trunk = Trunk(simulation, inverseMode=False)
-    rootNode.trunk = trunk
-
-    if visu:
-        trunk.addVisualModel(color=[1., 1., 1., 0.8])
-    trunk.fixExtremity()
-
+  
     goal_mo = add_goal_node(rootNode)
 
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, goalPos=config['goalPos']))
