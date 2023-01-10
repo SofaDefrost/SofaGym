@@ -197,16 +197,17 @@ def main():
     SofaRuntime.importPlugin("SofaImplicitOdeSolver")
 
 
-    for i in range (6000):
-        root=Sofa.Core.Node("root")
-        createScene(root)
-        Sofa.Simulation.init(root)
+    #for i in range (6000):
+    #   print("Simulation N°",i)
+    root=Sofa.Core.Node("root")
+    createScene(root)
+    Sofa.Simulation.init(root)
 
-        # Run the simulation for 10 steps
-        for iteration in range(10):
-            Sofa.Simulation.animate(root, root.dt.value)
+    # Run the simulation for 10 steps
+    #for iteration in range(10):
+    #    Sofa.Simulation.animate(root, root.dt.value)
 
-        print("Simulation N°",i)
+    
 
     Sofa.Simulation.init(root)
 

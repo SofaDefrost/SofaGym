@@ -11,9 +11,9 @@ __date__ = "Oct 7 2020"
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 
-from gym import spaces
+from gymnasium import spaces
 import os
 import numpy as np
 
@@ -58,6 +58,8 @@ class GripperEnv(AbstractEnv):
         high_coordinates = np.array([1]*dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
                                             dtype='float32')
+        
+    
 
     def step(self, action):
         return super().step(action)
@@ -75,8 +77,9 @@ class GripperEnv(AbstractEnv):
 
         self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
+        info = {}
 
-        return obs['observation']
+        return (obs['observation'], info)
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -91,8 +94,8 @@ class GripperEnv(AbstractEnv):
         """
         return list(range(int(self.nb_actions)))
 
-
+'''
 register(
     id='gripper-v0',
     entry_point='sofagym.envs:GripperEnv',
-)
+)'''

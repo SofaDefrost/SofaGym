@@ -28,6 +28,45 @@ from MazeTools import Graph, dijkstra
 
 SofaRuntime.importPlugin("SofaComponentAll")
 
+def addRigidObject(node, filename, collisionFilename=None, position=[0,0,0,0,0,0,1], scale=[1,1,1], textureFilename='', color=[1,1,1], density=0.002, name='Object', withSolver=True, collisionGroup = 0, withCollision=True):
+
+    if collisionFilename == None:
+        collisionFilename = filename
+
+    object = node.addChild(name)
+    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='SofaRigid SofaLoader')
+    object.addObject('MechanicalObject', template='Rigid3', position=position, showObject=False, showObjectScale=5)
+
+    if withSolver:
+        object.addObject('EulerImplicitSolver')
+        object.addObject('CGLinearSolver', tolerance=1e-5, iterations=25, threshold = 1e-5)
+        object.addObject('UncoupledConstraintCorrection')
+
+    visu = object.addChild('Visu')
+    visu.addObject('MeshOBJLoader', name='loader', filename=filename, scale3d=scale)
+    visu.addObject('OglModel', src='@loader',  color=color if textureFilename =='' else '')
+    visu.addObject('RigidMapping')
+
+    object.addObject('GenerateRigidMass', name='mass', density=density, src=visu.loader.getLinkPath())
+    object.mass.init()
+    translation = list(object.mass.centerToOrigin.value)
+    object.addObject('UniformMass', vertexMass="@mass.rigidMass")
+
+    visu.loader.translation = translation
+
+    if withCollision:
+        collision = object.addChild('Collision')
+        collision.addObject('MeshOBJLoader', name='loader', filename=collisionFilename, scale3d=scale)
+        collision.addObject('MeshTopology', src='@loader')
+        collision.addObject('MechanicalObject', translation=translation)
+        collision.addObject('TriangleCollisionModel', group = collisionGroup)
+        collision.addObject('LineCollisionModel', group = collisionGroup)
+        collision.addObject('PointCollisionModel', group = collisionGroup)
+        collision.addObject('RigidMapping')
+
+    return object
+
+
 
 class rewardShaper(Sofa.Core.Controller):
     """Compute the reward.

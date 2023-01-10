@@ -8,15 +8,15 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Mar 23 2021"
 
+import os
+
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.SimpleMaze.SimpleMazeToolbox import startCmd
 
-from gym.envs.registration import register
+from gymnasium import spaces
 
-from gym import spaces
-import os
 import numpy as np
 
 
@@ -133,7 +133,3 @@ class SimpleMazeEnv(AbstractEnv):
         return list(range(int(self.nb_actions)))
 
 
-register(
-    id='simple_maze-v0',
-    entry_point='sofagym.envs:SimpleMazeEnv',
-)

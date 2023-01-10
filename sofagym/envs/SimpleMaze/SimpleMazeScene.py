@@ -81,7 +81,33 @@ def createScene(root, config={"source": [0, 1000, 0],
         sphere.addObject("GenericConstraintCorrection", solverName='ldl')
     ball_mo = sphere.addObject("MechanicalObject", name="sphere_mo", template='Vec3', position=[0.0, 6.0, 2.0])
     sphere.addObject("UniformMass", totalMass=1000)
-    sphere.addObject("Sphere", radius='2.0', name='0', color=[255, 0, 0, 255])
+    #need customs sphere
+    
+    #sphere.addObject("Sphere", radius='2.0', name='0', color=[255, 0, 0, 255])
+    '''    
+    visu = object.addChild('Visu')
+    visu.addObject('MeshOBJLoader', name='loader', filename=ball.obj, scale3d=1)
+    visu.addObject('OglModel', src='@loader', color=[255, 0, 0, 255])
+    visu.addObject('RigidMapping')
+
+
+    object.addObject('GenerateRigidMass', name='mass', density=density, src=visu.loader.getLinkPath())
+    object.mass.init()
+    translation = list(object.mass.centerToOrigin.value)
+    object.addObject('UniformMass', vertexMass="@mass.rigidMass")
+
+    visu.loader.translation = translation
+
+    if withCollision:
+        collision = object.addChild('Collision')
+        collision.addObject('MeshOBJLoader', name='loader', filename=collisionFilename, scale3d=scale)
+        collision.addObject('MeshTopology', src='@loader')
+        collision.addObject('MechanicalObject', translation=translation)
+        collision.addObject('TriangleCollisionModel', group = collisionGroup)
+        collision.addObject('LineCollisionModel', group = collisionGroup)
+        collision.addObject('PointCollisionModel', group = collisionGroup)
+        collision.addObject('RigidMapping')
+    '''
 
     maze = model.addChild("maze")
     maze.addObject("MeshSTLLoader", name="loader", filename=path_mesh+"maze_4_coarse.stl",

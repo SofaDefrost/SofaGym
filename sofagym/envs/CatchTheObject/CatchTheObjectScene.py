@@ -15,14 +15,13 @@ VISUALISATION = False
 
 import sys
 import pathlib
-import numpy as np
-
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from sofagym.header import addHeader as header
 from sofagym.header import addVisu as visu
 
+import numpy as np
 from CatchTheObject import Cart, Ball, Gripper
 from CatchTheObjectToolbox import rewardShaper, sceneModerator, applyAction, goalSetter
 

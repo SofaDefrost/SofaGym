@@ -22,8 +22,8 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 
-from common.utils import createCosserat as cosserat
-from common.utils import addRigidObject
+from sofagym.utils import createCosserat as cosserat
+from sofagym.utils import addRigidObject
 
 class StemPendulum():
     def __init__(self, *args, **kwargs):
