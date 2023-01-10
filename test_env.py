@@ -28,7 +28,7 @@ py = psutil.Process(pid)
 sys.path.insert(0, os.getcwd()+"/..")
 
 __import__('sofagym')
-name = {0:'basetemplate-v0',
+name = {
         1:'bubblemotion-v0',
         2:'cartstem-v0',
         3:'cartstemcontact-v0',

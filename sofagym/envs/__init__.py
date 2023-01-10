@@ -1,4 +1,3 @@
-from sofagym.envs.BaseTemplate.BaseTemplateEnv import *
 from sofagym.envs.BubbleMotion.BubbleMotionEnv import *
 from sofagym.envs.CartStem.CartStemEnv import *
 from sofagym.envs.CartStemContact.CartStemContactEnv import *
@@ -16,10 +15,6 @@ from sofagym.envs.TrunkCup.TrunkCupEnv import *
 
 # registering sofagym envs as gymnasium envs
 from gymnasium.envs.registration import register
-register(
-    id='basetemplate-v0',
-    entry_point='sofagym.envs:BaseTemplateEnv',
-)
 register(
     id='bubblemotion-v0',
     entry_point='sofagym.envs:BubbleMotionEnv',

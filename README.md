@@ -94,7 +94,6 @@ The classic running of an episode is therefore:
 
 |Image|Name|Description|Status|
 |----------|:-------------|:-------------|:-------------|
-| |[BaseTemplate](sofagym/envs/BaseTemplate/) basetemplate-v0| A base template|NOT DONE|
 | |[BubbleMotion](sofagym/envs/BubbleMotion/) bubblemotion-v0| |OK|
 | |[CartStem](sofagym/envs/CartStem/) cartstem-v0| |OK|
 | |[CartStemContact](sofagym/envs/CartStemContact/) cartstemcontact-v0| |OK|
