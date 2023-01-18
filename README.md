@@ -10,14 +10,14 @@ The toolkit also comprises example scenes based on the SoftRobots plugin for SOF
 ### Prerequisites
 
 #### 1) SofaGym need a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.06
-with some mandatory plugins :
+with a mandatory plugin :
 * [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
+
+and optional plugins (mandatory to run the example environments integrated with sofagym): 
 * [BeamAdapter](https://github.com/sofa-framework/BeamAdapter) (fetchable within sofa)
 * [SPLIB](https://github.com/SofaDefrost/SPLIB)
 * [STLIB](https://github.com/SofaDefrost/STLIB)
 * [SoftRobots](https://github.com/SofaDefrost/SoftRobots)
-
-and optional plugins (for some examples): 
 * [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction)
 * [Cosserat](https://github.com/SofaDefrost/plugin.Cosserat)
 
