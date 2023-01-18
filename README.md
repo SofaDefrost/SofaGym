@@ -1,6 +1,6 @@
 # SofaGym
 
-Software toolkit to easily create an [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) (previously Gym) environment out of any [SOFA](https://github.com/sofa-framework/sofa) scene.
+Software toolkit to easily create an [Gym](https://github.com/openai/gym) (previously Gym) environment out of any [SOFA](https://github.com/sofa-framework/sofa) scene.
 
 The toolkit provides an API based on the standard Gymnasium API, allowing to train classical Reinforcement Learning algorithms. 
 
@@ -29,7 +29,7 @@ and optional plugins (mandatory to run the example environments integrated with 
 We use python3.
 mandatory : 
 ```bash
-pip install gymnasium psutil pygame glfw pyopengl imageio
+pip install gym psutil pygame glfw pyopengl imageio
 ```
 * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
 
@@ -65,7 +65,7 @@ The use of this interface allows intuitive interaction with any environment, and
 Example of use :
 
 ```python
-import gymnasium as gym
+import gym
 import sofagym.envs
 
 env = gym.make('trunk-v0')
@@ -74,7 +74,7 @@ observation, info = env.reset(seed=42)
 done = False
 while not done:
     action = env.action_space.sample()  # this is where you would insert your policy
-    observation, reward, terminated, truncated, info = env.step(action)
+    observation, reward, done, info = env.step(action)
     env.render()
 
     done = terminated or truncated
