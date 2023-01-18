@@ -13,7 +13,7 @@ import os
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gymnasium import spaces
+from gym import spaces
 
 import numpy as np
 

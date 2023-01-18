@@ -9,14 +9,12 @@ __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
 import os
+import numpy as np
 
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gymnasium import spaces
-
-import numpy as np
-
+from gym import spaces
 
 class MazeEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.

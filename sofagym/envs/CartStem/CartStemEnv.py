@@ -10,9 +10,8 @@ __date__ = "Feb 3 2021"
 
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
-from gymnasium.envs.registration import register
 
-from gymnasium import spaces
+from gym import spaces
 import os
 import numpy as np
 
@@ -64,11 +63,11 @@ class CartStemEnv(AbstractEnv):
 
 
     def step(self, action):
-        obs, reward, terminated, truncated, info = super().step(action)
+        obs, reward, done, info = super().step(action)
         if abs(obs[0]) > self.config["max_move"]:
-            terminated = True
+            done = True
 
-        return obs, reward, terminated, truncated, info
+        return obs, reward, done, info
 
     def reset(self):
         """Reset simulation.

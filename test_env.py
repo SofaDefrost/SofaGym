@@ -15,7 +15,7 @@ __date__ = "Oct 7 2020"
 import sys
 import os
 import time
-import gymnasium as gym
+import gym
 
 import sofagym
 from sofagym.envs import *
@@ -44,7 +44,8 @@ name = {
         13:'trunkcup-v0',    
         } 
 
-num = 12
+num = 13
+
 env_name = name[num]
 print("Start env ", env_name)
 
@@ -81,7 +82,7 @@ for i in range(10000000):
         action = env.action_space.sample()
         
         start_time = time.time()
-        state, reward, terminated, _, _ = env.step(action)
+        state, reward, done, info = env.step(action)
         step_time = time.time()-start_time
         print("[INFO]   >>> Time:", step_time)
         
@@ -93,7 +94,7 @@ for i in range(10000000):
         
         env.render()
 
-        print("Step ", idx, " action : ", action, " reward : ", reward, " done:", terminated)
+        print("Step ", idx, " action : ", action, " reward : ", reward, " done:", done)
 
     print("[INFO]   >>> TOTAL REWARD IS:", tot_reward)
     print("[INFO]   >>> FINAL REWARD IS:", reward)

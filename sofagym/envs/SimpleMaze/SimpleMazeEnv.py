@@ -9,16 +9,14 @@ __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Mar 23 2021"
 
 import os
+import numpy as np
 
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.SimpleMaze.SimpleMazeToolbox import startCmd
 
-from gymnasium import spaces
-
-import numpy as np
-
+from gym import spaces
 
 class SimpleMazeEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.

@@ -14,7 +14,7 @@ from sofagym.envs.TrunkCup.TrunkCupEnv import *
 
 
 # registering sofagym envs as gymnasium envs
-from gymnasium.envs.registration import register
+from gym.envs.registration import register
 register(
     id='bubblemotion-v0',
     entry_point='sofagym.envs:BubbleMotionEnv',

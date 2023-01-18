@@ -13,7 +13,7 @@ from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.CTR.CTRToolbox import startCmd
 
-from gymnasium import spaces
+from gym import spaces
 import os
 import numpy as np
 

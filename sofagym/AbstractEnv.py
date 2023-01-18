@@ -8,8 +8,8 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Robocath, CNRS, Inria"
 __date__ = "Oct 7 2020"
 
-import gymnasium as gym
-from gymnasium.utils import seeding
+import gym
+from gym.utils import seeding
 
 import numpy as np
 import copy
@@ -286,15 +286,11 @@ class AbstractEnv(gym.Env):
                 The new state of the agent.
             reward(float):
                 The reward obtain after applying the action in the current state.
-            terminated(bool):
+            done(bool):
                 Whether the agent reaches the terminal state
-            truncated(bool):
-                Whether the truncation condition outside the scope of the MDP is satisfied. 
-                Typically, this is a timelimit, but could also be used to indicate an agent physically going out of bounds.
             info(dict): 
                 additional information (not used here)
-            done(bool)(Deprecated):
-                Whether the goal is reached or not.
+    
             
         """
 
@@ -312,10 +308,9 @@ class AbstractEnv(gym.Env):
 
         obs = np.array(results["observation"])  # to work with baseline
         reward = results["reward"]
-        terminated = results["done"]
+        done = results["done"]
 
         # Avoid long explorations by using a timer.
-        truncated = False
         self.timer += 1
         if self.timer >= self.config["timer_limit"]:
             # reward = -150
@@ -324,7 +319,7 @@ class AbstractEnv(gym.Env):
 
         if self.config["planning"]:
             self.clean()
-        return obs, reward, terminated, truncated, info
+        return obs, reward, done, info
 
     def async_step(self, action):
         """Executes one action in the environment.

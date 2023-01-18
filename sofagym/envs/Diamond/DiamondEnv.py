@@ -15,7 +15,7 @@ from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.Diamond.DiamondToolbox import startCmd
 
-from gymnasium import spaces
+from gym import spaces
 
 import numpy as np
 
