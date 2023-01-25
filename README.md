@@ -1,15 +1,15 @@
 # SofaGym
 
-Software toolkit to easily create an [Gym](https://github.com/openai/gym) (previously Gym) environment out of any [SOFA](https://github.com/sofa-framework/sofa) scene.
+Software toolkit to easily create an [Gym](https://github.com/openai/gym) environment out of any [SOFA](https://github.com/sofa-framework/sofa) scene.
 
-The toolkit provides an API based on the standard Gymnasium API, allowing to train classical Reinforcement Learning algorithms. 
+The toolkit provides an API based on the standard Gym API, allowing to train classical Reinforcement Learning algorithms. 
 
 The toolkit also comprises example scenes based on the SoftRobots plugin for SOFA to illustrate how to include SOFA simulations and train learning algorithms on them.
 
 ## Installation
 ### Prerequisites
 
-#### 1) SofaGym need a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.06
+#### 1) SofaGym need a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.12
 with a mandatory plugin :
 * [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
 
@@ -29,7 +29,7 @@ and optional plugins (mandatory to run the example environments integrated with 
 We use python3.
 mandatory : 
 ```bash
-pip install gym psutil pygame glfw pyopengl imageio
+pip install gym==0.21 psutil pygame glfw pyopengl imageio
 ```
 * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
 
@@ -60,7 +60,7 @@ The Gym framework allows to interact with an environment using well-known keywor
 - *reset*: resets the environment.
 - *render*: gives a visual representation of *obs_t*.
 
-The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gymnasium, check the official [documentation page](https://gymnasium.farama.org/).
+The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gym, check the official [documentation page](https://www.gymlibrary.dev/).
 
 Example of use :
 
@@ -99,9 +99,9 @@ The classic running of an episode is therefore:
 | |[CartStemContact](sofagym/envs/CartStemContact/) cartstemcontact-v0| |OK|
 | |[CatchTheObject](sofagym/envs/CatchTheObject/) catchtheobject-v0| |OK|
 | |[ConcentricTubeRobot](sofagym/envs/CTR/) concentrictuberobot-v0| |OK |
-| |[DiamondRobot](sofagym/envs/Diamond/) diamondrobot-v0| |OSError: [Errno 36] File name too long|
+| |[DiamondRobot](sofagym/envs/Diamond/) diamondrobot-v0| |OK|
 | |[Gripper](sofagym/envs/Gripper/) gripper-v0| The objective is to grasp a cube and bring it to a certain height.  The closer the cube is to the target, the greater the reward.| OK|
-| |[Maze](sofagym/envs/Maze/) maze-v0| The Maze environment offers one scene  of a ball navigating in a maze. The maze is attached to the tripod robot and the ball is moved by gravity by modifying the maze’s orientation. The tripod is actuated by three servomotors. Similarly to the Trunk Environment, the Maze environment has a dicrete action space of 6 actions, moving  each  servomotor  by  one  increment,  and could easily be extended to be continuous.|Importing your SOFA Scene Failed|
+| |[Maze](sofagym/envs/Maze/) maze-v0| The Maze environment offers one scene  of a ball navigating in a maze. The maze is attached to the tripod robot and the ball is moved by gravity by modifying the maze’s orientation. The tripod is actuated by three servomotors. Similarly to the Trunk Environment, the Maze environment has a dicrete action space of 6 actions, moving  each  servomotor  by  one  increment,  and could easily be extended to be continuous.|AttributeError: Unable to find attribute: addNewData|
 |  |[MultiGait Robot](sofagym/envs/MultiGaitRobot/) multigaitrobot-v0| The multigait Softrobot has  one  scene. The goal is to move the robot forward in the *x* direction with the highest speed. env = gym.make("multigaitrobot-v0")|[ERROR]   [SofaRuntime] ValueError: Object type MechanicalMatrixMapperMOR<Vec1d,Vec1d> was not created The object is not in the factory. Need MOR plugin ?|
 | |[SimpleMaze](sofagym/envs/SimpleMaze/) simple_maze-v0| |ValueError: Object type Sphere<> was not created  | 
 | |[StemPendulum](sofagym/envs/StemPendulum/) stempendulum-v0| |OK |

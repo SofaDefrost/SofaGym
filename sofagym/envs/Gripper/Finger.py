@@ -23,9 +23,7 @@ def Finger(rootNode, fixingBox, visu, simu, pullPointLocation, control1='1', con
     model = rootNode.addChild(name)
     if simu:
         model.addObject('EulerImplicitSolver', name='odesolver')
-        model.addObject('ShewchukPCGLinearSolver', name='linearSolver', iterations='25', tolerance='1.0e-9',
-                        preconditioners="precond")
-        model.addObject('SparseLDLSolver', name='precond')
+        model.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
 
     model.addObject('MeshVTKLoader', name='loader', filename=VolumetricMeshPath, scale3d=[1, 1, 1],
                     translation=translation, rotation=rotation)
@@ -43,7 +41,7 @@ def Finger(rootNode, fixingBox, visu, simu, pullPointLocation, control1='1', con
     c.addObject('RestShapeSpringsForceField', points='@BoxROI.indices', stiffness='1e12')
 
     if simu:
-        model.addObject('LinearSolverConstraintCorrection', name='GCS', solverName='precond')
+        model.addObject('LinearSolverConstraintCorrection', name='GCS', solverName='@precond')
 
         collisionmodel = model.addChild("CollisionMesh")
         collisionmodel.addObject("MeshSTLLoader", name="loader", filename=SurfaceMeshPath,

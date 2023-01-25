@@ -85,9 +85,8 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
     robot = rootNode.addChild('Robot')
     # The solvers
     robot.addObject('EulerImplicitSolver')
-    robot.addObject('ShewchukPCGLinearSolver', iterations=1, name="linearsolver", tolerance=1e-5,
-                    preconditioners="preconditioner", use_precond=True)
-    robot.addObject('SparseLDLSolver', name="preconditioner")
+    robot.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name="linearsolver")
+    
     # Load the volume mesh
     robot.addObject('MeshVTKLoader', name="loader", filename=path+'siliconeV0.vtu')
     robot.addObject('MeshTopology', src="@loader")
@@ -99,7 +98,7 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
     # Fix a part of the model
     robot.addObject('BoxROI', name="boxROI", box=[-15, -15, -40,  15, 15, 10], drawBoxes=True)
     robot.addObject('FixedConstraint', indices="@boxROI.indices")
-    robot.addObject('LinearSolverConstraintCorrection', solverName="preconditioner")
+    robot.addObject('LinearSolverConstraintCorrection', solverName="@preconditioner")
 
     # Actuators
     actuators = robot.addChild('Actuators')

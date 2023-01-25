@@ -8,4 +8,4 @@ from sofagym.viewer import viewer
 from sofagym.visualisation import visualisation
 
 #sofagym envs for gym registration with sofa envs
-from sofagym.envs import *
+import sofagym.envs

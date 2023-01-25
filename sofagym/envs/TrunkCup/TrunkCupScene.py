@@ -152,7 +152,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 	#cylinder
 	cylinder = rootNode.addChild('cylinder')
 	cylinder.addObject('EulerImplicitSolver')
-	cylinder.addObject('SparseLDLSolver', template="CompressedRowSparseMatrix3d")
+	cylinder.addObject('SparseLDLSolver', template="CompressedRowSparseMatrixMat3x3d")
 	cylinder.addObject('MeshVTKLoader', name='loader', filename=path+'cup.vtk', translation=[42, -50, 40], rotation=[-90, 0, 0])
 
 	#cylinder.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
@@ -190,8 +190,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 	#trunk
 	trunk = rootNode.addChild('trunk')
 	trunk.addObject('EulerImplicitSolver', name='odesolver', firstOrder=0, rayleighMass=0.1, rayleighStiffness=0.1)
-	trunk.addObject('ShewchukPCGLinearSolver', name='linearSolver',iterations=500, tolerance=1.0e-18, preconditioners="precond")
-	trunk.addObject('SparseLDLSolver', name='precond')
+	trunk.addObject('EigenSimplicialLDLT', template='CompressedRowSparseMatrixd', name='linearSolver')
 
 	trunk.addObject('MeshVTKLoader', name='loader', filename=path+'trunk2.vtk')
 	trunk.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra")

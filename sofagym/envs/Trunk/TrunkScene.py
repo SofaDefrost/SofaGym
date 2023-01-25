@@ -206,10 +206,8 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
     if simu:
         simulation.addObject('EulerImplicitSolver', name='odesolver', firstOrder="0", rayleighMass="0.1",
                              rayleighStiffness="0.1")
-        simulation.addObject('ShewchukPCGLinearSolver', name='linearSolver', iterations='500', tolerance='1.0e-18',
-                             preconditioners="precond")
-        simulation.addObject('SparseLDLSolver', name='precond')
-        simulation.addObject('GenericConstraintCorrection', solverName="precond")
+        simulation.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
+        simulation.addObject('GenericConstraintCorrection', solverName="@linearSolver")
 
     trunk = Trunk(simulation, inverseMode=False)
     rootNode.trunk = trunk
