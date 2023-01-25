@@ -94,19 +94,19 @@ The classic running of an episode is therefore:
 
 |Image|Name|Description|Status|
 |----------|:-------------|:-------------|:-------------|
-| |[BubbleMotion](sofagym/envs/BubbleMotion/) bubblemotion-v0| |OK|
-| |[CartStem](sofagym/envs/CartStem/) cartstem-v0| |OK|
-| |[CartStemContact](sofagym/envs/CartStemContact/) cartstemcontact-v0| |OK|
+|<img src="images/bubblemotion-v0.png" width="250"/>|[BubbleMotion](sofagym/envs/BubbleMotion/) bubblemotion-v0| |OK|
+|<img src="images/cartstem-v0.png" width="250"/>|[CartStem](sofagym/envs/CartStem/) cartstem-v0| |OK|
+|<img src="images/cartstemcontact-v0.png" width="250"/>|[CartStemContact](sofagym/envs/CartStemContact/) cartstemcontact-v0| |OK|
 | |[CatchTheObject](sofagym/envs/CatchTheObject/) catchtheobject-v0| |OK|
-| |[ConcentricTubeRobot](sofagym/envs/CTR/) concentrictuberobot-v0| |OK |
-| |[DiamondRobot](sofagym/envs/Diamond/) diamondrobot-v0| |OK|
-| |[Gripper](sofagym/envs/Gripper/) gripper-v0| The objective is to grasp a cube and bring it to a certain height.  The closer the cube is to the target, the greater the reward.| OK|
+|<img src="images/concentrictuberobot-v0.png" width="250"/>|[ConcentricTubeRobot](sofagym/envs/CTR/) concentrictuberobot-v0| |OK |
+|<img src="images/diamondrobot-v0.png" width="250"/>|[DiamondRobot](sofagym/envs/Diamond/) diamondrobot-v0| |OK|
+|<img src="images/gripper-v0.png" width="250"/>|[Gripper](sofagym/envs/Gripper/) gripper-v0| The objective is to grasp a cube and bring it to a certain height.  The closer the cube is to the target, the greater the reward.| OK|
 | |[Maze](sofagym/envs/Maze/) maze-v0| The Maze environment offers one scene  of a ball navigating in a maze. The maze is attached to the tripod robot and the ball is moved by gravity by modifying the maze’s orientation. The tripod is actuated by three servomotors. Similarly to the Trunk Environment, the Maze environment has a dicrete action space of 6 actions, moving  each  servomotor  by  one  increment,  and could easily be extended to be continuous.|AttributeError: Unable to find attribute: addNewData|
 |  |[MultiGait Robot](sofagym/envs/MultiGaitRobot/) multigaitrobot-v0| The multigait Softrobot has  one  scene. The goal is to move the robot forward in the *x* direction with the highest speed. env = gym.make("multigaitrobot-v0")|[ERROR]   [SofaRuntime] ValueError: Object type MechanicalMatrixMapperMOR<Vec1d,Vec1d> was not created The object is not in the factory. Need MOR plugin ?|
 | |[SimpleMaze](sofagym/envs/SimpleMaze/) simple_maze-v0| |ValueError: Object type Sphere<> was not created  | 
-| |[StemPendulum](sofagym/envs/StemPendulum/) stempendulum-v0| |OK |
-| |[Trunk](sofagym/envs/Trunk/) trunk-v0| The Trunk environment offers two scenarios.  Both are based on the trunk robot.  The first is to bring the trunk’s tip to a certain position. The second scenario is to manipulate a cup using the trunk to get the cup’s center of gravity in a predefined position. The  Trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore 16 possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.|OK |
-| |[TrunkCup](sofagym/envs/TrunkCup/) trunkcup-v0| |OK|
+|<img src="images/stempendulum-v0.png" width="250"/>|[StemPendulum](sofagym/envs/StemPendulum/) stempendulum-v0| |OK |
+|<img src="images/trunk-v0.png" width="250"/>|[Trunk](sofagym/envs/Trunk/) trunk-v0| The Trunk environment offers two scenarios.  Both are based on the trunk robot.  The first is to bring the trunk’s tip to a certain position. The second scenario is to manipulate a cup using the trunk to get the cup’s center of gravity in a predefined position. The  Trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore 16 possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.|OK |
+|<img src="images/trunkcup-v0.png" width="250"/>|[TrunkCup](sofagym/envs/TrunkCup/) trunkcup-v0| |OK|
 
 
 
