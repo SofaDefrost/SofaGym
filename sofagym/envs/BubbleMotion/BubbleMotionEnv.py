@@ -11,8 +11,6 @@ __date__ = "Feb 3 2021"
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gym.envs.registration import register
-
 from gym import spaces
 import os, sys
 import numpy as np
@@ -100,7 +98,4 @@ class BubbleMotionEnv(AbstractEnv):
         return self.action_space
 
 
-register(
-    id='bubblemotion-v0',
-    entry_point='sofagym.envs:BubbleMotionEnv',
-)
+

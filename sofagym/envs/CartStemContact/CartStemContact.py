@@ -11,16 +11,15 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "August 12 2021"
 
-import numpy as np
 import sys
 import pathlib
-
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 
-from common.utils import createCosserat as cosserat
-from common.utils import addRigidObject
+from sofagym.utils import createCosserat as cosserat
+from sofagym.utils import addRigidObject
 
+import numpy as np
 
 class CartStem:
     def __init__(self, *args, **kwargs):

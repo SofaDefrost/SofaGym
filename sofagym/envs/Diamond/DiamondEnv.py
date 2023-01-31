@@ -8,18 +8,16 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Dec 01 2021"
 
+import os
 
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.Diamond.DiamondToolbox import startCmd
 
-from gym.envs.registration import register
-
 from gym import spaces
-import os
-import numpy as np
 
+import numpy as np
 
 class DiamondRobotEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
@@ -122,9 +120,3 @@ class DiamondRobotEnv(AbstractEnv):
             list of the action available in the environment.
         """
         return list(range(int(self.nb_actions)))
-
-
-register(
-    id='diamondrobot-v0',
-    entry_point='sofagym.envs:DiamondRobotEnv',
-)

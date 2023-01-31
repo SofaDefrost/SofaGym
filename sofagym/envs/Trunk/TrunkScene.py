@@ -5,11 +5,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
-from splib3.animation import AnimationManagerController
+from splib.animation import AnimationManagerController
 from math import cos, sin
 import numpy as np
-from splib3.objectmodel import SofaPrefab, SofaObject
-from splib3.numerics import Vec3, Quat
+from splib.objectmodel import SofaPrefab, SofaObject
+from splib.numerics import Vec3, Quat
 
 
 from TrunkToolbox import rewardShaper, goalSetter
@@ -36,7 +36,7 @@ def effectorTarget(parentNode, position=[0., 0., 200]):
     return target
 
 
-@SofaPrefab
+#@SofaPrefab
 class Trunk(SofaObject):
     """ This prefab is implementing a soft robot inspired by the elephant's trunk.
         The robot is entirely soft and actuated with 8 cables.
@@ -56,7 +56,7 @@ class Trunk(SofaObject):
         self.node = parentNode.addChild('Trunk')
 
         self.node.addObject('MeshVTKLoader', name='loader', filename=path+'trunk.vtk')
-        self.node.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+        self.node.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra", name='container')
         self.node.addObject('TetrahedronSetTopologyModifier')
         self.node.addObject('TetrahedronSetGeometryAlgorithms')
 
@@ -206,10 +206,8 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
     if simu:
         simulation.addObject('EulerImplicitSolver', name='odesolver', firstOrder="0", rayleighMass="0.1",
                              rayleighStiffness="0.1")
-        simulation.addObject('ShewchukPCGLinearSolver', name='linearSolver', iterations='500', tolerance='1.0e-18',
-                             preconditioners="precond")
-        simulation.addObject('SparseLDLSolver', name='precond')
-        simulation.addObject('GenericConstraintCorrection', solverName="precond")
+        simulation.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
+        simulation.addObject('GenericConstraintCorrection', solverName="@linearSolver")
 
     trunk = Trunk(simulation, inverseMode=False)
     rootNode.trunk = trunk

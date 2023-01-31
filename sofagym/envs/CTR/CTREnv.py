@@ -13,8 +13,6 @@ from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.CTR.CTRToolbox import startCmd
 
-from gym.envs.registration import register
-
 from gym import spaces
 import os
 import numpy as np
@@ -144,7 +142,3 @@ class ConcentricTubeRobotEnv(AbstractEnv):
         return list(range(int(self.nb_actions)))
 
 
-register(
-    id='concentrictuberobot-v0',
-    entry_point='sofagym.envs:ConcentricTubeRobotEnv',
-)

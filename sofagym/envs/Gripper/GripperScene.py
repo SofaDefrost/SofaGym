@@ -196,22 +196,12 @@ def main():
     SofaRuntime.importPlugin("SofaBaseMechanics")
     SofaRuntime.importPlugin("SofaImplicitOdeSolver")
 
-
-    for i in range (6000):
-        root=Sofa.Core.Node("root")
-        createScene(root)
-        Sofa.Simulation.init(root)
-
-        # Run the simulation for 10 steps
-        for iteration in range(10):
-            Sofa.Simulation.animate(root, root.dt.value)
-
-        print("Simulation N°",i)
-
+    root=Sofa.Core.Node("root")
+    createScene(root)
     Sofa.Simulation.init(root)
 
-
-
+    for iteration in range(10):
+        Sofa.Simulation.animate(root, root.dt.value)
 
     Sofa.Gui.GUIManager.Init("myscene", "qglviewer")
     Sofa.Gui.GUIManager.createGUI(root, __file__)

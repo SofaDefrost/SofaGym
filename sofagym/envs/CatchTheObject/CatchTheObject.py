@@ -12,16 +12,15 @@ __copyright__ = "(c) 2021, Inria"
 __date__ = "August 12 2021"
 
 import os
-import numpy as np
-
 import sys
 import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 
-from common.utils import createCosserat as cosserat
+from sofagym.utils import createCosserat as cosserat
 
+import numpy as np
 
 class Cart:
     def __init__(self, *args, **kwargs):
@@ -106,7 +105,7 @@ class Ball:
         self.sphere = rootNode.addChild("sphere")
         self.sphere.addObject("EulerImplicitSolver", rayleighMass=5)
         self.sphere.addObject("SparseLDLSolver", name="ldl", template="CompressedRowSparseMatrixd")
-        self.sphere.addObject("GenericConstraintCorrection", solverName='ldl')
+        self.sphere.addObject("GenericConstraintCorrection", solverName='@ldl')
         self.sphere.addObject("MechanicalObject", name="sphere_mo", template='Vec3', position=self.init_pos)
         self.sphere.addObject("UniformMass", totalMass=self.mass_ball)
         self.sphere.addObject("SphereCollisionModel", radius=self.size_ball, name='Sphere', color=[0, 0, 255, 255])
@@ -161,18 +160,18 @@ class Gripper:
     def _createExternalPart(self, parent, name, scale, rotation, translation):
         external_part = parent.addChild(name)
         external_part.addObject('EulerImplicitSolver', name='odesolver')
-        external_part.addObject('ShewchukPCGLinearSolver', iterations=15, name='linearsolver', tolerance=1e-5,
-                                preconditioners='preconditioner', use_precond=True, update_step=1)
+        external_part.addObject('EigenSimplicialLDLT', template='CompressedRowSparseMatrixd',name='linearsolver')
         external_part.addObject('MeshVTKLoader', name='loader', filename=self.path + "/mesh/Gripper_Volumetric.vtk",
                                 scale3d=scale, rotation=rotation, translation=translation)
-        external_part.addObject('TetrahedronSetTopologyContainer', src='@loader', name='container')
+        external_part.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra", name='container')
+
         external_part.addObject('TetrahedronSetTopologyModifier')
         external_part.addObject('MechanicalObject', name='tetras', template='Vec3', rx=0, dz=0)
         external_part.addObject('TetrahedronFEMForceField', template='Vec3', name='FEM', method='large',
                                 poissonRatio=0.3,  youngModulus=30000)
 
         external_part.addObject('SparseLDLSolver', name='preconditioner', template="CompressedRowSparseMatrixd")
-        external_part.addObject('LinearSolverConstraintCorrection', solverName='preconditioner')
+        external_part.addObject('LinearSolverConstraintCorrection', solverName='@preconditioner')
         external_part.addObject('TriangleCollisionModel', group=1, color=[1, 0.2, 0.1, 0.4])
         # external_part.addObject('LineCollisionModel', group=1, color = [1, 0, 0, 0.2] )
         # external_part.addObject('PointCollisionModel', group=1, color = [1, 0, 0, 0.2] )

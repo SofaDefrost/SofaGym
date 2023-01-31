@@ -5,5 +5,3 @@ glfw
 pyopengl
 imageio
 
-
-# set PYTHONPATH=plugins\SofaPython3\lib\python3\site-packages:/plugins/STLIB/lib/python3/site-packages

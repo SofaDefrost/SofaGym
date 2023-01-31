@@ -8,15 +8,15 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
+import os
+import numpy as np
+import sys
+
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gym.envs.registration import register
-
 from gym import spaces
-import os
-import sys
-import numpy as np
+
 
 
 class TrunkEnv(AbstractEnv):
@@ -57,8 +57,7 @@ class TrunkEnv(AbstractEnv):
         dim_state = 66
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
 
     def step(self, action):
         return super().step(action)
@@ -93,7 +92,3 @@ class TrunkEnv(AbstractEnv):
         return list(range(int(self.nb_actions)))
 
 
-register(
-    id='trunk-v0',
-    entry_point='sofagym.envs:TrunkEnv',
-)

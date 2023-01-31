@@ -8,14 +8,13 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
-from sofagym.AbstractEnv import AbstractEnv
-from sofagym.rpc_server import start_scene
-from gym.envs.registration import register
-
-from gym import spaces
 import os
 import numpy as np
 
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.rpc_server import start_scene
+
+from gym import spaces
 
 class MultiGaitRobotEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
@@ -105,7 +104,3 @@ class MultiGaitRobotEnv(AbstractEnv):
         return list(range(int(self.nb_actions)))
 
 
-register(
-    id='multigaitrobot-v0',
-    entry_point='sofagym.envs:MultiGaitRobotEnv',
-)
