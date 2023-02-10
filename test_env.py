@@ -44,7 +44,7 @@ name = {
         13:'trunkcup-v0',    
         } 
 
-num = 5
+num = 12
 
 env_name = name[num]
 print("Start env ", env_name)

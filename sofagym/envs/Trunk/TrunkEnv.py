@@ -29,6 +29,7 @@ class TrunkEnv(AbstractEnv):
     metadata = {'render.modes': ['human', 'rgb_array']}
     DEFAULT_CONFIG = {"scene": "Trunk",
                       "deterministic": True,
+                      "dt":0.01,
                       "source": [300, 0, 80],
                       "target": [0, 0, 80],
                       "goalList": [[40, 40, 100], [-10, 20, 80]],
