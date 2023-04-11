@@ -124,6 +124,8 @@ class AbstractEnv(gym.Env):
 
         """
 
+        config = {"dt":0.01}
+
         # Define a DEFAULT_CONFIG in sub-class.
         self.config = copy.deepcopy(self.DEFAULT_CONFIG)
         if config is not None:
