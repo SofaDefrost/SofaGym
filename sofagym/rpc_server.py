@@ -405,30 +405,28 @@ def start_server(config):
                 The port of the rpc server.
 
     """
-    global planning, port_rpc
+    global planning, port_rpc, deterministic
 
     planning = config['planning']
-
-    if port_rpc is None:
-         port_rpc= avalaible_port()
-
-    # Register functions
-    def dispatch(port_rpc):
-        with SimpleThreadedXMLRPCServer(('localhost', port_rpc), requestHandler=RequestHandler) as server:
-            server.register_function(getNextTask)
-            server.register_function(taskDone)
-            server.register_function(posDone)
-            server.register_function(registerInstance)
-            server.register_function(registerFirstObservation)
-            server.serve_forever()
-
-    global deterministic
     deterministic = config['deterministic']
 
-    # Starts the server thread with the context.
-    server_thread = threading.Thread(target=dispatch, args=(port_rpc,))
-    server_thread.daemon = True
-    server_thread.start()
+    if port_rpc is None:
+        port_rpc= avalaible_port()
+
+        # Register functions
+        def dispatch(port_rpc):
+            with SimpleThreadedXMLRPCServer(('localhost', port_rpc), requestHandler=RequestHandler) as server:
+                server.register_function(getNextTask)
+                server.register_function(taskDone)
+                server.register_function(posDone)
+                server.register_function(registerInstance)
+                server.register_function(registerFirstObservation)
+                server.serve_forever()
+
+        # Starts the server thread with the context.
+        server_thread = threading.Thread(target=dispatch, args=(port_rpc,))
+        server_thread.daemon = True
+        server_thread.start()
 
 
 def close_scene():
