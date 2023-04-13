@@ -98,17 +98,6 @@ class Viewer:
         self.agent_display = None
         self.frame = 0
 
-        if not glfw.init():
-            sys.exit(1)
-
-        glfw.window_hint(glfw.VISIBLE, False)
-        self.window = glfw.create_window(self.surface_size[0], self.surface_size[1], "hidden window", None, None)
-
-        if not self.window:
-            print("ERROR glfw is dead")
-            glfw.terminate()
-            sys.exit(2)
-
         self.root = init_simulation(self.env.config, mode = 'visu')
         scene = self.env.config['scene']
         self._setPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").setPos
@@ -133,6 +122,12 @@ class Viewer:
         -------
             The picture on the window.
         """
+        
+        # Handling the event queue
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.env.close()
+                sys.exit()
 
         # Recovering an image and handling error cases
         try:
@@ -147,7 +142,6 @@ class Viewer:
                     self._setPos(self.root, p)
                     Sofa.Simulation.animate(self.root, 0.0001)
 
-                    glfw.make_context_current(self.window)
                     glViewport(0, 0, self.surface_size[0], self.surface_size[1])
 
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -294,7 +288,6 @@ class Viewer:
             None.
 
         """
-        glfw.terminate()
         pygame.display.quit()
         pygame.quit()
 
