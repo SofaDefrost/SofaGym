@@ -42,7 +42,8 @@ class TrunkCupEnv(AbstractEnv):
                       "discrete": True,
                       "seed": None,
                       "start_from_history": None,
-                      "python_version": "python3.8"
+                      "python_version": "python3.8",
+                      "dt": 0.01
                       }
 
     def __init__(self, config=None):

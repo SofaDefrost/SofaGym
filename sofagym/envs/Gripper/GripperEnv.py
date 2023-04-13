@@ -42,7 +42,8 @@ class GripperEnv(AbstractEnv):
                       "discrete": True,
                       "seed": None,
                       "start_from_history": None,
-                      "python_version": "python3"
+                      "python_version": "python3",
+                      "dt": 0.01
                       }
 
     def __init__(self, config=None):
