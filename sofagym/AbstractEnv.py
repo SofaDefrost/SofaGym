@@ -73,6 +73,7 @@ class AbstractEnv(gym.Env):
                     out before starting the training.
                 - python_version: the version of python.
                 - time_before_start: initialize the simulation with time_before_start steps.
+                - dt: float that define time step.
         observation_space: spaces.Box
             Define the size of the environment.
         past_actions: list of int.
@@ -123,9 +124,9 @@ class AbstractEnv(gym.Env):
             None.
 
         """
-
         # Define a DEFAULT_CONFIG in sub-class.
         self.config = copy.deepcopy(self.DEFAULT_CONFIG)
+        self.config["dt"] = self.config.get('dt', 0.01)
         if config is not None:
             self.config.update(config)
 

@@ -45,6 +45,7 @@ class DiamondRobotEnv(AbstractEnv):
                       "start_from_history": None,
                       "python_version": "python3.8",
                       "zFar": 5000,
+                      "dt": 0.01
                       }
 
     def __init__(self, config=None):

@@ -44,7 +44,8 @@ class MazeEnv(AbstractEnv):
                       "seed": 0,
                       "start_from_history": None,
                       "python_version": "python3.8",
-                      "zFar": 1000
+                      "zFar": 1000,
+                      "dt": 0.01
                       }
 
     def __init__(self, config=None):
