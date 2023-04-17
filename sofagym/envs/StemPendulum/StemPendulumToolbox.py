@@ -26,7 +26,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 from sofagym.utils import express_point
 
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 class rewardShaper(Sofa.Core.Controller):
     """Compute the reward.

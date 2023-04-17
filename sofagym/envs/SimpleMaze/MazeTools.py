@@ -12,7 +12,7 @@ from collections import defaultdict
 
 import SofaRuntime
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 
 class Graph:

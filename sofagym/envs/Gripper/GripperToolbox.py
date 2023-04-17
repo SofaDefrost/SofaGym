@@ -22,7 +22,7 @@ from GripperTools import rewardShaper, goalSetter, _getGoalPos, getState, getRew
     getRotationCenter, translateFingers, rotateFingers, displace, getPos, setPos
 
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 
 def startCmd(root, action, duration):

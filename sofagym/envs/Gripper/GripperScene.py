@@ -18,7 +18,7 @@ from Gripper import Gripper
 
 path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 
 def add_plugins(root):

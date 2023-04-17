@@ -17,7 +17,7 @@ import SofaRuntime
 from splib3.animation.animate import Animation
 
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 
 class rewardShaper(Sofa.Core.Controller):

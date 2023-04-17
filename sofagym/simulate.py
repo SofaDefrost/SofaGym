@@ -45,7 +45,7 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
 
     # Load the scene
     root = Sofa.Core.Node("root")
-    SofaRuntime.importPlugin("SofaComponentAll")
+    SofaRuntime.importPlugin("Sofa.Component")
     create_scene(root,  config, mode = mode)
     Sofa.Simulation.init(root)
 

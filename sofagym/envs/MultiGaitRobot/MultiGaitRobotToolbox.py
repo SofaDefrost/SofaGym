@@ -17,7 +17,7 @@ import Sofa.Simulation
 import SofaRuntime
 from splib3.animation.animate import Animation
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 CENTER_PRESSUR = 2000  # 3500
 LEG_PRESSUR = 1500  # 2000

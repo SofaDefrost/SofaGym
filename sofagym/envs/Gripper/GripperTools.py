@@ -17,7 +17,7 @@ from math import cos, sin
 import numpy as np
 
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 
 class rewardShaper(Sofa.Core.Controller):
