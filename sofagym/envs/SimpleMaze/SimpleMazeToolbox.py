@@ -26,7 +26,7 @@ from splib3.numerics import Quat
 from MazeTools import Graph, dijkstra
 
 
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 def addRigidObject(node, filename, collisionFilename=None, position=[0,0,0,0,0,0,1], scale=[1,1,1], textureFilename='', color=[1,1,1], density=0.002, name='Object', withSolver=True, collisionGroup = 0, withCollision=True):
 

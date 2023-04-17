@@ -23,7 +23,7 @@ from splib3.animation import AnimationManagerController
 from CTRToolbox import RewardShaper, GoalSetter
 
 # Register all the common component in the factory.
-SofaRuntime.importPlugin("SofaComponentAll")
+SofaRuntime.importPlugin("Sofa.Component")
 
 path = dirname(abspath(__file__)) + '/'
 
