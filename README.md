@@ -9,7 +9,7 @@ The toolkit also comprises example scenes based on the SoftRobots plugin for SOF
 ## Installation
 ### Prerequisites
 
-#### 1) SofaGym need a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.12
+#### 1) SofaGym needs a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.12
 with a mandatory plugin :
 * [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
 
@@ -25,7 +25,7 @@ and optional plugins (mandatory to run the example environments integrated with 
 
 
 
-#### 2) SofaGym python requierements :
+#### 2) SofaGym python requierements
 We use python3.
 mandatory : 
 ```bash
@@ -45,7 +45,7 @@ pip install -v -e .
 ```
 
 
-## Quick start
+## Quick Start
 
 ```bash
 export SOFA_ROOT=/sofa/build_dir/
@@ -55,6 +55,22 @@ export PYTHONPATH=/sofa/build_dir/lib/python3/site-packages:$PYTHONPATH
 import sofagym
 ```
 
+### Test Script
+
+Running any of the available environments without RL training is possible using the script ```test_env.py```.
+
+The script runs the specified environment by taking a random sample action from the environment action space, perfom a simulation step using the chosen action, then get the new state and reward. This cycle is performed for the specified number of steps for each episode or until *done = True* (goal reached or episode terminated). No training happens during these steps or episodes.
+
+```bash
+python test_env.py -e trunk-v0 -ep 100 -s 100
+```
+
+- -e, --env: environment name from available examples
+- -ep, --episodes: number of episodes to run the environment [Optional, default=100]
+- -s, --steps: number of steps to run per episode [Optional, default=100]
+
+### Gym Functions
+
 The Gym framework allows to interact with an environment using well-known keywords:
 - *step(a)*: allows to perform a simulation step when the agent performs the action *a*. Given the current state of the system *obs_t* and the action *a*, the environment then changes to a new state *obs_{t+1}* and the agent receives the reward *rew*. If the goal is reached, the *done* flag changes to *True*.
 - *reset*: resets the environment.
@@ -62,22 +78,21 @@ The Gym framework allows to interact with an environment using well-known keywor
 
 The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gym, check the official [documentation page](https://www.gymlibrary.dev/).
 
-Example of use :
+### Simple Example Script
 
 ```python
 import gym
 import sofagym.envs
 
 env = gym.make('trunk-v0')
-observation, info = env.reset(seed=42)
+env.seed(42)
+observation = env.reset()
 
 done = False
 while not done:
     action = env.action_space.sample()  # this is where you would insert your policy
     observation, reward, done, info = env.step(action)
     env.render()
-
-    done = terminated or truncated
    
 env.close()
 ```
@@ -89,8 +104,7 @@ The classic running of an episode is therefore:
 - *env.close()*: end of simulation and destruction of the environment.
 
 
-
-## The environments
+## The Environments
 
 |Image|Name|Description|Status|
 |----------|:-------------|:-------------|:-------------|
@@ -113,7 +127,7 @@ The classic running of an episode is therefore:
 
 
 
-### Adding new environment
+### Adding New Environment
 
 It is possible to define new environments using SofaGym. For this purpose different elements have to be created:
 - *NameEnv*: inherits from *AbstractEnv*. It allows to give the specificity of the environment like the action domain (discrete or continuous) and the configuration elements.
@@ -123,9 +137,9 @@ It is possible to define new environments using SofaGym. For this purpose differ
 These different elements make it possible to create and personalise the task to be performed. See examples of environments for implementation.
 
 
-## The tools
+## The Tools
 
-### Server/worker architecture
+### Server/Worker Architecture
 
 The major difficulty encountered in this work is the fact that it is not possible to copy the *root* from a Sofa simulation. This implies that when two sequences of actions *A_1 = [a_1, ..., a_n, new_action_1]* and *A_2 = [a_1, ..., a_n, new_action_2]* have to be tried, it is necessary to start again from the beginning each time and simulate again *[a_1, ..., a_n]*. This leads to a huge loss of performance. To solve this problem a server/worker architecture is set up.
 
@@ -135,13 +149,13 @@ A cleaning system is used to close clients that are no longer used. This makes i
 
 When it is not necessary to have access to the different states of the environment, i.e. when the actions are used sequentially, only one client is open and performs the calculations sequentially.
 
-### Vectorized environment
+### Vectorized Environment
 
 
 Simulation training can be time consuming. It is therefore necessary to be able to parallelise the calculations. Since the actions are chosen sequentially, it is not possible to parallelise the calculations for one environment. The result depends on the previous result. However, it is possible to parallelise on several environments, meaning to run several simulations in parallel. This is done with the baseline of OpenAI: SubprocVecEnv.
 
 
-### Separation between visualisation and computations
+### Separation between Visualisation and Computations
 
 SofaGym separates calculations and visualisation. In order to achieve this, two scenes must be created: a scene *A* with all visual elements and a scene *B* with calculation elements (solvers, ...). Scene *A* is used in a viewer and scene *B* in the clients. Once the calculations have been performed in scene *B*, the positions of the points are given to the viewer which updates scene *A*.
 
