@@ -57,7 +57,10 @@ import sofagym
 
 ### Test Script
 
-Running any of the available environments without RL training is possible using the script ```test_env.py```
+Running any of the available environments without RL training is possible using the script ```test_env.py```.
+
+The script runs the specified environment by taking a random sample action from the environment action space, perfom a simulation step using the chosen action, then get the new state and reward. This cycle is performed for the specified number of steps for each episode or until *done = True* (goal reached or episode terminated). No training happens during these steps or episodes.
+
 ```bash
 python test_env.py -e trunk-v0 -ep 100 -s 100
 ```
