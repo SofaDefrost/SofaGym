@@ -58,7 +58,8 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
                                                                          'SofaSparseSolver',
                                                                          'SofaLoader',
                                                                          'SofaEngine',
-                                                                         'SofaConstraint'])
+                                                                         'SofaConstraint',
+                                                                         'Sofa.GL.Component.Shader'])
 
     source = config["source"]
     target = config["target"]
