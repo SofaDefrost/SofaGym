@@ -15,7 +15,6 @@ import queue
 import importlib
 import sys
 
-import glfw
 import Sofa
 import Sofa.SofaGL
 from OpenGL.GL import *
@@ -91,7 +90,7 @@ class Viewer:
         pygame.display.init()
         pygame.font.init()
 
-        self.screen = pygame.display.set_mode(self.screen_size, pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF)
         self.sim_surface = pygame.Surface((surface_size[0], surface_size[1]))
         self.agent_surface = pygame.Surface((surface_size[0], surface_size[1]//2))
 
@@ -107,6 +106,8 @@ class Viewer:
         if self.create_video is not None:
             self.writer = imageio.get_writer(self.create_video + datetime.datetime.now().strftime('%Y%m%d-%H%M%S') +
                                              ".mp4", format='mp4', mode='I', fps=fps)
+        
+        glClearColor(0, 0, 0, 1)
 
     def render(self, pos=None):
         """See the current state of the environment.
@@ -122,7 +123,6 @@ class Viewer:
         -------
             The picture on the window.
         """
-        
         # Handling the event queue
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -191,7 +191,7 @@ class Viewer:
                         self.screen.blit(self.agent_surface, (0, self.surface_size[1]))
 
                         # Display the modifications
-                        pygame.display.update()
+                        pygame.display.flip()
 
                         if self.save_path is not None:
                             self.save_image(image, str(self.frame)+"_"+str(num_im))
@@ -214,7 +214,7 @@ class Viewer:
         self.screen.blit(self.agent_surface, (0, self.surface_size[1]))
 
         # Display the modifications
-        pygame.display.update()
+        pygame.display.flip()
 
         if self.save_path is not None and self.env.config['render'] == 1:
             self.save_image(image, str(self.frame))
@@ -275,6 +275,10 @@ class Viewer:
             None.
         """
         self.agent_display = agent_display
+    
+    def reset(self):
+        self.frame = 0
+        self.root = init_simulation(self.env.config)
 
     def close(self):
         """Close the viewer.
@@ -300,23 +304,11 @@ class LegacyViewer:
         pygame.display.init()
         pygame.font.init()
         self.screen_size = (surface_size[0], int(1.5 * surface_size[1]))  # Screen
-        self.screen = pygame.display.set_mode(self.screen_size, pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF)
         self.agent_display = None
         self.sim_surface = pygame.Surface((surface_size[0], surface_size[1]))
         self.agent_surface = pygame.Surface((surface_size[0], surface_size[1]//2))
 
-        # Initialize the library
-        if not glfw.init():
-            print("Error during init gl")
-            return
-        # Set window hint NOT visible
-        # glfw.window_hint(glfw.VISIBLE, False)
-        # Create a windowed mode window and its OpenGL context
-        self.window = glfw.create_window(self.surface_size[0], self.surface_size[1], "hidden window", None, None)
-        if not self.window:
-            print("ERROR glfw is dead")
-            glfw.terminate()
-            return
         self.startCmd = startCmd
         self.env.config.update({"render": 0})
         self.root = None
@@ -325,6 +317,8 @@ class LegacyViewer:
         self.writer = imageio.get_writer(self.env.config['save_path']
                                          + datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
                                          + ".mp4", format='mp4', mode='I', fps=10)
+        
+        glClearColor(0, 0, 0, 1)
 
     def reset(self):
         self.root = init_simulation(self.env.config)
@@ -333,6 +327,12 @@ class LegacyViewer:
         _ = step_simulation(self.root, self.env.config, action, self.startCmd, None, viewer=self)
 
     def render(self):
+        # Handling the event queue
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.env.close()
+                sys.exit()
+
         image = self.render_sim()
         self.sim_surface = pygame.surfarray.make_surface(image)
         self.screen.blit(self.sim_surface, (0, 0))
@@ -343,7 +343,7 @@ class LegacyViewer:
         #     print("NO AGENT DISPLAY TO RENDER")
         # self.screen.blit(self.agent_surface, (0, self.surface_size[1]))
 
-        pygame.display.update()
+        pygame.display.flip()
         displayed_image = self.get_image()
         self.writer.append_data(displayed_image)
 
@@ -353,7 +353,7 @@ class LegacyViewer:
         image = self.render_sim(root=root)
         self.sim_surface = pygame.surfarray.make_surface(image)
         self.screen.blit(self.sim_surface, (0, 0))
-        pygame.display.update()
+        pygame.display.flip()
         displayed_image = self.get_image()
         self.writer.append_data(displayed_image)
 
@@ -362,7 +362,7 @@ class LegacyViewer:
         if self.agent_display:
             self.agent_display(self.agent_surface, None)
         self.screen.blit(self.agent_surface, (0, self.surface_size[1]))
-        pygame.display.update()
+        pygame.display.flip()
 
     def get_image(self):
         """
@@ -374,8 +374,6 @@ class LegacyViewer:
     def render_sim(self, root=None):
         if root is None:
             root = self.root
-        # Make the window's context current
-        glfw.make_context_current(self.window)
         glViewport(0, 0, self.surface_size[0], self.surface_size[1])
         # glEnable(GL_DEPTH_TEST)
         # glClearColor(0.5, 0.5, 0.5,1.0)
