@@ -81,11 +81,8 @@ class CartStemEnv(AbstractEnv):
         super().reset()
 
         self.config.update({'init_x': -(self.config["max_move"]/8) + (self.config["max_move"]/4)*np.random.random()})
-        super().reset()
 
         self.config.update({'goalPos': self.goal})
-        # obs = super().reset()
-        # return np.array(obs)
 
         obs = start_scene(self.config, self.nb_actions)
         return np.array(obs['observation'])

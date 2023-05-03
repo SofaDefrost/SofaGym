@@ -102,7 +102,7 @@ class BubbleMotion:
 
         visu = object.addChild('Visu')
         visu.addObject('MeshVTKLoader', name='loader', filename=filename+"Volumetric.vtk", scale3d=[scale]*3)
-        visu.addObject('OglModel', src='@loader', texturename="", color=[0, 0, 1, 0.5])
+        visu.addObject('OglModel', src='@loader', color=[0, 0, 1, 0.5])
         visu.addObject('RigidMapping')
 
         object.addObject('UniformMass', totalMass=totMass)

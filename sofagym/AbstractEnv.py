@@ -372,8 +372,10 @@ class AbstractEnv(gym.Env):
             obs, info
 
         """
-        self.close()
-        self.initialization()
+        self.clean()
+        self.viewer = None
+
+        self.seed(self.config['seed'])
 
         splib3.animation.animate.manager = None
         if not self.goalList:
