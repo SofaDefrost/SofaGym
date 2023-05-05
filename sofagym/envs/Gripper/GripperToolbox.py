@@ -9,7 +9,7 @@ __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
 import SofaRuntime
-from splib.animation.animate import Animation
+from splib3.animation.animate import Animation
 
 import sys
 import pathlib
@@ -83,7 +83,7 @@ def startCmd_Gripper(rootNode, fingers, rotation, direction, displacement, durat
                     "rotation": rotation,
                     "direction": direction,
                     "displacement": displacement},
-            duration=duration, mode="once", realTimeClock=False))
+            duration=duration, mode="once"))
 
 
 def action_to_command(action):

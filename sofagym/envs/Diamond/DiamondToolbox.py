@@ -298,7 +298,7 @@ def startCmd_Diamond(root, displacement, duration):
             params={"root": root,
                     "displacement": displacement,
                     "n_steps": duration},
-            duration=duration, mode="once"))#, realTimeClock=False
+            duration=duration, mode="once"))
 
 
 def action_to_command(action):
