@@ -103,6 +103,28 @@ The classic running of an episode is therefore:
 - *action = model(obs_t)* and *env.step(action)*: execution of actions in the environment.
 - *env.close()*: end of simulation and destruction of the environment.
 
+### Training
+
+RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. Currently, the training in SofaGym is done using Stable Baselines.
+
+To train a model for one of the registered environments of SofaGym, the ```rl.py``` script can be used:
+
+```bash
+python rl.py -e trunk-v0 -a PPO
+```
+
+Command line arguments can be used to change the training parameters:
+- -e, --env: environment name from available examples
+- -a, --algo: RL algorithm name from the algorithms supported by stable baselines
+- -ne, --env_num: number of environments trained in parallel [Optional, default=4]
+- -ep, --epochs: number of training epochs [Optional, default=100]
+- -tr, --train: option to choose between training a new model, continue training of an available model, or no training [Optional, default=new]
+- -te, --te: option to test the trained model [Optional, default=False]
+- -tn, --num_test: number of tests to run on the trained model [Optional, default=1]
+- -md, --model_dir: path to save the model training files
+- -ms, --model_step: time step to load a trained model from
+
+
 
 ## The Environments
 
