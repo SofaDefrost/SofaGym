@@ -5,11 +5,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
-from splib.animation import AnimationManagerController
+from splib3.animation import AnimationManagerController
 from math import cos, sin
 import numpy as np
-from splib.objectmodel import SofaPrefab, SofaObject
-from splib.numerics import Vec3, Quat
+from splib3.objectmodel import SofaPrefab, SofaObject
+from splib3.numerics import Vec3, Quat
 
 
 from TrunkToolbox import rewardShaper, goalSetter

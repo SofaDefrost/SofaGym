@@ -14,7 +14,7 @@ import Sofa
 import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
-from splib.animation.animate import Animation
+from splib3.animation.animate import Animation
 
 SofaRuntime.importPlugin("Sofa.Component")
 
@@ -324,7 +324,7 @@ def startCmd_Trunk(rootNode, cable, displacement, duration):
             onUpdate=executeAnimation,
             params={"cable": cable,
                     "displacement": displacement},
-            duration=duration, mode="once", realTimeClock=False))
+            duration=duration, mode="once"))
 
 
 def action_to_command(action):

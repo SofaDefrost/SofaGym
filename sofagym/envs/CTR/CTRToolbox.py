@@ -302,7 +302,7 @@ def start_cmd(rootNode, IRC_node, source, target, duration, instrument=0):
                     "anim_source": source,
                     "anim_target": target,
                     "anim_instrument": instrument},
-            duration=duration, mode="once"))#, realTimeClock=False))
+            duration=duration, mode="once"))
 
     return
 

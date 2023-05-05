@@ -15,7 +15,7 @@ import Sofa
 import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
-from splib.animation.animate import Animation
+from splib3.animation.animate import Animation
 
 import sys
 import pathlib
@@ -283,4 +283,4 @@ def startCmd_StemPendulum(rootNode, incr, duration):
             onUpdate=executeAnimation,
             params={"rootNode": rootNode,
                     "incr": incr},
-            duration=duration, mode="once", realTimeClock=False))
+            duration=duration, mode="once"))

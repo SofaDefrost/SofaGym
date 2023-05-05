@@ -93,8 +93,7 @@ class CartStemContactEnv(AbstractEnv):
         self.config.update({'goalList': [[x_goal, 0, 20]]})
         self.config.update({'max_move': max(abs(low_cube-1), high_cube+1)})
         self.config.update({'goalPos': self.goal})
-        # obs = super().reset()
-        # return np.array(obs)
+
         obs = start_scene(self.config, self.nb_actions)
 
         return np.array(obs['observation'])

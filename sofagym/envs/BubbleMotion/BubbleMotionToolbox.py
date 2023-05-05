@@ -14,7 +14,7 @@ import Sofa
 import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
-from splib.animation.animate import Animation
+from splib3.animation.animate import Animation
 
 import sys
 import pathlib
@@ -264,10 +264,10 @@ def startCmd(root, actions, duration):
 
     """
     incr = action_to_command(actions, root, duration/root.dt.value + 1)
-    startCmd_StemPendulum(root, incr, duration)
+    startCmd_BubbleMotion(root, incr, duration)
 
 
-def startCmd_StemPendulum(rootNode, incr, duration):
+def startCmd_BubbleMotion(rootNode, incr, duration):
     """Initialize the command.
 
     Parameters:
@@ -294,4 +294,4 @@ def startCmd_StemPendulum(rootNode, incr, duration):
             onUpdate=executeAnimation,
             params={"rootNode": rootNode,
                     "incr": incr},
-            duration=duration, mode="once", realTimeClock=False))
+            duration=duration, mode="once"))

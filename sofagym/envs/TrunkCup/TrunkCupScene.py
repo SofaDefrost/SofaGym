@@ -11,7 +11,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 from math import cos
 from math import sin
 import numpy as np
-from splib.animation import AnimationManagerController
+from splib3.animation import AnimationManagerController
 from TrunkCupToolbox import rewardShaper, goalSetter
 
 
@@ -256,7 +256,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 	rootNode.addObject(goalSetter(name="GoalSetter", goalMO=goal_mo, goalPos = config['goalPos']))
 
 	if simu:
-		rootNode.addObject(AnimationManagerController(name="AnimationManager"))
+		rootNode.addObject(AnimationManagerController(rootNode, name="AnimationManager"))
 
 	if visu:
 		source = config["source"]

@@ -76,13 +76,12 @@ class BubbleMotionEnv(AbstractEnv):
             client_<scene>Env.py.
 
         """
-
-
         super().reset()
 
         self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
-        return obs['observation']
+        
+        return np.array(obs['observation'])
 
     def get_available_actions(self):
         """Gives the actions available in the environment.

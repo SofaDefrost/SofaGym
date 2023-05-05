@@ -78,7 +78,7 @@ class GripperEnv(AbstractEnv):
         obs = start_scene(self.config, self.nb_actions)
         info = {}
 
-        return (obs['observation'], info)
+        return (np.array(obs['observation']), info)
 
     def get_available_actions(self):
         """Gives the actions available in the environment.

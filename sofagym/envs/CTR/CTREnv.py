@@ -105,7 +105,7 @@ class ConcentricTubeRobotEnv(AbstractEnv):
         self.step(8)
         self.render()
 
-        return obs['observation']
+        return np.array(obs['observation'])
 
     def render(self, mode='rgb_array'):
         """See the current state of the environment.

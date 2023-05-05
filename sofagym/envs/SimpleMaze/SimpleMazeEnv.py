@@ -84,7 +84,7 @@ class SimpleMazeEnv(AbstractEnv):
             self.viewer.reset()
         self.render()
 
-        return obs['observation']
+        return np.array(obs['observation'])
 
     def render(self, mode='rgb_array'):
         """See the current state of the environment.
