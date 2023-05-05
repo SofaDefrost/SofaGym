@@ -180,6 +180,16 @@ If you use the project in your work, please consider citing it with:
   journal = {GitHub repository},
 }
 ```
+And if you are using for soft robots:
+```bibtex
+@article{schegg2022sofagym,
+  title={SofaGym: An open platform for Reinforcement Learning based on Soft Robot simulations},
+  author={Schegg, Pierre and M{\'e}nager, Etienne and Khairallah, Elie and Marchal, Damien and Dequidt, J{\'e}r{\'e}mie and Preux, Philippe and Duriez, Christian},
+  journal={Soft Robotics},
+  year={2022},
+  publisher={Mary Ann Liebert, Inc., publishers 140 Huguenot Street, 3rd Floor New~…}
+}
+```
 
 
 ## Notes
