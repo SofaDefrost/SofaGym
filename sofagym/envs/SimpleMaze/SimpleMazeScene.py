@@ -122,7 +122,7 @@ def createScene(root, config={"source": [0, 1000, 0],
     p_mo = path_node.addObject("MechanicalObject", template="Rigid3d", name="dofs", position="@meshLoader.position",
                                showObject=True, showObjectScale=1.0)
     if True:
-        path_node.addObject("RigidRigidMapping", input=maze_mo.getLinkPath(), output=p_mo.getLinkPath())
+        path_node.addObject("RigidMapping", input=maze_mo.getLinkPath(), output=p_mo.getLinkPath())
 
     goal_mo = add_goal_node(root)
 

@@ -124,10 +124,10 @@ class ServoMotor(SofaObject):
 
         # ServoBody and ServoWheel objects with visual
         servowheel = ServoWheel(self.node, showWheel=showWheel)
-        servowheel.addObject("RigidRigidMapping", input=self.node.BaseFrame.dofs.getLinkPath(),
+        servowheel.addObject("RigidMapping", input=self.node.BaseFrame.dofs.getLinkPath(),
                              output=servowheel.dofs.getLinkPath(), index=1)
         servobody = ServoBody(self.node, showServo=showServo)
-        servobody.addObject("RigidRigidMapping", input=self.node.BaseFrame.dofs.getLinkPath(),
+        servobody.addObject("RigidMapping", input=self.node.BaseFrame.dofs.getLinkPath(),
                             output=servobody.dofs.getLinkPath(), index=0)
 
         # The output
