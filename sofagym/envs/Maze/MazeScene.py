@@ -205,11 +205,6 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     scene.Simulation.addChild(tripod.ActuatedArm2)
     scene.Simulation.addChild(tripod.RigidifiedStructure)
 
-    scene.Simulation.addObject('MechanicalMatrixMapper', name='MMM_'+tripod.name.value, template='Vec3,Rigid3',
-                               object1=tripod.RigidifiedStructure.DeformableParts.getLinkPath(),
-                               object2=tripod.RigidifiedStructure.RigidParts.dofs.getLinkPath(),
-                               nodeToParse=tripod.ElasticBody.ElasticMaterialObject.getLinkPath())
-
     # scene.addObject(TripodController(name='TripodController',tripod=tripod,actuators=[tripod.ActuatedArm0,
     # tripod.ActuatedArm1, tripod.ActuatedArm2]))
 
