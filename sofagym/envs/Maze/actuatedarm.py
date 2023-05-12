@@ -38,7 +38,7 @@ class ServoArm(object):
         self.node.addObject("MechanicalObject", name="dofs", size=1, template="Rigid3", showObject=False,
                             showObjectScale=5, translation2=[0, 25, 0])
 
-        self.node.addObject('RigidRigidMapping', name="mapping", input=mappingInput.getLinkPath(), index=indexInput)
+        self.node.addObject('RigidMapping', name="mapping", input=mappingInput.getLinkPath(), index=indexInput)
 
         visual = VisualModel(self.node, mesh_path + 'SG90_servoarm.stl', translation=[0., -25., 0.],
                              color=[1., 1., 1., 0.75])

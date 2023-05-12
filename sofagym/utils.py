@@ -188,7 +188,7 @@ def createCosserat(parent, config, name="Cosserat", orientation=[0, 0, 0, 1], ra
         lastFrame = base.addChild('lastFrame_'+str(i))
         lastFrameMo = lastFrame.addObject('MechanicalObject', template='Rigid3d', name="RigidBaseMO",
                                           position=[x+last_frame_dist, y, z] + orient, showObject=0, showObjectScale=2.)
-        lastFrame.addObject("RigidRigidMapping", name="mapLastFrame", input=framesMO.getLinkPath(),
+        lastFrame.addObject("RigidMapping", name="mapLastFrame", input=framesMO.getLinkPath(),
                             output=lastFrameMo.getLinkPath(), index=last_frame_index, globalToLocalCoords=True)
 
     return base

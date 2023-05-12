@@ -218,7 +218,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     # MAZE ###################
     maze = scene.Simulation.addChild("MAZE")
     maze.addObject("MechanicalObject", template="Rigid3", name="dofs", position=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
-    maze.addObject("RigidRigidMapping", input=tripod.RigidifiedStructure.RigidParts.dofs.getLinkPath(), output='@./',
+    maze.addObject("RigidMapping", input=tripod.RigidifiedStructure.RigidParts.dofs.getLinkPath(), output='@./',
                    index=3)
 
     collisionmodel = CollisionMesh(maze, surfaceMeshFileName=path_mesh + "maze.stl", translation=[-51.5, 0, 51.5],
@@ -229,7 +229,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
                             name='meshLoader', translation=[-51.5, 0, 51.5])
     p_mo = path.addObject("MechanicalObject", template="Rigid3d", name="dofs", position="@meshLoader.position",
                           showObject=True, showObjectScale=1.0)
-    path.addObject("RigidRigidMapping", input=tripod.RigidifiedStructure.RigidParts.dofs.getLinkPath(), output='@./',
+    path.addObject("RigidMapping", input=tripod.RigidifiedStructure.RigidParts.dofs.getLinkPath(), output='@./',
                    index=3)
 
     goal_mo = add_goal_node(rootNode)
