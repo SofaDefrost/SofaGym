@@ -33,9 +33,6 @@ pip install gym==0.21 psutil pygame glfw pyopengl imageio
 ```
 * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
 
-optional :
-* [Actor with Variance Estimated Critic (AVEC)](https://github.com/yfletberliac/actor-with-variance-estimated-critic)
-
 
 
 ### Install Sofagym 
@@ -105,7 +102,7 @@ The classic running of an episode is therefore:
 
 ### Training
 
-RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. Currently, the training in SofaGym is done using Stable Baselines.
+RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. Currently, the training in SofaGym can be done using either [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) or [rlberry](https://github.com/rlberry-py/rlberry).
 
 To train a model for one of the registered environments of SofaGym, the ```rl.py``` script can be used:
 
@@ -114,17 +111,25 @@ python rl.py -e trunk-v0 -a PPO
 ```
 
 Command line arguments can be used to change the training parameters:
-- -e, --env: environment name from available examples
-- -a, --algo: RL algorithm name from the algorithms supported by stable baselines
-- -ne, --env_num: number of environments trained in parallel [Optional, default=4]
+- -e, --environment: environment name from available examples (For list of available examples, see [Environments](https://github.com/SofaDefrost/SofaGym#the-environments))
+- -a, --algorithm: RL algorithm name from the algorithms supported by the supported frameworks.
+  - Options:
+    - Stable Baselines: A2C, DDPG, DQN, PPO, SAC, TD3
+    - RLberry: A2C, DQN, PPO, SAC, REINFORCE
+- -fr, --framework: RL framework name from the supported frameworks [Optional, default='SB3']
+  - Options:
+    - SB3 (Stable Baselines3)
+    - RLberry
+- -ne, --env_num: number of environments trained in parallel [Optional, default=1]
+- -s, --seed: seed used to initialize the environment [Optional, default=0]
 - -ep, --epochs: number of training epochs [Optional, default=100]
-- -tr, --train: option to choose between training a new model, continue training of an available model, or no training [Optional, default=new]
+- -mst, --max_steps: maximum number of steps to perform per episode [Optional, default=None]
+- -tr, --train: option to choose between training a new model, continue training of an available model, or no training [Optional, default='new']
 - -te, --te: option to test the trained model [Optional, default=False]
 - -tn, --num_test: number of tests to run on the trained model [Optional, default=1]
 - -md, --model_dir: path to save the model training files
-- -ms, --model_step: time step to load a trained model from
 
-
+To change the hyperparamters of the RL algorithm and the agent training and evaluation parameters, the YAML [hyperparameters files](agents/hyperparameters) can be used.
 
 ## The Environments
 
