@@ -16,12 +16,11 @@ from stable_baselines3.common.monitor import Monitor
 
 
 class RLberryAgent(SofaBaseAgent):
-    def __init__(self, env_id, algo_name, seed=None, output_dir=None, max_episode_steps=None, n_envs=1, checkpoint_file=None, **kwargs):
-        super().__init__(env_id, seed, output_dir, max_episode_steps)
+    def __init__(self, env_id, algo_name, seed=0, output_dir="./Results", max_episode_steps=None, n_envs=1, checkpoint_file=None, **kwargs):
+        super().__init__(env_id, seed, output_dir, max_episode_steps, n_envs)
         
         self.algo_name = algo_name
         self.algo = eval(self.algo_name + "Agent")
-        self.n_envs = n_envs
         self.checkpoint_file = checkpoint_file
         self.params = kwargs
 
@@ -163,10 +162,6 @@ class RLberryAgent(SofaBaseAgent):
     
     def env_ctor(self):
         return self.env_wrap()
-    
-    def close(self):
-        self.env.close()
-        self.test_env.close()
 
     def SaveAgent(self):
         parent = self

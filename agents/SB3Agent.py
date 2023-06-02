@@ -14,13 +14,11 @@ from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
 
 
 class SB3Agent(SofaBaseAgent):
-    def __init__(self, env_id, algo_name, seed=None, output_dir=None, max_episode_steps=None, n_envs=1, model_name=None, **kwargs):
-        super().__init__(env_id, seed, output_dir, max_episode_steps)
+    def __init__(self, env_id, algo_name, seed=0, output_dir="./Results", max_episode_steps=None, n_envs=1, model_name=None, **kwargs):
+        super().__init__(env_id, seed, output_dir, max_episode_steps, n_envs)
         
         self.algo_name = algo_name
         self.algo = eval(self.algo_name)
-        self.max_episode_steps = max_episode_steps
-        self.n_envs = n_envs
         self.model_name = model_name
         self.params = kwargs
 
@@ -65,7 +63,7 @@ class SB3Agent(SofaBaseAgent):
         self.load_params()
         self.init_dirs()
 
-        self.env = self.env_wrap(self.n_envs, normalize=True, max_episode_steps=self.max_episode_steps)
+        self.env = self.env_wrap(self.n_envs, normalize=True)
         
         self.model = self.algo(env=self.env, seed=self.seed, verbose=1, tensorboard_log=self.log_dir, **self.init_kwargs)
 
@@ -187,21 +185,17 @@ class SB3Agent(SofaBaseAgent):
 
         return agent
         
-    def env_wrap(self, n_envs, normalize=True, max_episode_steps=None):
-        self.vec_env = SubprocVecEnv([make_env(self.env_id, i, self.seed, max_episode_steps) for i in range(n_envs)])
+    def env_wrap(self, n_envs, normalize=True):
+        self.vec_env = SubprocVecEnv([make_env(self.env_id, i, self.seed, self.max_episode_steps) for i in range(n_envs)])
         
         if normalize:
             self.vec_env = VecNormalize(self.vec_env, norm_obs=True, norm_reward=True)
         
         self.vec_env = VecMonitor(self.vec_env, self.log_dir)
 
-        self.test_env = make_env(self.env_id, 0, self.seed*10, max_episode_steps)()
+        self.test_env = make_env(self.env_id, 0, self.seed*10, self.max_episode_steps)()
 
         return self.vec_env
 
     def policy(self, obs, deterministic=False):
         return self.model.predict(obs, deterministic=deterministic)
-
-    def close(self):
-        self.env.close()
-        self.test_env.close()
