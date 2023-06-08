@@ -44,6 +44,7 @@ name = {
         11:'stempendulum-v0',
         12:'trunk-v0',
         13:'trunkcup-v0',
+        14: 'cartpole-v0'
         }
 
 if __name__ == '__main__':
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     parser.add_argument("-ep", "--episodes", help="Number of episodes",
                         type=int, required=False, default=100)
     parser.add_argument("-s", "--steps", help="Number of steps per episodes",
-                        type=int, required=False, default=100)    
+                        type=int, required=False, default=100)
     args = parser.parse_args()
 
     env_name = args.env

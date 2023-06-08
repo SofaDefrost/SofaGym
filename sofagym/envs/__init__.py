@@ -11,6 +11,7 @@ from sofagym.envs.SimpleMaze.SimpleMazeEnv import *
 from sofagym.envs.StemPendulum.StemPendulumEnv import *
 from sofagym.envs.Trunk.TrunkEnv import *
 from sofagym.envs.TrunkCup.TrunkCupEnv import *
+from sofagym.envs.CartPole.CartPoleEnv import *
 
 
 # registering sofagym envs as gymnasium envs
@@ -66,4 +67,8 @@ register(
 register(
     id='trunkcup-v0',
     entry_point='sofagym.envs:TrunkCupEnv',
+)
+register(
+    id='cartpole-v0',
+    entry_point='sofagym.envs:CartPoleEnv',
 )
