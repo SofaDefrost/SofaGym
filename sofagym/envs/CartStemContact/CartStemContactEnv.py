@@ -80,8 +80,6 @@ class CartStemContactEnv(AbstractEnv):
             client_<scene>Env.py.
 
         """
-        super().reset()
-
         low_cube, high_cube = -6+ 2*np.random.random(), 6 - 2*np.random.random()
         self.config.update({'cube_x': [low_cube, high_cube]})
         self.config.update({'init_x': (low_cube + 3) + (high_cube-low_cube-3)*np.random.random()})
@@ -91,6 +89,8 @@ class CartStemContactEnv(AbstractEnv):
         else:
             x_goal = high_cube - 3.5*np.random.random()
         self.config.update({'goalList': [[x_goal, 0, 20]]})
+        self.goalList = self.config["goalList"]
+        super().reset()
         self.config.update({'max_move': max(abs(low_cube-1), high_cube+1)})
         self.config.update({'goalPos': self.goal})
 
