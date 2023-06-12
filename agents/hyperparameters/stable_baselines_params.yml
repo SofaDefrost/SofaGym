@@ -1,0 +1,141 @@
+PPO:
+  init_kwargs:
+    policy: 'MlpPolicy'
+    learning_rate: 0.0003
+    n_steps: 100
+    batch_size: 64
+    n_epochs: 10
+    gamma: 0.99
+    gae_lambda: 0.95
+    clip_range: 0.2
+    clip_range_vf: null
+    normalize_advantage: True
+    ent_coef: 0.0
+    vf_coef: 0.5
+    max_grad_norm: 0.5
+    use_sde: False
+    sde_sample_freq: -1
+    target_kl: null
+    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]), optimizer_class=th.optim.Adam)"
+    device: "auto"
+  fit_kwargs:
+    total_timesteps: 1000
+    max_episode_steps: 200
+
+A2C:
+  init_kwargs:
+    policy: 'MlpPolicy'
+    learning_rate: 0.0007
+    n_steps: 100
+    gamma: 0.99
+    gae_lambda: 1.0
+    ent_coef: 0.0
+    vf_coef: 0.5
+    max_grad_norm: 0.5
+    rms_prop_eps: 1.0e-05
+    use_rms_prop: True
+    use_sde: False
+    sde_sample_freq: -1
+    normalize_advantage: False
+    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]))"
+    device: "auto"
+  fit_kwargs:
+    total_timesteps: 1000
+    max_episode_steps: 200  
+
+DQN:
+  init_kwargs:
+    policy: 'MlpPolicy'
+    learning_rate: 0.0001
+    buffer_size: 1000000
+    learning_starts: 100
+    batch_size: 32
+    tau: 1.0
+    gamma: 0.99
+    train_freq: (4, 'step')
+    gradient_steps: 1
+    replay_buffer_class: null
+    replay_buffer_kwargs: null
+    optimize_memory_usage: False
+    target_update_interval: 10000
+    exploration_fraction: 0.1
+    exploration_initial_eps: 1.0
+    exploration_final_eps: 0.05
+    max_grad_norm: 10
+    policy_kwargs: "dict(net_arch=[512, 512, 512], optimizer_class=th.optim.Adam)"
+    device: "auto"
+  fit_kwargs:
+    total_timesteps: 1000
+    max_episode_steps: 200
+
+SAC:
+  init_kwargs:
+    policy: 'MlpPolicy'
+    learning_rate: 0.0003
+    buffer_size: 1000000
+    learning_starts: 100
+    batch_size: 256
+    tau: 0.005
+    gamma: 0.99
+    train_freq: (1, 'step')
+    gradient_steps: 1
+    action_noise: null
+    replay_buffer_class: null
+    replay_buffer_kwargs: null
+    optimize_memory_usage: False
+    ent_coef: 'auto'
+    target_update_interval: 1
+    target_entropy: 'auto'
+    use_sde: False
+    sde_sample_freq: -1
+    use_sde_at_warmup: False
+    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], qf=[512, 512, 512]), optimizer_class=th.optim.Adam)"
+    device: "auto"
+  fit_kwargs:
+    total_timesteps: 1000
+    max_episode_steps: 200
+
+TD3:
+  init_kwargs:
+    policy: 'MlpPolicy'
+    learning_rate: 0.001
+    buffer_size: 1000000
+    learning_starts: 100
+    batch_size: 100
+    tau: 0.005
+    gamma: 0.99
+    train_freq: (1, 'episode')
+    gradient_steps: -1
+    action_noise: null
+    replay_buffer_class: null
+    replay_buffer_kwargs: null
+    optimize_memory_usage: False
+    policy_delay: 2
+    target_policy_noise: 0.2
+    target_noise_clip: 0.5
+    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], qf=[512, 512, 512]), optimizer_class=th.optim.Adam)"
+    device: "auto"
+  fit_kwargs:
+    total_timesteps: 1000
+    max_episode_steps: 200
+
+DDPG:
+  init_kwargs:
+    policy: 'MlpPolicy'
+    learning_rate: 0.001
+    buffer_size: 1000000
+    learning_starts: 100
+    batch_size: 100
+    tau: 0.005
+    gamma: 0.99
+    train_freq: (1, 'episode')
+    gradient_steps: -1
+    action_noise: null
+    replay_buffer_class: null
+    replay_buffer_kwargs: null
+    optimize_memory_usage: False
+    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], qf=[512, 512, 512]), optimizer_class=th.optim.Adam)"
+    device: "auto"
+  fit_kwargs:
+    total_timesteps: 1000
+    max_episode_steps: 200
