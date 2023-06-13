@@ -26,8 +26,8 @@ class MazeEnv(AbstractEnv):
     metadata = {'render.modes': ['human', 'rgb_array']}
     DEFAULT_CONFIG = {"scene": "Maze",
                       "deterministic": True,
-                      "source": [0, 200, 0],
-                      "target": [0, 0, 0],
+                      "source": [-82.0819, 186.518, 135.963],
+                      "target": [-2.09447, 5.75347, -4.34572],
                       "goalList": [334, 317, 312, 301],
                       "goal_node": 270,
                       "start_node": 269,
@@ -45,7 +45,8 @@ class MazeEnv(AbstractEnv):
                       "start_from_history": None,
                       "python_version": "python3.8",
                       "zFar": 1000,
-                      "dt": 0.01
+                      "dt": 0.01,
+                      "time_before_start": 20,
                       }
 
     def __init__(self, config=None):
