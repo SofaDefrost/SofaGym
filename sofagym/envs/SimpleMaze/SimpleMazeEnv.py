@@ -13,8 +13,6 @@ import numpy as np
 
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
-from sofagym.viewer import LegacyViewer
-from sofagym.envs.SimpleMaze.SimpleMazeToolbox import startCmd
 
 from gym import spaces
 
@@ -30,7 +28,7 @@ class SimpleMazeEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [0, 200, 0],
                       "target": [0, 0, 0],
-                      "goalList": [301, 334, 317, 312, 301],
+                      "goalList": [301, 334, 317, 312],
                       "goal_node": 334,
                       "start_node": 269,
                       "scale_factor": 200,
@@ -62,9 +60,6 @@ class SimpleMazeEnv(AbstractEnv):
                                             dtype='float32')
 
     def step(self, action):
-        if self.viewer:
-            self.viewer.step(action)
-
         return super().step(action)
 
     def reset(self):
@@ -80,33 +75,8 @@ class SimpleMazeEnv(AbstractEnv):
 
         self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
-        if self.viewer:
-            self.viewer.reset()
-        self.render()
 
         return np.array(obs['observation'])
-
-    def render(self, mode='rgb_array'):
-        """See the current state of the environment.
-
-        Get the OpenGL Context to render an image (snapshot) of the simulation
-        state.
-
-        Parameters:
-        ----------
-          mode: string, default = 'rgb_array'
-              Type of representation.
-
-        Returns:
-        -------
-          None.
-        """
-        if not self.viewer:
-            display_size = self.config["display_size"]  # Sim display
-            self.viewer = LegacyViewer(self, display_size, startCmd=startCmd)
-
-        # Use the viewer to display the environment.
-        self.viewer.render()
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
