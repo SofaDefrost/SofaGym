@@ -90,7 +90,7 @@ class Viewer:
         pygame.display.init()
         pygame.font.init()
 
-        self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.sim_surface = pygame.Surface((surface_size[0], surface_size[1]))
         self.agent_surface = pygame.Surface((surface_size[0], surface_size[1]//2))
 
@@ -304,7 +304,7 @@ class LegacyViewer:
         pygame.display.init()
         pygame.font.init()
         self.screen_size = (surface_size[0], int(1.5 * surface_size[1]))  # Screen
-        self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.agent_display = None
         self.sim_surface = pygame.Surface((surface_size[0], surface_size[1]))
         self.agent_surface = pygame.Surface((surface_size[0], surface_size[1]//2))
