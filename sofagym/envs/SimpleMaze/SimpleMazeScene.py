@@ -15,7 +15,8 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-from maze import Maze, Sphere
+from Maze import Maze
+from Sphere import Sphere
 from SimpleMazeToolbox import goalSetter, rewardShaper
 from splib3.animation import AnimationManagerController
 

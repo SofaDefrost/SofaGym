@@ -1,40 +1,6 @@
-import os
-import pathlib
-import sys
-
 import Sofa
 import Sofa.Core
 from stlib3.scene.contactheader import ContactHeader
-
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
-
-path = os.path.dirname(os.path.abspath(__file__))
-path_mesh = path + '/mesh/'
-
-
-class Maze(Sofa.Prefab):
-    prefabParameters = [
-        {'name': 'translation', 'type': 'Vec3d', 'help': '', 'default': [-50.0, 0.0, 50.0]},
-        {'name': 'rotation', 'type': 'Vec3d', 'help': '', 'default': [-90.0, 0.0, 0.0]}
-    ]
-
-    prefabData = [
-        {'name': 'index', 'type': 'int', 'help': 'index of rigid to attach to', 'default': 0},
-    ]
-
-    def __init__(self, *args, **kwargs):
-        Sofa.Prefab.__init__(self, *args, **kwargs)
-
-    def init(self):
-        self.addObject("MeshSTLLoader", name="loader", filename=path_mesh+"maze_4_coarse.stl",
-                       translation=self.translation.value, rotation=self.rotation.value)
-        self.addObject("MeshTopology", src='@loader')
-        self.addObject("MechanicalObject", name='maze_mesh_mo')
-        self.addObject("TriangleCollisionModel")
-        self.addObject("LineCollisionModel")
-        self.addObject("PointCollisionModel")
 
 
 class Sphere(Sofa.Prefab):
@@ -80,17 +46,6 @@ def createScene(rootNode):
     ContactHeader(rootNode, alarmDistance=15, contactDistance=0.5, frictionCoef=0)
     rootNode.addObject('VisualStyle', displayFlags=['showCollisionModels', 'showBehavior'])
     rootNode.addObject('DefaultVisualManagerLoop')
-
-    effector = rootNode.addChild('Effector')
-    effector.addObject('EulerImplicitSolver', firstOrder=True)
-    effector.addObject('CGLinearSolver', iterations=100, threshold=1e-5, tolerance=1e-5)
-    effector.addObject('MechanicalObject', template='Rigid3', name='goalMO', position=[0, 40, 0, 0, 0, 0, 1],
-                       showObject=True, showObjectScale=10)
-    effector.addObject('RestShapeSpringsForceField', points=0, angularStiffness=1e5, stiffness=1e5)
-    effector.addObject('UncoupledConstraintCorrection', compliance='1e-10  1e-10  0 0 1e-10  0 1e-10 ')
-
-    maze = effector.addChild(Maze())
-    maze.addObject("RigidMapping", index=0)
 
     rootNode.addChild(Sphere(withSolver=True))
 
