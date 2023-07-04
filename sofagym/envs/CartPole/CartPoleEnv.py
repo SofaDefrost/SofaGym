@@ -8,7 +8,7 @@ from sofagym.rpc_server import start_scene
 
 
 class CartPoleEnv(AbstractEnv):
-    """Sub-class of AbstractEnv, dedicated to the gripper scene.
+    """Sub-class of AbstractEnv, dedicated to the cart pole scene.
 
     See the class AbstractEnv for arguments and methods.
     """
