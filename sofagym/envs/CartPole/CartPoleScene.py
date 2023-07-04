@@ -10,7 +10,6 @@ from splib3.animation import AnimationManagerController
 from stlib3.physics.rigid import Floor
 from stlib3.scene import ContactHeader, MainHeader
 
-#from sofagym.utils import addRigidObject
 
 def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0, 0, 0, 1], scale=[1, 1, 1],
                    textureFilename='', color=[1, 1, 1], mass=1.0, name='Object', withSolver=True, withCollision=False):
@@ -102,12 +101,6 @@ def createScene(root,
     position_spot = [[0, 0, 160]]
     direction_spot = [[0, 1, 0]]
     addVisu(root, config, position_spot, direction_spot, cutoff = 250)
-
-    #if visu:
-    #    root.VisualStyle.displayFlags = "showForceFields showVisual showBehavior showCollision"
-    
-    #root.addObject('CollisionPipeline', depth=6, verbose=0, draw=0)
-    #root.addObject("CollisionResponse", name="CollisionResponse", response="FrictionContactConstraint")
 
     # Modeling
     modeling = root.addChild('Modeling')
