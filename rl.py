@@ -39,7 +39,8 @@ envs = {
         10: 'simple_maze-v0',
         11: 'stempendulum-v0',
         12: 'trunk-v0',
-        13: 'trunkcup-v0'
+        13: 'trunkcup-v0',
+        14: 'cartpole-v0'
         }
 
 algos = {
@@ -74,12 +75,12 @@ if __name__ == '__main__':
                         type=int, required=False, default=100)
     parser.add_argument("-mst", "--max_steps", help = "Max steps per episode",
                         type=int, required=False, default=None)
-    parser.add_argument("-tr", "--train", help = "Training a new model or continue training from saved model", 
+    parser.add_argument("-tr", "--train", help = "Training a new model or continue training from saved model",
                         choices=['new', 'continue', 'none'], required=False, default='new')
     parser.add_argument("-te", "--test", help = "Testing flag",
                         action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("-tn", "--num_test", help = "Number of tests",
-                        type=int, required=False, default=1)    
+                        type=int, required=False, default=1)
     parser.add_argument("-md", "--model_dir", help = "Model directory",
                         type=str, required=False, default=None)
     

@@ -1,2 +1,8 @@
 __pycache__/
 sofagym.egg-info
+sofagym/envs/Diamond/Results/
+sofagym/envs/CTR/Results/
+sofagym/envs/SimpleMaze/Results/
+Results/
+rlberry_data/
+_tests/
