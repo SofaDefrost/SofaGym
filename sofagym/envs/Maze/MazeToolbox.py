@@ -181,9 +181,9 @@ class goalSetter(Sofa.Core.Controller):
         self.rootNode = None
         if kwargs["rootNode"]:
             self.rootNode = kwargs["rootNode"]
-        self.goalMO = None
-        if kwargs["goalMO"]:
-            self.goalMO = kwargs["goalMO"]
+        self.goal = None
+        if kwargs["goal"]:
+            self.goal = kwargs["goal"]
         self.goalPos = None
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
@@ -202,9 +202,13 @@ class goalSetter(Sofa.Core.Controller):
             None.
 
         """
-        new_position = self.rootNode.Simulation.MAZE.Path.dofs.position.value[self.goalPos][:3]
-        with self.goalMO.position.writeable() as position:
+        new_position = self.rootNode.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.Path.dofs.position.value[self.goalPos][:3]
+        with self.goal.GoalMO.position.writeable() as position:
             position[0] = new_position
+            position[0][1] = 5
+        with self.goal.mapping.initialPoints.writeable() as position:
+            position[0] = new_position
+            position[0][1] = 5
 
     def set_mo_pos(self, goal):
         """Modify the goal.
@@ -245,10 +249,10 @@ def getState(rootNode):
     cs = 3
 
     goalPos = _getGoalPos(rootNode).tolist()
-    maze = rootNode.Simulation.MAZE.dofs.position.value[0]
+    maze = rootNode.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.maze_mesh_mo.position.value[0]
     maze = [round(float(k), cs) for k in maze]
 
-    spheres = rootNode.Simulation.spheres.dofs.position.value[0]
+    spheres = rootNode.Simulation.Sphere.sphere_mo.position.value[0]
     spheres = [round(float(k), cs) for k in spheres]
 
     state = spheres + maze + goalPos
@@ -395,16 +399,25 @@ def getPos(root):
 
     root.GoalSetter.update()
 
-    maze = root.Simulation.MAZE.collision.MechanicalObject.position.value.tolist()
-    spheres = root.Simulation.spheres.dofs.position.value.tolist()
+    maze = root.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.maze_mesh_mo.position.value.tolist()
+    spheres = root.Simulation.Sphere.sphere_mo.position.value.tolist()
 
     rigid = root.Modelling.Tripod.RigidifiedStructure.RigidParts.dofs.position.value.tolist()
     deformable = root.Modelling.Tripod.RigidifiedStructure.DeformableParts.dofs.position.value.tolist()
-    elastic = root.Modelling.Tripod.ElasticBody.ElasticMaterialObject.dofs.position.value.tolist()
+    elastic = root.Modelling.Tripod.ElasticBody.MechanicalModel.dofs.position.value.tolist()
+    freecenter = root.Modelling.Tripod.RigidifiedStructure.FreeCenter.dofs.position.value.tolist()
+
+    arm1 = root.Modelling.Tripod.ActuatedArm0.ServoMotor.Articulation.dofs.position.value.tolist()
+    arm2 = root.Modelling.Tripod.ActuatedArm1.ServoMotor.Articulation.dofs.position.value.tolist()
+    arm3 = root.Modelling.Tripod.ActuatedArm2.ServoMotor.Articulation.dofs.position.value.tolist()
+
+    servo1 = root.Modelling.Tripod.ActuatedArm0.ServoMotor.ServoBody.dofs.position.value.tolist()
+    servo2 = root.Modelling.Tripod.ActuatedArm1.ServoMotor.ServoBody.dofs.position.value.tolist()
+    servo3 = root.Modelling.Tripod.ActuatedArm2.ServoMotor.ServoBody.dofs.position.value.tolist()
 
     goal = root.Goal.GoalMO.position.value.tolist()
 
-    return [maze, spheres, rigid, deformable, elastic, goal]
+    return [maze, spheres, rigid, deformable, elastic, freecenter, arm1, arm2, arm3, servo1, servo2, servo3, goal]
 
 
 def setPos(root, pos):
@@ -426,13 +439,22 @@ def setPos(root, pos):
         Don't forget to init the new value of the position.
 
     """
-    [maze, spheres, rigid, deformable, elastic, goal] = pos
+    [maze, spheres, rigid, deformable, elastic, freecenter, arm1, arm2, arm3, servo1, servo2, servo3, goal] = pos
 
-    root.Simulation.MAZE.collision.MechanicalObject.position.value = np.array(maze)
-    root.Simulation.spheres.dofs.position.value = np.array(spheres)
+    root.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.maze_mesh_mo.position.value = np.array(maze)
+    root.Simulation.Sphere.sphere_mo.position.value = np.array(spheres)
 
     root.Modelling.Tripod.RigidifiedStructure.RigidParts.dofs.position.value = np.array(rigid)
     root.Modelling.Tripod.RigidifiedStructure.DeformableParts.dofs.position.value = np.array(deformable)
-    root.Modelling.Tripod.ElasticBody.ElasticMaterialObject.dofs.position.value = np.array(elastic)
+    root.Modelling.Tripod.ElasticBody.MechanicalModel.dofs.position.value = np.array(elastic)
+    root.Modelling.Tripod.RigidifiedStructure.FreeCenter.dofs.position.value = np.array(freecenter)
+
+    root.Modelling.Tripod.ActuatedArm0.ServoMotor.Articulation.dofs.position.value = np.array(arm1)
+    root.Modelling.Tripod.ActuatedArm1.ServoMotor.Articulation.dofs.position.value = np.array(arm2)
+    root.Modelling.Tripod.ActuatedArm2.ServoMotor.Articulation.dofs.position.value = np.array(arm3)
+
+    root.Modelling.Tripod.ActuatedArm0.ServoMotor.ServoBody.dofs.position.value = np.array(servo1)
+    root.Modelling.Tripod.ActuatedArm1.ServoMotor.ServoBody.dofs.position.value = np.array(servo2)
+    root.Modelling.Tripod.ActuatedArm2.ServoMotor.ServoBody.dofs.position.value = np.array(servo3)
 
     root.Goal.GoalMO.position.value = np.array(goal)
