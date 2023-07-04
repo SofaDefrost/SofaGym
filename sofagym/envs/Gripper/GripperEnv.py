@@ -76,9 +76,8 @@ class GripperEnv(AbstractEnv):
 
         self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
-        info = {}
 
-        return (np.array(obs['observation']), info)
+        return (np.array(obs['observation']))
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -92,4 +91,3 @@ class GripperEnv(AbstractEnv):
             list of the action available in the environment.
         """
         return list(range(int(self.nb_actions)))
-
