@@ -154,28 +154,6 @@ def createScene(rootNode, config={"source": [0, 300, 0],
         rootNode.addObject("SpotLight", position=spotloc, direction=[0, -np.sign(source[1]), 0])
         rootNode.addObject("InteractiveCamera", name="camera", position=source, orientation=[-0.414607,-0.196702,-0.0234426,0.888178], lookAt=target, zFar=500)
 
-    # Temporary additions to have the system correctly built in SOFA
-    # Will no longer be required in SOFA v23.12
-    scene.Simulation.addObject('MechanicalMatrixMapper',
-                               name="deformableAndFreeCenterCoupling",
-                               template='Vec3,Rigid3',
-                               object1=tripod["RigidifiedStructure.DeformableParts.dofs"].getLinkPath(),
-                               object2=tripod["RigidifiedStructure.FreeCenter.dofs"].getLinkPath(),
-                               nodeToParse=tripod["RigidifiedStructure.DeformableParts.MechanicalModel"].getLinkPath())
-
-    # Temporary additions to have the system correctly built in SOFA
-    # Will no longer be required in SOFA v23.12
-    for i in range(3):
-        scene.Simulation.addObject('MechanicalMatrixMapper',
-                                   name="deformableAndArm{i}Coupling".format(i=i),
-                                   template='Vec1,Vec3',
-                                   object1=tripod[
-                                       "ActuatedArm" + str(i) + ".ServoMotor.Articulation.dofs"].getLinkPath(),
-                                   object2=tripod["RigidifiedStructure.DeformableParts.dofs"].getLinkPath(),
-                                   skipJ2tKJ2=False if i == 0 else True,
-                                   nodeToParse=tripod[
-                                       "RigidifiedStructure.DeformableParts.MechanicalModel"].getLinkPath())
-    
     actuators=[tripod.ActuatedArm0, tripod.ActuatedArm1, tripod.ActuatedArm2]
     animate(setupanimation, {"actuators": actuators, "step": 35.0, "angularstep": -1.4965}, duration=0.2)
 
