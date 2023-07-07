@@ -12,6 +12,7 @@ from sofagym.envs.StemPendulum.StemPendulumEnv import *
 from sofagym.envs.Trunk.TrunkEnv import *
 from sofagym.envs.TrunkCup.TrunkCupEnv import *
 from sofagym.envs.CartPole.CartPoleEnv import *
+from sofagym.envs.CatheterBeam.CatheterBeamEnv import *
 
 
 # registering sofagym envs as gymnasium envs
@@ -71,4 +72,8 @@ register(
 register(
     id='cartpole-v0',
     entry_point='sofagym.envs:CartPoleEnv',
+)
+register(
+    id='catheter_beam-v0',
+    entry_point='sofagym.envs:CatheterBeamEnv',
 )
