@@ -55,7 +55,7 @@ class MazeEnv(AbstractEnv):
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 13
+        dim_state = 9
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
