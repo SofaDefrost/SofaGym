@@ -83,10 +83,11 @@ class DiamondRobotEnv(AbstractEnv):
         obs = start_scene(self.config, self.nb_actions)
         if self.viewer:
             self.viewer.reset()
-        self.render()
+        #self.render()
 
         return np.array(obs['observation'])
 
+    
     def render(self, mode='rgb_array'):
         """See the current state of the environment.
 
@@ -108,6 +109,7 @@ class DiamondRobotEnv(AbstractEnv):
 
         # Use the viewer to display the environment.
         self.viewer.render()
+    
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
