@@ -54,9 +54,9 @@ class DiamondRobotEnv(AbstractEnv):
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 5
-        low_coordinates = np.array([-1]*dim_state)
-        high_coordinates = np.array([1]*dim_state)
+        dim_state = (6, 3)
+        low_coordinates = np.ones(shape=dim_state)*-1
+        high_coordinates = np.ones(shape=dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
                                             dtype='float32')
 
