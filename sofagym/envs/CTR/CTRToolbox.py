@@ -353,8 +353,8 @@ def action_to_command(action, scale):
         cmd_rotation = 0.0
     elif action == 5:
         controlled_instrument = 1
-        cmd_translation = -0.7 * scale / 2.5
-        cmd_rotation = 0.0
+        cmd_translation = 0.0
+        cmd_rotation = 1/15 * scale / 2.5
     elif action == 6:
         controlled_instrument = 1
         cmd_translation = 0.0
@@ -370,8 +370,8 @@ def action_to_command(action, scale):
         cmd_rotation = 0.0
     elif action == 9:
         controlled_instrument = 2
-        cmd_translation = -0.7 * scale / 3.0
-        cmd_rotation = 0.0
+        cmd_translation = 0.0
+        cmd_rotation = 1/15 * scale / 3.0
     elif action == 10:
         controlled_instrument = 2
         cmd_translation = 0.0
@@ -382,7 +382,7 @@ def action_to_command(action, scale):
         cmd_rotation = 0.0
 
     else:
-        raise NotImplementedError("Action is not in range 0 - 7")
+        raise NotImplementedError("Action is not in range 0 - 11")
 
     return controlled_instrument, cmd_translation, cmd_rotation
 
