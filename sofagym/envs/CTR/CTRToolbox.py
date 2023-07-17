@@ -186,7 +186,7 @@ def _getGoalPos(root):
     -------
         The position of the goal.
     """
-    return root.goal.goalMO.position[0]
+    return root.Goal.GoalMO.position[0]
 
 
 def getState(root):
@@ -202,7 +202,18 @@ def getState(root):
         State: list of float
             The state of the environment/agent.
     """
-    state = [0]
+    xtips = []
+    rotations = []
+
+    for instrument in range(3):
+        xtips.append(root.InstrumentCombined.m_ircontroller.xtip.value[instrument].tolist())
+        rotations.append(root.InstrumentCombined.m_ircontroller.rotationInstrument.value[instrument].tolist())
+
+    tip = root.InstrumentCombined.DOFs.position[-1][:3].tolist()
+
+    goal_pos = _getGoalPos(root).tolist()
+
+    state = xtips + rotations + tip + goal_pos
 
     return state
 
