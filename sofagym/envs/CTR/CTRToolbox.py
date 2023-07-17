@@ -202,7 +202,7 @@ def getState(root):
         State: list of float
             The state of the environment/agent.
     """
-    state = 0
+    state = [0]
 
     return state
 
