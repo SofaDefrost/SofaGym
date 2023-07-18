@@ -71,7 +71,7 @@ After creating the new environment class, default configuration for the SOFA sce
                       }
 ```
 
-In the class `init`, we initialize any necessary varialbes and assign their values based on the previously defined config. For the CartPole env, we define the maximum value cart of the cart's motion on the x axis as `x_threshold`. We also define the maximum allowed angle for the pole to tilt before it's considered to be falling.
+In the class `init`, we initialize any necessary variables and assign their values based on the previously defined config. For the CartPole env, we define the maximum value cart of the cart's motion on the x axis as `x_threshold`. We also define the maximum allowed angle for the pole to tilt before it's considered to be falling.
 
 We must also define the type of actions and observations the gym environment will use by defining the `action_space` and `observation_space`. In the CartPole case, we can only control the cart to move either left or right, so we have only two actions that we define as `Discrete(2)`. The observation space is defined as `Box()` that consists of 4 continuous values representing the cart x position, the cart velocity, the pole angle, and the pole angular velocity. The min and max values for the observations are also defined according to the allowed thresholds for the positions and velocities of the cart and pole. 
 
