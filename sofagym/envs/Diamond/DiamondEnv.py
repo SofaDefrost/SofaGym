@@ -54,9 +54,9 @@ class DiamondRobotEnv(AbstractEnv):
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 5
-        low_coordinates = np.array([-1]*dim_state)
-        high_coordinates = np.array([1]*dim_state)
+        dim_state = (6, 3)
+        low_coordinates = np.ones(shape=dim_state)*-1
+        high_coordinates = np.ones(shape=dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
                                             dtype='float32')
 
@@ -83,10 +83,10 @@ class DiamondRobotEnv(AbstractEnv):
         obs = start_scene(self.config, self.nb_actions)
         if self.viewer:
             self.viewer.reset()
-        self.render()
 
         return np.array(obs['observation'])
 
+    
     def render(self, mode='rgb_array'):
         """See the current state of the environment.
 
@@ -108,6 +108,7 @@ class DiamondRobotEnv(AbstractEnv):
 
         # Use the viewer to display the environment.
         self.viewer.render()
+    
 
     def get_available_actions(self):
         """Gives the actions available in the environment.

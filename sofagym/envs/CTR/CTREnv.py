@@ -58,7 +58,7 @@ class ConcentricTubeRobotEnv(AbstractEnv):
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 1
+        dim_state = 12
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.observation_space = spaces.Box(low_coordinates, high_coordinates,
@@ -86,24 +86,15 @@ class ConcentricTubeRobotEnv(AbstractEnv):
         y = -20 + 50 * np.random.random()
 
         self.goal = [0.0, y, abs(y) + 30 * np.random.random()]
-        # self.goal = [0.0, 50, 65]
-        # self.goal = [0.0, 20, 70]
-        # self.goal = [0.0, 30, 35]
-        # self.goal = [0.0, -7, 45]
 
         self.config.update({'goalPos': self.goal})
-        print(self.config)
         obs = start_scene(self.config, self.nb_actions)
         if self.viewer:
             self.viewer.reset()
-        self.render()
 
         self.step(0)
-        self.render()
         self.step(4)
-        self.render()
         self.step(8)
-        self.render()
 
         return np.array(obs['observation'])
 
@@ -141,5 +132,3 @@ class ConcentricTubeRobotEnv(AbstractEnv):
             list of the action available in the environment.
         """
         return list(range(int(self.nb_actions)))
-
-

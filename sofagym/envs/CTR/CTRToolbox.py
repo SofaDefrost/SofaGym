@@ -186,7 +186,7 @@ def _getGoalPos(root):
     -------
         The position of the goal.
     """
-    return root.goal.goalMO.position[0]
+    return root.Goal.GoalMO.position[0]
 
 
 def getState(root):
@@ -202,7 +202,18 @@ def getState(root):
         State: list of float
             The state of the environment/agent.
     """
-    state = 0
+    xtips = []
+    rotations = []
+
+    for instrument in range(3):
+        xtips.append(root.InstrumentCombined.m_ircontroller.xtip.value[instrument].tolist())
+        rotations.append(root.InstrumentCombined.m_ircontroller.rotationInstrument.value[instrument].tolist())
+
+    tip = root.InstrumentCombined.DOFs.position[-1][:3].tolist()
+
+    goal_pos = _getGoalPos(root).tolist()
+
+    state = xtips + rotations + tip + goal_pos
 
     return state
 
@@ -342,8 +353,8 @@ def action_to_command(action, scale):
         cmd_rotation = 0.0
     elif action == 5:
         controlled_instrument = 1
-        cmd_translation = -0.7 * scale / 2.5
-        cmd_rotation = 0.0
+        cmd_translation = 0.0
+        cmd_rotation = 1/15 * scale / 2.5
     elif action == 6:
         controlled_instrument = 1
         cmd_translation = 0.0
@@ -359,8 +370,8 @@ def action_to_command(action, scale):
         cmd_rotation = 0.0
     elif action == 9:
         controlled_instrument = 2
-        cmd_translation = -0.7 * scale / 3.0
-        cmd_rotation = 0.0
+        cmd_translation = 0.0
+        cmd_rotation = 1/15 * scale / 3.0
     elif action == 10:
         controlled_instrument = 2
         cmd_translation = 0.0
@@ -371,7 +382,7 @@ def action_to_command(action, scale):
         cmd_rotation = 0.0
 
     else:
-        raise NotImplementedError("Action is not in range 0 - 7")
+        raise NotImplementedError("Action is not in range 0 - 11")
 
     return controlled_instrument, cmd_translation, cmd_rotation
 
