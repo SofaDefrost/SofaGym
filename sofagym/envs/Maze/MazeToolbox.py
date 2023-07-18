@@ -272,6 +272,8 @@ def getReward(rootNode):
         done, reward
 
     """
+    goal_radius = 5
+    ball_fall_threshold = -100
     done = False
 
     goal = rootNode.Goal.GoalMO.position.value[0]
@@ -280,7 +282,7 @@ def getReward(rootNode):
 
     reward, cost = rootNode.Reward.getReward()
 
-    if dist < 5 or ball_pos[1] < -100:
+    if dist < goal_radius or ball_pos[1] < ball_fall_threshold:
         done = True
 
     return done, reward
