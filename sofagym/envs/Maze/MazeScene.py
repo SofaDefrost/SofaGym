@@ -142,7 +142,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
 
     goal = add_goal_node(rootNode)
 
-    rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, goal_node=config['goalList'][config['goal_node']],
+    rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, goal_node=config['goalPos'],
                                     path_mesh=p_mesh, path_mo=p_mo, ball_mo=ball_mo))
     rootNode.addObject(goalSetter(name="GoalSetter", rootNode=rootNode, goal=goal, goalPos=config['goalPos']))
     

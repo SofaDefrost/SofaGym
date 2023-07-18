@@ -205,7 +205,6 @@ class goalSetter(Sofa.Core.Controller):
         new_position = self.rootNode.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.Path.dofs.position.value[self.goalPos][:3]
         with self.goal.GoalMO.position.writeable() as position:
             position[0] = new_position
-            position[0][1] = 5
         with self.goal.mapping.initialPoints.writeable() as position:
             position[0] = new_position
             position[0][1] = 5
@@ -273,10 +272,20 @@ def getReward(rootNode):
         done, reward
 
     """
+    goal_radius = 5
+    ball_fall_threshold = -100
+    done = False
+
+    goal = rootNode.Goal.GoalMO.position.value[0]
+    ball_pos = rootNode.Simulation.Sphere.sphere_mo.position.value[0]
+    dist = np.linalg.norm(ball_pos - goal)
 
     reward, cost = rootNode.Reward.getReward()
 
-    return False, reward
+    if dist < goal_radius or ball_pos[1] < ball_fall_threshold:
+        done = True
+
+    return done, reward
 
 
 def startCmd(root, action, duration):
@@ -396,9 +405,6 @@ def getPos(root):
         _: list
             The position(s) of the object(s) of the scene.
     """
-
-    root.GoalSetter.update()
-
     maze = root.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.maze_mesh_mo.position.value.tolist()
     spheres = root.Simulation.Sphere.sphere_mo.position.value.tolist()
 
