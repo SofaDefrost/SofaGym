@@ -100,7 +100,7 @@ We must also define the type of actions and observations the gym environment wil
         self.observation_space = spaces.Box(high, -high, dtype=np.float32)
 ```
 
-The second part of is to override the step and reset methods from the `AbstractEnv` class. For the step method, no additions are required. For the reset method, we need to restart the scene using `start_scene` and return the first observation. It might also be needed to update some parameters or configs like the randomized goal position in the case of some environments.
+The second part of is to override the `step` and `reset` methods from the `AbstractEnv` class. For the step method, no additions are required. For the reset method, we need to restart the scene using `start_scene` and return the first observation. It might also be needed to update some parameters or configs like the randomized goal position in the case of some environments.
 
 ```python
     def step(self, action):
