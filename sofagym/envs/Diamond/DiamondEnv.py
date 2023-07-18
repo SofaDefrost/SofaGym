@@ -83,7 +83,6 @@ class DiamondRobotEnv(AbstractEnv):
         obs = start_scene(self.config, self.nb_actions)
         if self.viewer:
             self.viewer.reset()
-        #self.render()
 
         return np.array(obs['observation'])
 
