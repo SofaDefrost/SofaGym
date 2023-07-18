@@ -6,7 +6,7 @@ The two main parts of this tutorial focus on creating the gym environment for th
 
 Once completed, the knowledge acquired from this tutorial can be applied to other SOFA scenes.
 
-Tutorial prequisites:
+Tutorial prerequisites:
 
 - you have installed [Sofa](https://www.sofa-framework.org/) and the [SofaGym](https://github.com/SofaDefrost/SofaGym/) plugin with all the necessary dependencies.
 
@@ -26,7 +26,7 @@ This tutorial is applied to the [CartPole](https://github.com/SofaDefrost/SofaGy
 
 # Step 1: Create the CartPoleEnv Class
 
-The first step is to create a custom gym environment for the SOFA scene we want to simulate and train. For an in-depth documentaton on this, you can check the gymnasium [tutotrial](https://gymnasium.farama.org/tutorials/gymnasium_basics/environment_creation/#sphx-glr-tutorials-gymnasium-basics-environment-creation-py) for creating custom environments.
+The first step is to create a custom gym environment for the SOFA scene we want to simulate and train. For an in-depth documentation on this, you can check the gymnasium [tutorial](https://gymnasium.farama.org/tutorials/gymnasium_basics/environment_creation/#sphx-glr-tutorials-gymnasium-basics-environment-creation-py) for creating custom environments.
 
 All gym environments are defined as classes that must inherit from the base `gym.Env` class and override the necessary methods. In SofaGym, our `AbstractEnv` class inherits from `gym.Env` to act as the base class for creating the SOFA gym environments. To create a new environment from a SOFA scene, you need to create a class for your environment that inherits from the `AbstractEnv` class. For this, we will create a new file `CartPoleEnv.py`.
 
@@ -144,7 +144,7 @@ First, we need to creat a new file `CartPoleToolbox`. For each of the parts that
 
 
 ## Actions
-The possible actions that could be applied by the agent must be defined. The CartPole environment has two actions as discussed in the previous step, move the cart left or right. This could be achieved by applying a constant force field on the cart with a positive value (right direction) or a negative value (left direction) depednding on the chosen action 0 or 1, respectively.
+The possible actions that could be applied by the agent must be defined. The CartPole environment has two actions as discussed in the previous step, move the cart left or right. This could be achieved by applying a constant force field on the cart with a positive value (right direction) or a negative value (left direction) depending on the chosen action 0 or 1, respectively.
 
 We can define an `applyAction` class that inherits from `Sofa.Core.Controller`, which allows us to add this component to the scene and make it update the value of the `constantForceField` component during the simulations steps. We initialize an `incr` variable to define the value of the force change between two consecutive steps.
 
@@ -231,7 +231,7 @@ def startCmd_CartPole(rootNode, incr, duration):
         rootNode: <Sofa.Core>
             The scene.
         incr:
-            The elements of the commande.
+            The elements of the command.
         duration: float
             Duration of the animation.
 
@@ -374,7 +374,7 @@ def getReward(rootNode):
 
 ## Observations
 
-After applying the action to the simulation scene and calculating the retured reward, the new state of the environment must also be returned. To do this, it is required to define a `getState` function to get and calculate the new state and return it. As discussed in step 1, the CartPole environment's state at each step consists of 4 values of the cart's x position and velocity, and the pole's angle and angular velocity. We can simply get the cart's state from the SOFA scene `cart` object, and we can use the method we previously defined in the Reward class to get the pole's state. 
+After applying the action to the simulation scene and calculating the returned reward, the new state of the environment must also be returned. To do this, it is required to define a `getState` function to get and calculate the new state and return it. As discussed in step 1, the CartPole environment's state at each step consists of 4 values of the cart's x position and velocity, and the pole's angle and angular velocity. We can simply get the cart's state from the SOFA scene `cart` object, and we can use the method we previously defined in the Reward class to get the pole's state. 
 
 ```python
 def getState(rootNode):
