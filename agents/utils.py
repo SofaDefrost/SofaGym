@@ -6,7 +6,7 @@ from colorama import Fore
 from stable_baselines3.common.utils import set_random_seed
 
 
-def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optional[int] = None):
+def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optional[int] = None, config: Optional[dict] = None):
     """
     Utility function for multiprocessed env.
 
@@ -16,7 +16,7 @@ def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optio
     :param max_episode_steps: maximum number of steps to perform per episode
     """
     def _init():
-        env = gym.make(env_id)
+        env = gym.make(env_id, config=config)
         env.seed(seed + rank)
         env.reset()
 

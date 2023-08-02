@@ -101,7 +101,7 @@ class Viewer:
         scene = self.env.config['scene']
         self._setPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").setPos
 
-        self.zFar = self.root.camera.zFar.value + zFar
+        self.zFar = zFar
 
         if self.create_video is not None:
             self.writer = imageio.get_writer(self.create_video + datetime.datetime.now().strftime('%Y%m%d-%H%M%S') +
@@ -140,7 +140,7 @@ class Viewer:
                 num_im = 0
                 for p in pos:
                     self._setPos(self.root, p)
-                    Sofa.Simulation.animate(self.root, 0.0001)
+                    Sofa.Simulation.animate(self.root, self.root.getDt())
 
                     glViewport(0, 0, self.surface_size[0], self.surface_size[1])
 

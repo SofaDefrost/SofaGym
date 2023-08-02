@@ -21,6 +21,8 @@ PPO:
   fit_kwargs:
     total_timesteps: 1000
     max_episode_steps: 200
+    eval_freq: 100
+    n_eval_episodes: 5
 
 A2C:
   init_kwargs:
@@ -41,7 +43,9 @@ A2C:
     device: "auto"
   fit_kwargs:
     total_timesteps: 1000
-    max_episode_steps: 200  
+    max_episode_steps: 200
+    eval_freq: 100
+    n_eval_episodes: 5
 
 DQN:
   init_kwargs:
@@ -67,6 +71,8 @@ DQN:
   fit_kwargs:
     total_timesteps: 1000
     max_episode_steps: 200
+    eval_freq: 100
+    n_eval_episodes: 5
 
 SAC:
   init_kwargs:
@@ -94,6 +100,8 @@ SAC:
   fit_kwargs:
     total_timesteps: 1000
     max_episode_steps: 200
+    eval_freq: 100
+    n_eval_episodes: 5
 
 TD3:
   init_kwargs:
@@ -118,6 +126,8 @@ TD3:
   fit_kwargs:
     total_timesteps: 1000
     max_episode_steps: 200
+    eval_freq: 100
+    n_eval_episodes: 5
 
 DDPG:
   init_kwargs:
@@ -139,3 +149,5 @@ DDPG:
   fit_kwargs:
     total_timesteps: 1000
     max_episode_steps: 200
+    eval_freq: 100
+    n_eval_episodes: 5

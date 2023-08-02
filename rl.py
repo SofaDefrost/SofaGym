@@ -118,7 +118,7 @@ if __name__ == '__main__':
             agent.fit_continue(n_epochs)
 
     if test:
-        agent.eval(n_tests)
+        agent.eval(n_tests, model_timestep='best_model', render=True, record=True)
 
     agent.close()
     print("... End.")

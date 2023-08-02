@@ -209,9 +209,6 @@ class SofaTestAgent(ABC):
         mean(episodes_rewards): float
             the mean reward obtained over the specified number of episodes.
         """
-        if render:
-            self.test_env.config.update({"render": 1})
-
         episodes_rewards = []
 
         for episode in range(n_episodes):
@@ -237,13 +234,12 @@ class SofaTestAgent(ABC):
                 steps_rewards.append(reward)
                 step += 1
 
+            episode_reward = sum(steps_rewards)[0]
             print("Done >> Episode", episode+1, "- Reward = ",
-                  steps_rewards, "- Sum reward:", sum(steps_rewards))
-            episodes_rewards.append(sum(steps_rewards))
+                  steps_rewards, "- Sum reward:", episode_reward)
+            episodes_rewards.append(episode_reward)
 
         print("[INFO]  >> Mean reward: ", mean(episodes_rewards))
-
-        self.test_env.close()
 
         return mean(episodes_rewards)
 

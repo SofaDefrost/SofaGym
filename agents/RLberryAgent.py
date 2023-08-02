@@ -92,7 +92,7 @@ class RLberryAgent(SofaBaseAgent):
         print(f">>>    Continue agent training from epoch {last_epoch} using checkpoint: {self.checkpoint_file}") 
         self.fit(epochs, last_epoch)
     
-    def eval(self, n_tests):
+    def eval(self, n_tests, **kwargs):
         n_epochs = self.eval_kwargs['n_simulations']
 
         print("\n-------------------------------")
