@@ -134,24 +134,23 @@ First, we need to creat a new file `CartPoleToolbox`. For each of the parts that
   - startCmd function
 - Reward:
   - getReward function
-  - rewardShaper "Reward" class
+  - RewardShaper class
 - Observation:
   - getState function
   - getPos function
   - setPos function
 - Goal:
-  - goalSetter "GoalSetter" class
-
+  - GoalSetter class
 
 ## Actions
-The possible actions that could be applied by the agent must be defined. The CartPole environment has two actions as discussed in the previous step, move the cart left or right. This could be achieved by applying a constant force field on the cart with a positive value (right direction) or a negative value (left direction) depending on the chosen action 0 or 1, respectively.
+The possible actions that could be applied by the agent must be defined. The CartPole environment has two actions as discussed in the previous step, move the cart left or right. This could be achieved by applying a constant force field on the cart with a positive value (right direction) or a negative value (left direction) depednding on the chosen action 0 or 1, respectively.
 
-We can define an `applyAction` class that inherits from `Sofa.Core.Controller`, which allows us to add this component to the scene and make it update the value of the `constantForceField` component during the simulations steps. We initialize an `incr` variable to define the value of the force change between two consecutive steps.
+We can define an `ApplyAction` class that inherits from `Sofa.Core.Controller`, which allows us to add this component to the scene and make it update the value of the `constantForceField` component during the simulations steps. We initialize an `incr` variable to define the value of the force change between two consecutive steps.
 
 The `compute_action` method sets the actual value of the action to take based on the value returned by the RL algorithm. The `_move` method is used to update the force field applied on the cart by changing the x value of the `constantForceField` object of the cart to control the motion of the cart left and right. Finally, the `apply_action` method will be used to apply the action by the agent.
 
 ```python
-class applyAction(Sofa.Core.Controller):
+class ApplyAction(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
@@ -178,7 +177,7 @@ class applyAction(Sofa.Core.Controller):
         self._move(incr)
 ```
 
-Next, the required part is to define the `startCmd` function, which is used by SofaGym as a link between Gym and SOFA to execute the actions as SOFA commands in the simulation. The `applyAction` class we defined is used here.
+Next, the required part is to define the `startCmd` function, which is used by SofaGym as a link between Gym and SOFA to execute the actions as SOFA commands in the simulation. The `ApplyAction` class we defined is used here.
 
 Two helper functions can be defined first. The `action_to_command` function returns the value of the action using `compute_action`. The `startCmd_CartPole` function is used to call the SOFA `AnimationManager` to execute the necessary command in the simulation based on the chosen action. By defining these two functions, it is simple to define the `startCmd` function to get the needed command and apply it to the simulation.
 
@@ -198,7 +197,7 @@ def action_to_command(actions, root, nb_step):
         The command.
     """
 
-    incr = root.applyAction.compute_action(actions)
+    incr = root.ApplyAction.compute_action(actions)
     return incr
 
 
@@ -242,7 +241,7 @@ def startCmd_CartPole(rootNode, incr, duration):
 
     # Definition of the elements of the animation
     def executeAnimation(rootNode, incr, factor):
-        rootNode.applyAction.apply_action(incr)
+        rootNode.ApplyAction.apply_action(incr)
 
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
@@ -254,14 +253,14 @@ def startCmd_CartPole(rootNode, incr, duration):
 ```
 
 ## Reward
-For the reward, we define a `rewardShaper` class to inherit from `Sofa.Core.Controller` to update the reward value at each simulation step. In the initialization, we can define some parameters based on the scene configs, such as the pole length (`pole_length`) and the maximum angle (`max_angle`) the pole is allowed to tilt.
+For the reward, we define a `RewardShaper` class to inherit from `Sofa.Core.Controller` to update the reward value at each simulation step. In the initialization, we can define some parameters based on the scene configs, such as the pole length (`pole_length`) and the maximum angle (`max_angle`) the pole is allowed to tilt.
 
 Depending on the scene, some helper methods could be defined to get or calculate different values. For the CartPole scene, we need to get the pole's x and y positions, and the cart's x position. We also need to calculate the pole's angle and angular velocity. Finally, the `getReward` method uses these helper methods to get calculate and return the reward, as well as, the necessary states to determine whether or not a termination condition happened. Since the reward is 1 for each step the pole stays within the max angle limit, we simply return 1 as the reward, in addition to the current pole angle and the max allowed angle.
 
 An `update` method is also required to initialize the reward to specific values at each episode reset. In this case, it is not needed.
 
 ```python
-class rewardShaper(Sofa.Core.Controller):
+class RewardShaper(Sofa.Core.Controller):
     """Compute the reward.
 
     Methods:
@@ -362,7 +361,7 @@ class rewardShaper(Sofa.Core.Controller):
         
         return theta, theta_dot
 ```
-The `getReward` function must be defined to be used by SofaGym to calculate the reward value and done state and return them by Gym at each step. We simply use the `rewardShaper` class we just defined to get the reward and check if the episode is done based on the termination condition. For the CartPole, the episode ends when the pole angle `theta` exceeds the allowed limit (24 degrees as defined in the environment's config) in the left or right direction.
+The `getReward` function must be defined to be used by SofaGym to calculate the reward value and done state and return them by Gym at each step. We simply use the `RewardShaper` class we just defined to get the reward and check if the episode is done based on the termination condition. For the CartPole, the episode ends when the pole angle `theta` exceeds the allowed limit (24 degrees as defined in the environment's config) in the left or right direction.
 
 ```python
 def getReward(rootNode):
@@ -373,7 +372,6 @@ def getReward(rootNode):
 ```
 
 ## Observations
-
 After applying the action to the simulation scene and calculating the returned reward, the new state of the environment must also be returned. To do this, it is required to define a `getState` function to get and calculate the new state and return it. As discussed in step 1, the CartPole environment's state at each step consists of 4 values of the cart's x position and velocity, and the pole's angle and angular velocity. We can simply get the cart's state from the SOFA scene `cart` object, and we can use the method we previously defined in the Reward class to get the pole's state. 
 
 ```python
@@ -419,13 +417,12 @@ def setPos(root, pos):
 ```
 
 ## Goal
-
-This step is only feasible for environments or scenes where a goal is defined, such as a target position that a robot need to reach. The `goalSetter` class can then be used to initialize the goal in the scene and update it at each episode or randomly change it for example.
+This step is only feasible for environments or scenes where a goal is defined, such as a target position that a robot need to reach. The `GoalSetter` class can then be used to initialize the goal in the scene and update it at each episode or randomly change it for example.
 
 Since the CartPole scene doesn't require this, no modifications to the goal class are needed.
 
 ```python
-class goalSetter(Sofa.Core.Controller):
+class GoalSetter(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
@@ -441,15 +438,15 @@ class goalSetter(Sofa.Core.Controller):
 
 The next step is to modify the scene to include the components we defined in the toolbox in the previous step. We need to modify the `CartPoleScene` file.
 
-In this step, we simply add objects of the three classes we defined to the root node of the scene with the required parameters: `applyAction`, `rewardShaper`, and `GoalSetter`.
+In this step, we simply add objects of the three classes we defined to the root node of the scene with the required parameters: `ApplyAction`, `RewardShaper`, and `GoalSetter`.
 
 ```python
     # SofaGym Env Components
-    root.addObject(rewardShaper(name="Reward", rootNode=root, max_angle=config['max_angle'], pole_length=pole_length))
+    root.addObject(RewardShaper(name="Reward", rootNode=root, max_angle=config['max_angle'], pole_length=pole_length))
 
-    root.addObject(goalSetter(name="GoalSetter"))
+    root.addObject(GoalSetter(name="GoalSetter"))
 
-    root.addObject(applyAction(name="applyAction", root=root))
+    root.addObject(ApplyAction(name="ApplyAction", root=root))
 ```
 
 It is also important to make sure that the scene includes the component that will be modified by the Gym action. In this case, the `constantForceField` component on the cart.
@@ -460,6 +457,7 @@ It is also important to make sure that the scene includes the component that wil
 ```
 
 Finally, if a goal is defined, the goal should also be added to the scene as a `MechanicalObject`.
+
 
 # Step 4: Register the New Environment in Gym
 
@@ -514,3 +512,26 @@ envs = {
         14: 'cartpole-v0'       #new CartPole env
         }
 ```
+
+
+# Step 5: Train and Evaluate an RL Agent for the New Environment
+
+To train the RL agent, the [`rl.py`](https://github.com/SofaDefrost/SofaGym/blob/main/rl.py) script could be used. Some training parameters can be specified using command line arguments: `-a` for the RL algorithm, `-fr` to choose the framework either `Stable Baselines3` or `rlberry`, `-ep` to specify the number of training epochs, and `-ne` to specify the number of training environments. 
+
+Training hyperparameters specific to the chosen algorithm and framework can be defined in the appropriate [hyperparmaters yaml file](https://github.com/SofaDefrost/SofaGym/tree/main/agents/hyperparameters).
+
+To train this agent, we will be using the tuned hyperparameters for the `CartPole-v1` environment from [Rl Baselines3 Zoo](https://github.com/DLR-RM/rl-baselines3-zoo/blob/660f2d354ef9d63cd7a478390780dffa0cadb80c/hyperparams/ppo.yml#L31-L43), and we will train the agent for `3` epochs, which is `300000` total timesteps of training.
+
+```bash
+python rl.py -e cartpole-v0 -a PPO -fr SB3 -ep 3 -ne 8
+```
+
+To evaluate our trained agent, we also use the `rl.py` script, but instead of training we choose to test the agent by setting the training argument `-tr` to none and adding the testing flag argument `-te`. The number of evaluation episodes is set to `5` using the number of testing episodes argument `-tn`. We also need to specify the path of the saved model to be evaluated `-md`, which should be in the working directory with the following format "`Results/env_name/algo_name/model_name`".
+
+```bash
+python rl.py -e cartpole-v0 -a PPO -fr SB3 -tr none -te -tn 5 -md Results/cartpole-v0/PPO/model_name
+```
+
+The results of the evaluation could be recorded as a video such as the following one:
+
+![Trained Agent](../../..//examples/tutorials/CartPole/trained_agent.gif)
