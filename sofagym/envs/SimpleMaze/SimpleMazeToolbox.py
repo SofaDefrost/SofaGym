@@ -226,9 +226,9 @@ class goalSetter(Sofa.Core.Controller):
         self.rootNode = None
         if kwargs["rootNode"]:
             self.rootNode = kwargs["rootNode"]
-        self.goalMO = None
-        if kwargs["goalMO"]:
-            self.goalMO = kwargs["goalMO"]
+        self.goal = None
+        if kwargs["goal"]:
+            self.goal = kwargs["goal"]
         self.goalPos = None
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
@@ -247,8 +247,10 @@ class goalSetter(Sofa.Core.Controller):
             None.
 
         """
-        new_position = self.rootNode.model.maze.Path.dofs.position.value[self.goalPos][:3]
-        with self.goalMO.position.writeable() as position:
+        new_position = self.rootNode.model.Maze.Path.dofs.position.value[self.goalPos][:3]
+        with self.goal.GoalMO.position.writeable() as position:
+            position[0] = new_position
+        with self.goal.mapping.initialPoints.writeable() as position:
             position[0] = new_position
 
     def set_mo_pos(self, goal):
@@ -292,7 +294,7 @@ def getState(root):
 
     goal_pos = _getGoalPos(root).tolist()
     maze_rigid_pos = root.model.rigid_maze_mo.position.value[0]
-    sphere_pos = root.sphere.sphere_mo.position.value[0]
+    sphere_pos = root.Sphere.sphere_mo.position.value[0]
 
     state = [round(float(k), cs) for k in sphere_pos] + [round(float(k), cs) for k in maze_rigid_pos] + goal_pos
 
@@ -313,7 +315,7 @@ def getReward(root):
 
     """
 
-    spheres = root.sphere.sphere_mo.position.value[:3]
+    spheres = root.Sphere.sphere_mo.position.value[:3]
     goal = root.Goal.GoalMO.position.value[:3]
     if np.linalg.norm(spheres-goal) <= 10:
         print("Terminal State")
@@ -448,8 +450,8 @@ def getPos(root):
 
     root.GoalSetter.update()
 
-    maze = root.model.maze.maze_mesh_mo.position.value.tolist()
-    spheres = root.sphere.sphere_mo.position.value.tolist()
+    maze = root.model.Maze.maze_mesh_mo.position.value.tolist()
+    spheres = root.Sphere.sphere_mo.position.value.tolist()
 
     rigid = root.model.rigid_maze_mo.position.value.tolist()
 
@@ -479,8 +481,8 @@ def setPos(root, pos):
     """
     [maze, spheres, rigid, goal] = pos
 
-    root.model.maze.maze_mesh_mo.position.value = np.array(maze)
-    root.sphere.sphere_mo.position.value = np.array(spheres)
+    root.model.Maze.maze_mesh_mo.position.value = np.array(maze)
+    root.Sphere.sphere_mo.position.value = np.array(spheres)
 
     root.model.rigid_maze_mo.position.value = np.array(rigid)
     root.Goal.GoalMO.position.value = np.array(goal)
