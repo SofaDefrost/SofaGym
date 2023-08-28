@@ -143,7 +143,7 @@ First, we need to creat a new file `CartPoleToolbox`. For each of the parts that
   - GoalSetter class
 
 ## Actions
-The possible actions that could be applied by the agent must be defined. The CartPole environment has two actions as discussed in the previous step, move the cart left or right. This could be achieved by applying a constant force field on the cart with a positive value (right direction) or a negative value (left direction) depednding on the chosen action 0 or 1, respectively.
+The possible actions that could be applied by the agent must be defined. The CartPole environment has two actions as discussed in the previous step, move the cart left or right. This could be achieved by applying a constant force field on the cart with a positive value (right direction) or a negative value (left direction) depending on the chosen action 0 or 1, respectively.
 
 We can define an `ApplyAction` class that inherits from `Sofa.Core.Controller`, which allows us to add this component to the scene and make it update the value of the `constantForceField` component during the simulations steps. We initialize an `incr` variable to define the value of the force change between two consecutive steps.
 
