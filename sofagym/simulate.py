@@ -65,6 +65,11 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
     root.GoalSetter.update()
     root.Reward.update()
 
+    try:
+        root.StateInitializer.init_state()
+    except AttributeError as error:
+        print(error)
+
     if 'time_before_start' in config:
         print(">>   Time before start:", config["time_before_start"], "steps. Initialization ...")
         for i in range(config["time_before_start"]):

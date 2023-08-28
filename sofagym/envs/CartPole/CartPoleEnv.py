@@ -1,5 +1,6 @@
 import math
 import os
+import sys
 
 import numpy as np
 from gym import spaces
@@ -33,7 +34,7 @@ class CartPoleEnv(AbstractEnv):
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
-                      "python_version": "python3.9",
+                      "python_version": sys.version,
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
@@ -41,7 +42,7 @@ class CartPoleEnv(AbstractEnv):
                       "max_move": 24,
                       }
 
-    def __init__(self, config = None):
+    def __init__(self, config=None):
         super().__init__(config)
 
         self.x_threshold = 100
@@ -62,10 +63,7 @@ class CartPoleEnv(AbstractEnv):
         self.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        self.observation_space = spaces.Box(high, -high, dtype=np.float32)
-
-    def step(self, action):
-        return super().step(action)
+        self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     def reset(self):
         """Reset simulation.
@@ -79,9 +77,9 @@ class CartPoleEnv(AbstractEnv):
         super().reset()
 
         self.config.update({'goalPos': self.goal})
-
+        init_states = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
+        self.config.update({'init_states': list(init_states)})
         obs = start_scene(self.config, self.nb_actions)
-        
         return np.array(obs['observation'])
 
     def get_available_actions(self):

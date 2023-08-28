@@ -1,10 +1,6 @@
+import math
 import pathlib
 import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
-
-import math
 
 import numpy as np
 import Sofa
@@ -13,10 +9,91 @@ import Sofa.Simulation
 import SofaRuntime
 from splib3.animation.animate import Animation
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
+
 SofaRuntime.importPlugin("Sofa.Component")
 
 
-class rewardShaper(Sofa.Core.Controller):
+class StateInitializer(Sofa.Core.Controller):
+    """Initialize the states.
+
+    Methods:
+    -------
+        __init__: Initialization of all arguments.
+        init_state: Randomly initialize the environment state.
+
+    Arguments:
+    ---------
+        rootNode: <Sofa.Core>
+            The scene.
+
+    """
+    def __init__(self, *args, **kwargs):
+        """Initialization of all arguments.
+
+        Parameters:
+        ----------
+            kwargs: Dictionary
+                Initialization of the arguments.
+
+        Returns:
+        -------
+            None.
+
+        """
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.rootNode = None
+        if kwargs["rootNode"]:
+            self.rootNode = kwargs["rootNode"]
+        if kwargs["pole_length"]:
+            self.pole_length = kwargs["pole_length"]
+        if kwargs["init_states"]:
+            self.init_states = kwargs["init_states"]
+        
+        else:
+            print(">> ERROR: give a max angle for the normalization of the reward.")
+            exit(1)
+
+        self.cart = self.rootNode.Modeling.Cart
+        self.pole = self.rootNode.Modeling.Pole
+
+    def init_state(self):
+        """Randomly initialize the environment state.
+
+        Parameters:
+        ----------
+            None.
+
+        Returns:
+        -------
+            None.
+
+        """
+        #np_random, seed = seeding.np_random(0)
+        cart_pos, cart_vel, pole_theta, pole_theta_dot = self.init_states
+
+        with self.cart.MechanicalObject.position.writeable() as position:
+            position[0][0] = cart_pos
+
+        with self.cart.MechanicalObject.velocity.writeable() as velocity:
+            velocity[0][0] = cart_vel
+
+        with self.pole.MechanicalObject.velocity.writeable() as theta_dot:
+            theta_dot[0][5] = pole_theta_dot
+
+        sin_theta = math.sin(pole_theta)
+        cos_theta = math.cos(pole_theta)
+        x_pos = sin_theta * self.pole_length
+        y_pos = cos_theta * self.pole_length
+
+        with self.pole.MechanicalObject.position.writeable() as position:
+            position[0][0] = x_pos
+            position[0][1] = y_pos
+
+
+class RewardShaper(Sofa.Core.Controller):
     """Compute the reward.
 
     Methods:
@@ -73,9 +150,6 @@ class rewardShaper(Sofa.Core.Controller):
             The reward and the cost.
 
         """
-        #dist = abs(pole_x_pos - cart_pos)
-
-
         cart_pos = self._getCartPos()
         pole_theta, pole_theta_dot = self.calculatePoleTheta(cart_pos)
         
@@ -132,7 +206,6 @@ def getState(rootNode):
             The state of the environment/agent.
     """
     cart = rootNode.Modeling.Cart
-    pole = rootNode.Modeling.Pole
 
     cart_pos = cart.MechanicalObject.position.value.tolist()[0][0]
     cart_vel = cart.MechanicalObject.velocity.value.tolist()[0][0]
@@ -144,7 +217,7 @@ def getState(rootNode):
     return state
 
 
-class goalSetter(Sofa.Core.Controller):
+class GoalSetter(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
@@ -174,7 +247,7 @@ def setPos(root, pos):
     root.Modeling.Pole.MechanicalObject.position.value = np.array(pole_pos)
 
 
-class applyAction(Sofa.Core.Controller):
+class ApplyAction(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
@@ -216,7 +289,7 @@ def action_to_command(actions, root, nb_step):
         The command.
     """
 
-    incr = root.applyAction.compute_action(actions)
+    incr = root.ApplyAction.compute_action(actions)
     return incr
 
 
@@ -260,7 +333,7 @@ def startCmd_CartPole(rootNode, incr, duration):
 
     # Definition of the elements of the animation
     def executeAnimation(rootNode, incr, factor):
-        rootNode.applyAction.apply_action(incr)
+        rootNode.ApplyAction.apply_action(incr)
 
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(

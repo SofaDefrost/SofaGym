@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-from CartPoleToolbox import applyAction, goalSetter, rewardShaper
+from CartPoleToolbox import ApplyAction, GoalSetter, RewardShaper, StateInitializer
 from sofagym.header import addVisu
 from splib3.animation import AnimationManagerController
 from stlib3.physics.rigid import Floor
@@ -165,6 +165,7 @@ def createScene(root,
     simulation.addObject("BilateralInteractionConstraint", template="Vec3", object1=cart_pivot_constraints.pivot_point.getLinkPath(), object2=pole_constraints.point.getLinkPath(), first_point="0", second_point="0")
 
     # SofaGym Env Components
-    root.addObject(rewardShaper(name="Reward", rootNode=root, max_angle=config['max_angle'], pole_length=pole_length))
-    root.addObject(goalSetter(name="GoalSetter"))
-    root.addObject(applyAction(name="applyAction", root=root))
+    root.addObject(StateInitializer(name="StateInitializer", rootNode=root, pole_length=pole_length, init_states=config['init_states']))
+    root.addObject(RewardShaper(name="Reward", rootNode=root, max_angle=config['max_angle'], pole_length=pole_length))
+    root.addObject(GoalSetter(name="GoalSetter"))
+    root.addObject(ApplyAction(name="ApplyAction", root=root))
