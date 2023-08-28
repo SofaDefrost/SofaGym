@@ -375,8 +375,6 @@ class AbstractEnv(gym.Env):
         self.clean()
         self.viewer = None
 
-        self.seed(self.config['seed'])
-
         splib3.animation.animate.manager = None
         if not self.goalList:
             self.goalList = self.config["goalList"]
