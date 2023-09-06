@@ -71,8 +71,8 @@ if __name__ == '__main__':
                         type=int, required=False, default=1)
     parser.add_argument("-s", "--seed", help = "Seed",
                         type=int, required=False, default=0)
-    parser.add_argument("-ep", "--epochs", help = "Number of training epochs",
-                        type=int, required=False, default=100)
+    parser.add_argument("-st", "--total_timesteps", help = "Number of training timesteps",
+                        type=int, required=False, default=None)
     parser.add_argument("-mst", "--max_steps", help = "Max steps per episode",
                         type=int, required=False, default=None)
     parser.add_argument("-tr", "--train", help = "Training a new model or continue training from saved model",
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     n_envs = args.env_num
     seed = args.seed
-    n_epochs = args.epochs
+    total_timesteps = args.total_timesteps
     max_episode_steps = args.max_steps
     train = args.train
     test = args.test
@@ -110,12 +110,12 @@ if __name__ == '__main__':
 
     if train == 'new':
         agent = Agent(env_name, algo_name, seed, results_dir, max_episode_steps, n_envs)
-        agent.fit(n_epochs)
+        agent.fit(total_timesteps)
     else:
         agent = Agent.load(model_dir)
         
         if train == 'continue':
-            agent.fit_continue(n_epochs)
+            agent.fit(total_timesteps)
 
     if test:
         agent.eval(n_tests, model_timestep='best_model', render=True, record=True)

@@ -21,8 +21,8 @@ class SofaBaseAgent(SofaTestAgent):
     max_episode_steps : int, default=None
         The maximum number of steps that an agent can take in an episode of the environment.
         Once this limit is reached, the episode is terminated. If None, the episode will 
-        continue until the goal is done or a termination conidition happens.
-    n_envs: int, default=1
+        continue until the goal is done or a termination condition happens.
+    n_envs : int, default=1
         The number of environment instances created simultaneously to train the agent on 
         multiple environments in parallel.
     
@@ -37,23 +37,22 @@ class SofaBaseAgent(SofaTestAgent):
     max_episode_steps : int
         The maximum number of steps that an agent can take in an episode of the environment.
         Once this limit is reached, the episode is terminated. If None, the episode will 
-        continue until the goal is done or a termination conidition happens.
-    n_envs: int
+        continue until the goal is done or a termination condition happens.
+    n_envs : int
         The number of environment instances created simultaneously to train the agent on 
         multiple environments in parallel.
-    test_env: gym.Env
+    test_env : gym.Env
         The test environment instance.
-    env: gym.Env
+    env : gym.Env
         The training environment instance.
     
     Notes:
     -----
-        This class is only an abstract class that needs to be inherited from and 
-        override the abstract methods defined.
+    This class is only an abstract class that needs to be inherited from and override the abstract methods defined.
 
     Usage:
     -----
-        Create subclasses for different types of agents and inherit from this class.
+    Create subclasses for different types of agents and inherit from this class.
     """
     def __init__(self, env_id, seed=0, output_dir="./Results", max_episode_steps=None, n_envs=1):
         """
@@ -71,26 +70,18 @@ class SofaBaseAgent(SofaTestAgent):
         max_episode_steps : int, default=None
             The maximum number of steps that an agent can take in an episode of the environment.
             Once this limit is reached, the episode is terminated. If None, the episode will 
-            continue until the goal is done or a termination conidition happens.
-        n_envs: int, default=1
+            continue until the goal is done or a termination condition happens.
+        n_envs : int, default=1
             The number of environment instances created simultaneously to train the agent on 
             multiple environments in parallel.
         """
         super().__init__(env_id, seed, output_dir, max_episode_steps)
         self.n_envs = n_envs
-        self.env = self.env_make()
 
     @abstractmethod
     def fit(self):
         """
         Train the agent using the chosen RL algorithm.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def fit_continue(self):
-        """
-        Continue the training of the provided agent from the chosen checkpoint.
         """
         raise NotImplementedError
 
@@ -101,13 +92,6 @@ class SofaBaseAgent(SofaTestAgent):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def save(self):
-        """
-        Save the current checkpoint of the training.
-        """
-        raise NotImplementedError
-
     @classmethod
     @abstractmethod
     def load(cls):
@@ -115,11 +99,3 @@ class SofaBaseAgent(SofaTestAgent):
         Load the agent from a specified checkpoint.
         """
         raise NotImplementedError
-
-    def close(self):
-        """
-        Overrides `close` from `SofaTestAgent` class.
-        Close the training and testing environments.
-        """
-        self.env.close()
-        self.test_env.close()
