@@ -49,11 +49,10 @@ class StateInitializer(Sofa.Core.Controller):
             self.rootNode = kwargs["rootNode"]
         if kwargs["pole_length"]:
             self.pole_length = kwargs["pole_length"]
-        if kwargs["init_states"]:
+        if kwargs["init_states"] is not None:
             self.init_states = kwargs["init_states"]
-        
         else:
-            print(">> ERROR: give a max angle for the normalization of the reward.")
+            print(">> ERROR: no inital states given.")
             exit(1)
 
         self.cart = self.rootNode.Modeling.Cart
@@ -71,7 +70,6 @@ class StateInitializer(Sofa.Core.Controller):
             None.
 
         """
-        #np_random, seed = seeding.np_random(0)
         cart_pos, cart_vel, pole_theta, pole_theta_dot = self.init_states
 
         with self.cart.MechanicalObject.position.writeable() as position:
@@ -128,12 +126,11 @@ class RewardShaper(Sofa.Core.Controller):
             self.rootNode = kwargs["rootNode"]
         if kwargs["max_angle"]:
             self.max_angle = kwargs["max_angle"]
-        if kwargs["pole_length"]:
-            self.pole_length = kwargs["pole_length"]
-        
         else:
             print(">> ERROR: give a max angle for the normalization of the reward.")
             exit(1)
+        if kwargs["pole_length"]:
+            self.pole_length = kwargs["pole_length"]
 
         self.cart = self.rootNode.Modeling.Cart
         self.pole = self.rootNode.Modeling.Pole
