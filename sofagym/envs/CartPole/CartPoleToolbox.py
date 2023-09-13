@@ -251,7 +251,8 @@ class ApplyAction(Sofa.Core.Controller):
         self.root = kwargs["root"]
         self.cart = self.root.Modeling.Cart
 
-        self.incr = 1000
+        self.force_scale = 5
+        self.incr = 1000 * self.force_scale
 
     def _move(self, incr):
         cartForceField = self.cart.CartForce
