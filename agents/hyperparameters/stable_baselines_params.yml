@@ -8,6 +8,7 @@
 #   - eval_freq: Evaluate the agent during training after every `eval_freq` steps.
 #   - n_eval_episodes: The number of episodes to evaluate the agent during each evaluation callback.
 #   - save_freq: Save a trained model checkpoint after every `save_freq` steps.
+#   - video_length: Max length of recorded videos.
 
 
 PPO:
@@ -36,6 +37,7 @@ PPO:
     eval_freq: 100
     n_eval_episodes: 5
     save_freq: 100
+    video_length: 200
 
 A2C:
   init_kwargs:
@@ -59,7 +61,8 @@ A2C:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100    
+    save_freq: 100
+    video_length: 200
 
 DQN:
   init_kwargs:
@@ -88,6 +91,7 @@ DQN:
     eval_freq: 100
     n_eval_episodes: 5
     save_freq: 100
+    video_length: 200
 
 SAC:
   init_kwargs:
@@ -118,6 +122,7 @@ SAC:
     eval_freq: 100
     n_eval_episodes: 5
     save_freq: 100
+    video_length: 200
 
 TD3:
   init_kwargs:
@@ -145,6 +150,7 @@ TD3:
     eval_freq: 100
     n_eval_episodes: 5
     save_freq: 100
+    video_length: 200
 
 DDPG:
   init_kwargs:
@@ -169,3 +175,4 @@ DDPG:
     eval_freq: 100
     n_eval_episodes: 5
     save_freq: 100
+    video_length: 200
