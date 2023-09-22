@@ -146,7 +146,7 @@ Command line arguments can be used to change the training parameters:
     - RLberry
 - -ne, --env_num: number of environments trained in parallel [Optional, default=1]
 - -s, --seed: seed used to initialize the environment [Optional, default=0]
-- -ep, --epochs: number of training epochs [Optional, default=100]
+- -st, --total_timesteps: number of training steps [Optional, default=None]
 - -mst, --max_steps: maximum number of steps to perform per episode [Optional, default=None]
 - -tr, --train: option to choose between training a new model, continue training of an available model, or no training [Optional, default='new']
 - -te, --te: option to test the trained model [Optional, default=False]
