@@ -25,15 +25,39 @@ and optional plugins (mandatory to run the example environments integrated with 
 
 
 
-#### 2) SofaGym python requierements
-We use python3.
-mandatory : 
+#### 2) SofaGym python requirements
+We use python3. Sofagym currently works with gym v0.21.0 and stable-baselines3 v1.7.0.
+
+The following packages are required:
+
+* [gym](https://github.com/openai/gym) 
+
 ```bash
-pip install gym==0.21 psutil pygame glfw pyopengl imageio
+pip install gym==0.21.0
 ```
+
 * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
+```bash
+pip install stable-baselines3[extra]==1.7.0
+```
 
+* [rlberry](https://github.com/rlberry-py/rlberry)
 
+```bash
+pip install rlberry
+```
+
+* rendering utils
+
+```bash
+pip install psutil pygame glfw pyopengl imageio imageio-ffmpeg
+```
+
+* tensorboard
+
+```bash
+pip install tensorboard
+```
 
 ### Install Sofagym 
 ```bash
@@ -122,7 +146,7 @@ Command line arguments can be used to change the training parameters:
     - RLberry
 - -ne, --env_num: number of environments trained in parallel [Optional, default=1]
 - -s, --seed: seed used to initialize the environment [Optional, default=0]
-- -ep, --epochs: number of training epochs [Optional, default=100]
+- -st, --total_timesteps: number of training steps [Optional, default=None]
 - -mst, --max_steps: maximum number of steps to perform per episode [Optional, default=None]
 - -tr, --train: option to choose between training a new model, continue training of an available model, or no training [Optional, default='new']
 - -te, --te: option to test the trained model [Optional, default=False]
@@ -139,16 +163,16 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 |<img src="images/cartstem-v0.png" width="250"/>|[CartStem](sofagym/envs/CartStem/) cartstem-v0| |OK|
 |<img src="images/cartstemcontact-v0.png" width="250"/>|[CartStemContact](sofagym/envs/CartStemContact/) cartstemcontact-v0| |OK|
 | |[CatchTheObject](sofagym/envs/CatchTheObject/) catchtheobject-v0| |OK|
-|<img src="images/concentrictuberobot-v0.png" width="250"/>|[ConcentricTubeRobot](sofagym/envs/CTR/) concentrictuberobot-v0| |OK |
+|<img src="images/concentrictuberobot-v0.png" width="250"/>|[ConcentricTubeRobot](sofagym/envs/CTR/) concentrictuberobot-v0| |OK|
 |<img src="images/diamondrobot-v0.png" width="250"/>|[DiamondRobot](sofagym/envs/Diamond/) diamondrobot-v0| |OK|
-|<img src="images/gripper-v0.png" width="250"/>|[Gripper](sofagym/envs/Gripper/) gripper-v0| The objective is to grasp a cube and bring it to a certain height.  The closer the cube is to the target, the greater the reward.| OK|
+|<img src="images/gripper-v0.png" width="250"/>|[Gripper](sofagym/envs/Gripper/) gripper-v0| The objective is to grasp a cube and bring it to a certain height.  The closer the cube is to the target, the greater the reward.|OK|
 |<img src="images/maze-v0.png" width="250"/>|[Maze](sofagym/envs/Maze/) maze-v0| The Maze environment offers one scene  of a ball navigating in a maze. The maze is attached to the tripod robot and the ball is moved by gravity by modifying the maze’s orientation. The tripod is actuated by three servomotors. Similarly to the Trunk Environment, the Maze environment has a dicrete action space of 6 actions, moving  each  servomotor  by  one  increment,  and could easily be extended to be continuous.|OK|
 |  |[MultiGait Robot](sofagym/envs/MultiGaitRobot/) multigaitrobot-v0| The multigait Softrobot has  one  scene. The goal is to move the robot forward in the *x* direction with the highest speed. env = gym.make("multigaitrobot-v0")|[ERROR]   [SofaRuntime] ValueError: Object type MechanicalMatrixMapperMOR<Vec1d,Vec1d> was not created The object is not in the factory. Need MOR plugin ?|
-| |[SimpleMaze](sofagym/envs/SimpleMaze/) simple_maze-v0| |ValueError: Object type Sphere<> was not created  | 
-|<img src="images/stempendulum-v0.png" width="250"/>|[StemPendulum](sofagym/envs/StemPendulum/) stempendulum-v0| |OK |
+|<img src="images/simple_maze-v0.png" width="250"/>|[SimpleMaze](sofagym/envs/SimpleMaze/) simple_maze-v0| |OK| 
+|<img src="images/stempendulum-v0.png" width="250"/>|[StemPendulum](sofagym/envs/StemPendulum/) stempendulum-v0| |OK|
 |<img src="images/trunk-v0.png" width="250"/>|[Trunk](sofagym/envs/Trunk/) trunk-v0| The Trunk environment offers two scenarios.  Both are based on the trunk robot.  The first is to bring the trunk’s tip to a certain position. The second scenario is to manipulate a cup using the trunk to get the cup’s center of gravity in a predefined position. The  Trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore 16 possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.|OK |
 |<img src="images/trunkcup-v0.png" width="250"/>|[TrunkCup](sofagym/envs/TrunkCup/) trunkcup-v0| |OK|
-|<img src="images/cartpole-v0.png" width="250"/>|[CartPole](sofagym/envs/CartPole/) cartpole-v0| The CartPole environment is based on the [same environment](https://gymnasium.farama.org/environments/classic_control/cart_pole/) found in Gymnasium. It is based on the classical control problem where the goal is to balance the pole upright by moving the cart left and right. The cartstem example is the soft analogue of this environment. |OK|
+|<img src="images/cartpole-v0.png" width="250"/>|[CartPole](sofagym/envs/CartPole/) cartpole-v0| The CartPole environment is based on the [same environment](https://gymnasium.farama.org/environments/classic_control/cart_pole/) found in Gymnasium. It is based on the classical control problem where the goal is to balance the pole upright by moving the cart left and right. The cartstem example is the soft analogue of this environment.|OK|
 
 
 
@@ -157,7 +181,9 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 
 ### Adding New Environment
 
-It is possible to define new environments using SofaGym. For this purpose different elements have to be created:
+It is possible to define new environments using SofaGym. Already existing SOFA scenes and newly created scenes can be modified to be used in SofaGym. A tutorial on how to create a new environment is available at [CartPole Tutorial](examples/tutorials/CartPole/CartPole_Tutorial.md).
+
+For this purpose different elements have to be created:
 - *NameEnv*: inherits from *AbstractEnv*. It allows to give the specificity of the environment like the action domain (discrete or continuous) and the configuration elements.
 - *NameScene*: allows to create the Sofa scene. It must have the classic createScene function and return a *root*. To improve performance it is possible to separate the visual and computational aspects of the scene using the *mode* parameter (*'visu'* or *'simu'*). It allows you to choose the elements in the viewer-related scene or in the client-related scene. We also integrate two Sofa.Core.Controller (rewardShaper and goalSetter) that allow to integrate goal and reward in the scene.
 - *NameToolbox*: allows to customize the environment. It defines the functions to retrieve the reward and the state of the environment as well as the command to apply to the system (link between the Gym action and the Sofa command). Note that we can define the Sofa.Core.Controller here. 
