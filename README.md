@@ -25,15 +25,39 @@ and optional plugins (mandatory to run the example environments integrated with 
 
 
 
-#### 2) SofaGym python requierements
-We use python3.
-mandatory : 
+#### 2) SofaGym python requirements
+We use python3. Sofagym currently works with gym v0.21.0 and stable-baselines3 v1.7.0.
+
+The following packages are required:
+
+* [gym](https://github.com/openai/gym) 
+
 ```bash
-pip install gym==0.21 psutil pygame glfw pyopengl imageio
+pip install gym==0.21.0
 ```
+
 * [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
+```bash
+pip install stable-baselines3[extra]==1.7.0
+```
 
+* [rlberry](https://github.com/rlberry-py/rlberry)
 
+```bash
+pip install rlberry
+```
+
+* rendering utils
+
+```bash
+pip install psutil pygame glfw pyopengl imageio imageio-ffmpeg
+```
+
+* tensorboard
+
+```bash
+pip install tensorboard
+```
 
 ### Install Sofagym 
 ```bash
