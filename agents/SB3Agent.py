@@ -330,22 +330,20 @@ class SB3Agent(SofaBaseAgent):
         record = kwargs.get('record', False)
 
         checkpoint_path = f"{self.checkpoints_dir}/{model_timestep}"
-        eval_model = self.algo.load(checkpoint_path, self.test_env, tensorboard_log=self.log_dir)
-
-        if eval_model.get_vec_normalize_env() is not None:
-            try:
-                sync_envs_normalization(self.env, self.test_env)
-            except AttributeError as error:
-                raise AssertionError(
-                    "Training and eval env are not wrapped the same way, "
-                    "see https://stable-baselines3.readthedocs.io/en/master/guide/callbacks.html#evalcallback "
-                    "and warning above."
-                ) from error
+        checkpoint_vecnormalize_path = f"{self.checkpoints_dir}/vecnormalize_{model_timestep}.pkl"
+        
+        eval_env = SubprocVecEnv([make_env(self.env_id, 0, self.seed, self.max_episode_steps, config={"render": 1})])
+        eval_env = VecNormalize.load(checkpoint_vecnormalize_path, eval_env)
+        eval_env.training = False
+        eval_env.norm_reward = False
+        eval_env = VecMonitor(eval_env, self.log_dir)
+        
+        eval_model = self.algo.load(checkpoint_path, eval_env, tensorboard_log=self.log_dir)
 
         print("\n-------------------------------")
         print(f">>>    Testing model at timestep: {model_timestep}")
 
-        mean_reward, std_reward = evaluate_policy(eval_model, self.test_env,
+        mean_reward, std_reward = evaluate_policy(eval_model, eval_env,
                                                   n_eval_episodes=n_episodes,
                                                   deterministic=True, render=False)
 
@@ -354,36 +352,22 @@ class SB3Agent(SofaBaseAgent):
             warnings.warn("Video recording not possible if rendering is off, render set to True", UserWarning)
 
         if render:
-            config = {"render": 1}
-            best_model_vecnormalize_path = f"{self.checkpoints_dir}/vecnormalize_best_model.pkl"
-            eval_env = SubprocVecEnv([make_env(self.env_id, 0, self.seed, self.max_episode_steps, config=config)])
-            eval_env = VecNormalize.load(best_model_vecnormalize_path, eval_env)
-            eval_env.training = False
-            eval_env.norm_reward = False
             if record:
                 eval_env = VecVideoRecorder(eval_env, self.video_dir,
                                             record_video_trigger=lambda x: x == 0,
                                             video_length=self.video_length,
                                             name_prefix="eval_video")
-            eval_env = VecMonitor(eval_env, self.log_dir)
-
-            eval_model = self.algo.load(checkpoint_path, eval_env, tensorboard_log=self.log_dir)
-
-            if eval_model.get_vec_normalize_env() is not None:
-                try:
-                    sync_envs_normalization(self.env, eval_env)
-                except AttributeError as error:
-                    raise AssertionError(
-                        "Training and eval env are not wrapped the same way, "
-                        "see https://stable-baselines3.readthedocs.io/en/master/guide/callbacks.html#evalcallback "
-                        "and warning above."
-                    ) from error
-
+                eval_env = VecMonitor(eval_env, self.log_dir)
+                
+                eval_model = self.algo.load(checkpoint_path, eval_env, tensorboard_log=self.log_dir)
+  
             _, _ = evaluate_policy(eval_model, eval_env, n_eval_episodes=1,
                                    deterministic=True, render=True)
 
-            eval_env.close_video_recorder()
-            eval_env.close()
+            if record:
+                eval_env.close_video_recorder()
+            
+        eval_env.close()
 
         print(f"Reward: {mean_reward}, Standard Devation: {std_reward}")
         print(">>   End.")
