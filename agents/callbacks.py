@@ -3,7 +3,7 @@ import warnings
 
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.vec_env import (VecVideoRecorder,
+from stable_baselines3.common.vec_env import (VecMonitor, VecVideoRecorder,
                                               sync_envs_normalization)
 
 
@@ -138,13 +138,16 @@ class VideoRecordCallback(BaseCallback):
         Path to the folder where the video will be saved.
     video_length: int
         Length of recorded video.
+    log_dir: str
+        Path of the directory where log info is saved.
     verbose: int, default=0
         Verbosity level: 0 for no output, 1 for info messages, 2 for debug messages.
     """
-    def __init__(self, save_path: str, video_length: int, verbose: int = 0):
+    def __init__(self, save_path: str, video_length: int, log_dir: str, verbose: int = 0):
         super().__init__(verbose=verbose)
         self.save_path = save_path
         self.video_length = video_length
+        self.log_dir = log_dir
 
     def _init_callback(self) -> None:
         assert self.parent is not None, "``VideoRecordCallback`` callback must be used with an ``EvalCallback``"
@@ -153,6 +156,7 @@ class VideoRecordCallback(BaseCallback):
         self.eval_env = VecVideoRecorder(self.eval_env, self.save_path,
                                          record_video_trigger=lambda x: x == 0, video_length=self.video_length,
                                          name_prefix="eval_callback_video")
+        self.eval_env = VecMonitor(self.eval_env, self.log_dir)
 
         # Does not work in some corner cases, where the wrapper is not the same
         if not isinstance(self.training_env, type(self.eval_env)):
