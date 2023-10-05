@@ -40,6 +40,7 @@ DEFAULT_CONFIG = {"scene": "Diamond",
                   "start_from_history": None,
                   "python_version": "python3.7",
                   "zFar": 5000,
+                  "dt": 0.01
                   }
 
 
@@ -60,6 +61,8 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
                                                                          'SofaEngine',
                                                                          'SofaConstraint',
                                                                          'Sofa.GL.Component.Shader'])
+    
+    rootNode.dt.value = config["dt"]
 
     source = config["source"]
     target = config["target"]

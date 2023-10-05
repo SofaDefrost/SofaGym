@@ -133,7 +133,7 @@ def create_scene(root,  config, visu, simu):
     if simu:
         root.gravity.value = [0.0, -9.81, 0.0]
 
-    root.dt.value = 0.05
+    root.dt.value = config["dt"]
 
     goal_mo = add_goal_node(root)
     Gripper(root, visu, simu)
@@ -176,7 +176,8 @@ def create_scene(root,  config, visu, simu):
 
 def createScene(root, config={"source": [-600.0, -25, 100],
                               "target": [30, -25, 100],
-                              "goalPos": [0, 0, 0]}, mode='simu_and_visu'):
+                              "goalPos": [0, 0, 0],
+                              "dt": 0.01}, mode='simu_and_visu'):
     # Chose the mode: visualization or computations (or both)
     visu, simu = False, False
     if 'visu' in mode:

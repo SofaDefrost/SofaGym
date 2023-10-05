@@ -107,7 +107,10 @@ def add_cable(trunk):
 		cableS.addObject('BarycentricMapping', name='mapping',  mapForces=False, mapMasses=False)
 
 
-def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -25, 100], "goalPos": [0, 0, 0]}, mode = 'simu_and_visu'):
+def createScene(rootNode, config={"source": [-600.0, -25, 100],
+								  "target": [30, -25, 100],
+								  "goalPos": [0, 0, 0],
+								  "dt": 0.01}, mode = 'simu_and_visu'):
 
 	#Chose the mode: visualization or computations (or both)
 	visu, simu = False, False
@@ -118,8 +121,8 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100], "target": [30, -
 
 	if simu:
 		rootNode.gravity.value = [0, -9180, 0]
-	dt = 0.01
-	rootNode.dt.value = dt
+
+	rootNode.dt.value = config["dt"]
 
 	rootNode.addObject('RequiredPlugin', name="SoftRobots", pluginName='SoftRobots')
 	rootNode.addObject('RequiredPlugin', name="SofaPython", pluginName='SofaPython3')

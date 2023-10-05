@@ -199,6 +199,7 @@ DEFAULT_CONFIG = {"scene": "CTR",
                   "start_from_history": None,
                   "python_version": "python3.7",
                   "zFar": 5000,
+                  "dt": 0.01
                   }
 
 
@@ -215,7 +216,7 @@ def createScene(root, config=DEFAULT_CONFIG, tube_list=['tube_1', 'tube_2', 'tub
 
     add_plugins(root)
     _, solver = add_visuals_and_solvers(root, config, simu, visu)
-    root.dt = 0.01
+    root.dt.value = config["dt"]
 
     goal_mo = add_goal_node(root)
     for i, name in enumerate(tube_list):
