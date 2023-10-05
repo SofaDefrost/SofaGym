@@ -70,7 +70,6 @@ if __name__ == '__main__':
     print("Start env ", env_name)
 
     env.configure({"render":1})
-    env.configure({"dt":0.01})
     env.reset()
 
     env.render()

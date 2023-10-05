@@ -152,7 +152,8 @@ class Trunk(SofaObject):
 
 def createScene(rootNode, config={"source": [-600.0, -25, 100],
                                   "target": [30, -25, 100],
-                                  "goalPos": [0, 0, 0]}, mode='simu_and_visu'):
+                                  "goalPos": [0, 0, 0],
+                                  "dt": 0.01}, mode='simu_and_visu'):
 
     # Chose the mode: visualization or computations (or both)
     visu, simu = False, False
@@ -199,7 +200,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
 
         rootNode.gravity.value = [0., -9810., 0.]
 
-    rootNode.dt.value = 0.01
+    rootNode.dt.value = config["dt"]
 
     simulation = rootNode.addChild("Simulation")
 

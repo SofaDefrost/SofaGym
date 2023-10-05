@@ -37,7 +37,8 @@ def add_goal_node(root):
 def createScene(root, config={"source": [0, 1000, 0],
                               "target": [0, 0, 0],
                               "goal_node": 0,
-                              "goalPos": [0.0, 0.0, 0.0]}, mode='simu_and_visu'):
+                              "goalPos": [0.0, 0.0, 0.0],
+                              "dt": 0.01}, mode='simu_and_visu'):
 
     # Chose the mode: visualization or computations (or both)
     visu, simu = False, False
@@ -53,6 +54,7 @@ def createScene(root, config={"source": [0, 1000, 0],
     root.addObject("RequiredPlugin", name="SofaSparseSolver")
 
     root.gravity = [0.0, -981, 0.0]
+    root.dt.value = config["dt"]
 
     # VISU ###################
     if visu:

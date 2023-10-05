@@ -52,7 +52,8 @@ def createScene(rootNode, config={"source": [0, 300, 0],
                                   "target": [0, 0, 0],
                                   "goalList": [0, 0, 0],
                                   "goal_node": 0,
-                                  "goalPos": [0.0, 0.0, 0.0]}, mode='simu_and_visu'):
+                                  "goalPos": [0.0, 0.0, 0.0],
+                                  "dt": 0.01}, mode='simu_and_visu'):
     
     pluginList = ["ArticulatedSystemPlugin",
                   "Sofa.Component.AnimationLoop",
@@ -105,7 +106,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     if 'simu' in mode:
         simu = True
 
-    scene = Scene(rootNode, gravity=[0.0, -9810, 0.0], dt=0.01, plugins=pluginList, iterative=False)
+    scene = Scene(rootNode, gravity=[0.0, -9810, 0.0], dt=config["dt"], plugins=pluginList, iterative=False)
     scene.addMainHeader()
     scene.addObject('DefaultVisualManagerLoop')
     scene.addObject('FreeMotionAnimationLoop')
