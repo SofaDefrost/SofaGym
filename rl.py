@@ -40,7 +40,8 @@ envs = {
         11: 'stempendulum-v0',
         12: 'trunk-v0',
         13: 'trunkcup-v0',
-        14: 'cartpole-v0'
+        14: 'cartpole-v0',
+        15: 'catheter_beam-v0'
         }
 
 algos = {
