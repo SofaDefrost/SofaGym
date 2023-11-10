@@ -25,7 +25,7 @@ class SofaTestAgent(ABC):
     max_episode_steps : int, default=None
         The maximum number of steps that an agent can take in an episode of the environment.
         Once this limit is reached, the episode is terminated. If None, the episode will 
-        continue until the goal is done or a termination conidition happens.
+        continue until the goal is done or a termination condition happens.
     
     Attributes
     ----------
@@ -38,18 +38,17 @@ class SofaTestAgent(ABC):
     max_episode_steps : int
         The maximum number of steps that an agent can take in an episode of the environment.
         Once this limit is reached, the episode is terminated. If None, the episode will 
-        continue until the goal is done or a termination conidition happens.
-    test_env: gym.Env
+        continue until the goal is done or a termination condition happens.
+    test_env : gym.Env
         The test environment instance.
     
     Notes:
     -----
-        This class is used to only test the environment and the agent without any 
-        reinforcement learning training done.    
+    This class is used to only test the environment and the agent without any reinforcement learning training done.    
 
     Usage:
     -----
-        Use the reset method before launching the environment.
+    Use the reset method before launching the environment.
     """
     def __init__(
         self,
@@ -72,7 +71,7 @@ class SofaTestAgent(ABC):
         max_episode_steps : int, default=None
             The maximum number of steps that an agent can take in an episode of the environment.
             Once this limit is reached, the episode is terminated. If None, the episode will 
-            continue until the goal is done or a termination conidition happens.
+            continue until the goal is done or a termination condition happens.
         """
         self.env_id = env_id
         self.seed = seed
@@ -88,7 +87,7 @@ class SofaTestAgent(ABC):
         
         Returns
         -------
-        _seed: int
+        _seed : int
             The current seed used.
         """
         return self._seed
@@ -101,7 +100,7 @@ class SofaTestAgent(ABC):
         
         Parameters
         ----------
-        seed: int
+        seed : int
             The seed value to set for the random number generators.
         """
         self._seed = seed
@@ -116,7 +115,7 @@ class SofaTestAgent(ABC):
         
         Returns
         -------
-        _output_dir: str
+        _output_dir : str
             The output directory to save results.
         """
         return self._output_dir
@@ -129,7 +128,7 @@ class SofaTestAgent(ABC):
         
         Parameters
         ----------
-        output_dir: str
+        output_dir : str
             The path of the output directory where results will be saved.
         """
         self._output_dir = output_dir
@@ -143,7 +142,7 @@ class SofaTestAgent(ABC):
         
         Returns
         -------
-        env: gym.Env
+        env : gym.Env
             the created instance of the gym environment.
         """
         env = gym.make(self.env_id)
@@ -161,7 +160,7 @@ class SofaTestAgent(ABC):
         
         Parameters
         ----------
-        env: gym.Env
+        env : gym.Env
             The gym environment instance to set the seed for.
         
         """
@@ -176,16 +175,16 @@ class SofaTestAgent(ABC):
         
         Parameters
         ----------
-        obs:
+        obs
             "The observation which refers to the current state of the environment as perceived by
             the agent.
         
         Returns
         -------
         a tuple containing two values:
-            action:
+            action
                 a random sampled action from the possible action space.
-            obs:
+            obs
                 the current state of the environment.
         """
         return self.test_env.action_space.sample(), obs
@@ -197,7 +196,7 @@ class SofaTestAgent(ABC):
         
         Parameters
         ----------
-        n_episodes: int, default=1
+        n_episodes : int, default=1
             The number of episodes to run during testing. An episode is a complete run of 
             the environment from the initial state to a terminal state.
         render: bool, default=False
@@ -206,12 +205,9 @@ class SofaTestAgent(ABC):
         
         Returns
         -------
-        mean(episodes_rewards): float
+        mean(episodes_rewards) : float
             the mean reward obtained over the specified number of episodes.
         """
-        if render:
-            self.test_env.config.update({"render": 1})
-
         episodes_rewards = []
 
         for episode in range(n_episodes):
@@ -237,13 +233,12 @@ class SofaTestAgent(ABC):
                 steps_rewards.append(reward)
                 step += 1
 
+            episode_reward = sum(steps_rewards)[0]
             print("Done >> Episode", episode+1, "- Reward = ",
-                  steps_rewards, "- Sum reward:", sum(steps_rewards))
-            episodes_rewards.append(sum(steps_rewards))
+                  steps_rewards, "- Sum reward:", episode_reward)
+            episodes_rewards.append(episode_reward)
 
         print("[INFO]  >> Mean reward: ", mean(episodes_rewards))
-
-        self.test_env.close()
 
         return mean(episodes_rewards)
 

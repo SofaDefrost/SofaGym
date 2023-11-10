@@ -6,27 +6,46 @@ from colorama import Fore
 from stable_baselines3.common.utils import set_random_seed
 
 
-def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optional[int] = None):
-    """
-    Utility function for multiprocessed env.
+def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optional[int] = None, config: Optional[dict] = None):
+    """Utility function for creating gym envs.
 
-    :param env_id: the environment ID
-    :param seed: the inital seed for RNG
-    :param rank: index of the subprocess
-    :param max_episode_steps: maximum number of steps to perform per episode
+    Parameters
+    ----------
+    env_id: str
+        The environment ID
+    rank: int, default=0
+        Index of the subprocess
+    seed: int, default=0
+        The inital seed for RNG
+    max_episode_steps: int, default=None
+        Maximum number of steps to perform per episode.
+    config: dict, default=None
+        The configuration parameters for the environment.
+
+    Returns
+    -------
+    Callable
+        The callable function to create the environment.
     """
     def _init():
-        env = gym.make(env_id)
-        env.seed(seed + rank)
+        env_seed = seed + rank
+        env_config = config
+        if env_config is None:
+            env_config = {"seed": env_seed}
+        else:
+            env_config['seed'] = env_seed
+
+        env = gym.make(env_id, config=env_config)
+        env.seed(env_seed)
         env.reset()
 
         if max_episode_steps:
             env = gym.wrappers.TimeLimit(env, max_episode_steps=max_episode_steps)
-        
+
         return env
     
     set_random_seed(seed)
-    
+
     return _init
 
 def sec_to_hours(seconds):

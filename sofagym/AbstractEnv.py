@@ -11,6 +11,8 @@ __date__ = "Oct 7 2020"
 import gym
 from gym.utils import seeding
 
+from typing import Optional
+
 import numpy as np
 import copy
 import os
@@ -110,7 +112,7 @@ class AbstractEnv(gym.Env):
 
 
     """
-    def __init__(self, config=None):
+    def __init__(self, config=None, render_mode: Optional[str] = None):
         """
         Classic initialization of a class in python.
 
@@ -131,6 +133,8 @@ class AbstractEnv(gym.Env):
             self.config.update(config)
 
         self.initialization()
+
+        self.render_mode = render_mode
 
     def initialization(self):
         """Initialization of all parameters.
@@ -387,9 +391,9 @@ class AbstractEnv(gym.Env):
         self.timer = 0
         self.past_actions = []
         
-        return 
+        return
 
-    def render(self, mode='rgb_array'):
+    def render(self, mode):
         """See the current state of the environment.
 
         Get the OpenGL Context to render an image (snapshot) of the simulation
@@ -404,20 +408,18 @@ class AbstractEnv(gym.Env):
         -------
             None.
         """
-        if self.config['render'] != 0:
-            # Define the viewer at the first run of render.
-            if not self.viewer:
-                display_size = self.config["display_size"]  # Sim display
-                if 'zFar' in self.config:
-                    zFar = self.config['zFar']
-                else:
-                    zFar = 0
-                self.viewer = Viewer(self, display_size, zFar=zFar, save_path=self.config["save_path_image"])
+        self.render_mode = mode
 
-            # Use the viewer to display the environment.
-            self.viewer.render()
-        else:
-            print(">> No rendering")
+        # Define the viewer at the first run of render.
+        if not self.viewer:
+            display_size = self.config["display_size"]  # Sim display
+            if 'zFar' in self.config:
+                zFar = self.config['zFar']
+            else:
+                zFar = 0
+            self.viewer = Viewer(self, display_size, zFar=zFar, save_path=self.config["save_path_image"])
+        # Use the viewer to display the environment.
+        return self.viewer.render()
 
     def _automatic_rendering(self):
         """Automatically render the intermediate frames while an action is still ongoing.
