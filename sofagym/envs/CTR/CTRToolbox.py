@@ -272,29 +272,6 @@ def startCmd(root, action, duration):
     target = [target_translation if target_translation > 0 else 0.1, source[1] + cmd_rotation]
     start_cmd(root, root.InstrumentCombined, source, target, duration, controlled_instrument)
 
-
-def displace(root, displacement, n_steps):
-    """Change the value of the angle.
-
-    Parameters:
-    ----------
-        acuator:
-            The motor we consider.
-        displacement: int
-            The increment for the angle.
-
-    Returns:
-    -------
-        None.
-    """
-
-    cable_num, cable_disp = displacement
-    cables = [root.Robot.Actuators.north, root.Robot.Actuators.west, root.Robot.Actuators.south,
-              root.Robot.Actuators.east]
-    cable = cables[cable_num - 1]
-    cable.value += cable_disp/n_steps
-
-
 def start_cmd(rootNode, IRC_node, source, target, duration, instrument=0):
     def execute_animation(controller, anim_source, anim_target, factor, anim_instrument):
         """
