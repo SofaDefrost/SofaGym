@@ -20,7 +20,11 @@ import os
 import splib3
 
 from sofagym.viewer import Viewer
-from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
+
+import importlib
+
+import Sofa
+import SofaRuntime
 
 
 class AbstractEnv(gym.Env):
@@ -39,7 +43,6 @@ class AbstractEnv(gym.Env):
             while an action is still ongoing.
         close: Terminate the simulation.
         configure: Add element in the configuration.
-        clean: clean the registery.
         _formataction.. : transforme the type of action to use server.
 
     Arguments:
@@ -112,7 +115,7 @@ class AbstractEnv(gym.Env):
 
 
     """
-    def __init__(self, config=None, render_mode: Optional[str] = None):
+    def __init__(self, config=None, render_mode: Optional[str]=None, root=None):
         """
         Classic initialization of a class in python.
 
@@ -132,12 +135,47 @@ class AbstractEnv(gym.Env):
         if config is not None:
             self.config.update(config)
 
-        self.initialization()
+        self.scene = self.config['scene']
 
+        self._getState = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getState
+        self._getReward = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getReward
+        self._startCmd = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").startCmd
+        self._getPos = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getPos
+        
+        try:
+            self.create_scene = importlib.import_module("sofagym.envs."+self.scene+"." + self.scene + "Scene").createScene
+        except Exception as exc:
+            print("sofagym.envs."+self.scene+"." + self.scene + "Scene")
+            raise NotImplementedError("Importing your SOFA Scene Failed") from exc
+
+        if isinstance(root, type(None)):
+            self.root = self.init_simulation()
+        else:
+            self.root = root
+
+        self.viewer = None
         self.render_mode = render_mode
 
-    def initialization(self):
-        """Initialization of all parameters.
+        self.goalList = None
+        self.goal = None
+        self.past_actions = []
+
+        self.pos = []
+        self.past_pos = []
+
+        self.num_envs = 40
+
+        self.np_random = None
+
+        self.seed(self.config['seed'])
+
+        self.timer = 0
+        self.timeout = self.config["timeout"]
+
+        self.init_save_paths()
+
+    def init_save_paths(self):
+        """Create directories to save results and images.
 
         Parameters:
         ----------
@@ -147,28 +185,6 @@ class AbstractEnv(gym.Env):
         -------
             None.
         """
-
-        self.goalList = None
-        self.goal = None
-        self.past_actions = []
-
-        
-        self.num_envs = 40
-
-        self.np_random = None
-
-        self.seed(self.config['seed'])
-
-        self.viewer = None
-        self.automatic_rendering_callback = None
-        
-
-        self.timer = 0
-        self.timeout = self.config["timeout"]
-
-        # Start the server which distributes the calculations to its clients
-        start_server(self.config)
-
         if 'save_data' in self.config and self.config['save_data']:
             save_path_results = self.config['save_path']+"/data"
             os.makedirs(save_path_results, exist_ok=True)
@@ -258,23 +274,6 @@ class AbstractEnv(gym.Env):
 
         return action
 
-    def clean(self):
-        """Function to clean the registery .
-
-        Close clients who are processing unused sequences of actions (for
-        planning)
-
-        Parameters:
-        ----------
-            None.
-
-        Returns:
-        -------
-            None.
-        """
-
-        clean_registry(self.past_actions)
-
     def step(self, action):
         """Executes one action in the environment.
 
@@ -303,27 +302,22 @@ class AbstractEnv(gym.Env):
 
         action = self._formataction(action)
 
-        # Pass the actions to the server to launch the simulation.
-        result_id = add_new_step(self.past_actions, action)
+        self.pos = self.step_simulation(action)
+
         self.past_actions.append(action)
+        self.past_pos.append(self.pos)
 
-        # Request results from the server.
-        # print("[INFO]   >>> Result id:", result_id)
-        results = get_result(result_id, timeout=self.timeout)
-
-        obs = np.array(results["observation"])  # to work with baseline
-        reward = results["reward"]
-        done = results["done"]
+        obs = np.array(self._getState(self.root), dtype=np.float32)
+        done, reward = self._getReward(self.root)
 
         # Avoid long explorations by using a timer.
         self.timer += 1
         if self.timer >= self.config["timer_limit"]:
             # reward = -150
             truncated = True
-        info={}#(not use here)
+        
+        info = {} #(not use here)
 
-        if self.config["planning"]:
-            self.clean()
         return obs, reward, done, info
 
     def async_step(self, action):
@@ -376,7 +370,6 @@ class AbstractEnv(gym.Env):
             obs, info
 
         """
-        self.clean()
         self.viewer = None
 
         splib3.animation.animate.manager = None
@@ -390,8 +383,13 @@ class AbstractEnv(gym.Env):
 
         self.timer = 0
         self.past_actions = []
+        self.past_pos = []
+
+        self.root = self.init_simulation()
         
-        return
+        obs = np.array(self._getState(self.root), dtype=np.float32)
+        
+        return obs
 
     def render(self, mode):
         """See the current state of the environment.
@@ -411,39 +409,15 @@ class AbstractEnv(gym.Env):
         self.render_mode = mode
 
         # Define the viewer at the first run of render.
-        if not self.viewer:
+        if self.viewer is None:
             display_size = self.config["display_size"]  # Sim display
             if 'zFar' in self.config:
                 zFar = self.config['zFar']
             else:
                 zFar = 0
-            self.viewer = Viewer(self, display_size, zFar=zFar, save_path=self.config["save_path_image"])
+            self.viewer = Viewer(self, self.root, display_size, zFar=zFar, save_path=self.config["save_path_image"])
         # Use the viewer to display the environment.
         return self.viewer.render()
-
-    def _automatic_rendering(self):
-        """Automatically render the intermediate frames while an action is still ongoing.
-
-        This allows to render the whole video and not only single steps
-        corresponding to agent decision-making.
-        If a callback has been set, use it to perform the rendering. This is
-        useful for the environment wrappers such as video-recording monitor that
-        need to access these intermediate renderings.
-
-        Parameters:
-        ----------
-            None.
-
-        Returns:
-        -------
-            None.
-
-        """
-        if self.viewer is not None:
-            if self.automatic_rendering_callback:
-                self.automatic_rendering_callback()
-            else:
-                self.render()
 
     def close(self):
         """Terminate simulation.
@@ -460,8 +434,7 @@ class AbstractEnv(gym.Env):
         """
         if self.viewer is not None:
             self.viewer.close()
-
-        close_scene()
+        
         print("All clients are closed. Bye Bye.")
 
     def configure(self, config):
@@ -478,3 +451,108 @@ class AbstractEnv(gym.Env):
 
         """
         self.config.update(config)
+
+    def init_simulation(self, mode='simu_and_visu'):
+        """Function to create scene and initialize all variables.
+
+        Parameters:
+        ----------
+            config: Dictionary.
+                Configuration of the environment.
+            _startCmd: function
+                Initialize the command.
+            mode: string, default = 'simu_and_visu'
+                Init a scene with or without visu and computations.
+                In ['simu', 'visu', 'simu_and_visu']
+
+        Returns:
+        -------
+            root: <Sofa.Core>
+                The loaded and initialized scene.
+
+        """
+        # Load the scene
+        root = Sofa.Core.Node("root")
+
+        SofaRuntime.importPlugin("Sofa.Component")
+        self.create_scene(root, self.config, mode = mode)
+        Sofa.Simulation.init(root)
+
+        # Realise action from history
+        if self.config['start_from_history'] is not None and self._startCmd is not None:
+            print(">>   Start from history ...")
+            render = self.config['render']
+            self.config.update({'render': 0})
+
+            for action in self.config['start_from_history']:
+                self.step_simulation(action)
+
+            self.config.update({'render': render})
+            print(">>   ... Done.")
+
+        # Init Reward and GoalSetter
+        root.GoalSetter.update(self.config["goalList"])
+        root.Reward.update(self.config["goalList"])
+
+        try:
+            root.StateInitializer.init_state(self.config["init_states"])
+        except AttributeError as error:
+            print(error)
+
+        if 'time_before_start' in self.config:
+            print(">>   Time before start:", self.config["time_before_start"], "steps. Initialization ...")
+            for _ in range(self.config["time_before_start"]):
+                Sofa.Simulation.animate(root, self.config["dt"])
+            print(">>   ... Done.")
+            # Update Reward and GoalSetter
+            root.GoalSetter.update(self.config["goalList"])
+            root.Reward.update(self.config["goalList"])
+
+        return root
+
+    def step_simulation(self, action):
+        """Realise one step in the simulation.
+
+        Apply action and execute 5 times scale_factor simulation steps of dt s.
+
+        Parameters:
+        ----------
+            root: <Sofa.Core>
+                The scene.
+            config: Dictionary
+                The configuration of the environment.
+            action: int
+                The action to apply in the environment.
+            _startCmd: function
+                Initialize the command.
+            _getPos: function
+                Get the position of the object in the scene.
+
+        Returns:
+        --------
+            position(s): list
+                The positions of object(s) in the scene.
+
+        """
+        goal = self.config['goalPos']
+        render = self.config['render']
+        surface_size = self.config['display_size']
+
+        self.root.GoalSetter.set_mo_pos(goal)
+
+        # Create the command from action
+        self._startCmd(self.root, action, self.config["dt"]*(self.config["scale_factor"]-1))
+        pos = []
+        # Realise scale_factor simulation steps of 0.01 s
+        for _ in range(self.config["scale_factor"]):
+            Sofa.Simulation.animate(self.root, self.config["dt"])
+            
+            #if render == 2:
+            #    pos.append(self._getPos(self.root))
+            #    if self.viewer is not None:
+            #        self.viewer.render_simulation(self.root)
+
+        if render == 1:
+            pos.append(self._getPos(self.root))
+
+        return pos
