@@ -22,7 +22,6 @@ class CartPoleEnv:
                       "source": [0, 0, 160],
                       "target": [0, 0, 0],
                       "goal": False,
-                      "goalList": [[0]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.001,
@@ -82,7 +81,6 @@ class CartPoleEnv:
         """
         self.env.reset()
 
-        self.env.config.update({'goalPos': self.env.goal})
         init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(4,))
         self.env.config.update({'init_states': list(init_states)})
         

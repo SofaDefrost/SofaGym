@@ -150,7 +150,7 @@ class RewardShaper(Sofa.Core.Controller):
         
         return 1, pole_theta, self.max_angle
 
-    def update(self, goal):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -210,17 +210,6 @@ def getState(rootNode):
     state = [cart_pos, cart_vel, pole_theta, pole_theta_dot]
 
     return state
-
-
-class GoalSetter(Sofa.Core.Controller):
-    def __init__(self, *args, **kwargs):
-        Sofa.Core.Controller.__init__(self, *args, **kwargs)
-
-    def update(self, goal):
-        pass
-
-    def set_mo_pos(self, goal):
-        pass
 
 
 def getReward(rootNode):
