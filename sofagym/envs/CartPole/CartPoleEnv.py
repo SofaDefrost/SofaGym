@@ -5,7 +5,6 @@ import sys
 import numpy as np
 from gym import spaces
 from sofagym.AbstractEnv import AbstractEnv
-from sofagym.rpc_server import start_scene
 
 
 class CartPoleEnv(AbstractEnv):
@@ -22,7 +21,7 @@ class CartPoleEnv(AbstractEnv):
                       "target": [0, 0, 0],
                       "goalList": [[0]],
                       "start_node": None,
-                      "scale_factor": 10,
+                      "scale_factor": 1,
                       "dt": 0.001,
                       "timer_limit": 80,
                       "timeout": 50,
@@ -40,10 +39,12 @@ class CartPoleEnv(AbstractEnv):
                       "seed": None,
                       "init_x": 0,
                       "max_move": 24,
+                      "max_angle": 0.418,
+                      "init_states": [0]*4
                       }
 
-    def __init__(self, config=None):
-        super().__init__(config)
+    def __init__(self, config=None, root=None):
+        super().__init__(config, root=root)
 
         self.x_threshold = 100
         self.theta_threshold_radians = self.config["max_move"] * math.pi / 180
@@ -67,20 +68,13 @@ class CartPoleEnv(AbstractEnv):
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
         super().reset()
 
         self.config.update({'goalPos': self.goal})
         init_states = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
         self.config.update({'init_states': list(init_states)})
-        obs = start_scene(self.config, self.nb_actions)
-        return np.array(obs['observation'])
+        return np.array(init_states)
 
     def get_available_actions(self):
         """Gives the actions available in the environment.

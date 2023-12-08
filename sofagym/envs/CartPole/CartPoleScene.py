@@ -48,7 +48,7 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0,
     return object
 
 
-def createScene(root, 
+def createScene(root,
                 config={"source": [0, 0, 160],
                         "target": [0, 0, 0],
                         "goalPos": None,
@@ -57,7 +57,8 @@ def createScene(root,
                         "init_x": 0,
                         "max_move": 24,
                         "max_angle": 0.418,
-                        "dt": 0.01},
+                        "dt": 0.01,
+                        "init_states": [0]*4},
                 mode='simu_and_visu'):
     
     # Choose the mode: visualization or computations (or both)
