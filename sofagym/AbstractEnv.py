@@ -19,6 +19,7 @@ import os
 
 import splib3
 
+from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
 from sofagym.viewer import Viewer
 
 import importlib
@@ -115,7 +116,7 @@ class AbstractEnv(gym.Env):
 
 
     """
-    def __init__(self, config=None, render_mode: Optional[str]=None, root=None):
+    def __init__(self, default_config, config=None, render_mode: Optional[str]=None, root=None):
         """
         Classic initialization of a class in python.
 
@@ -130,7 +131,7 @@ class AbstractEnv(gym.Env):
 
         """
         # Define a DEFAULT_CONFIG in sub-class.
-        self.config = copy.deepcopy(self.DEFAULT_CONFIG)
+        self.config = copy.deepcopy(default_config)
         self.config["dt"] = self.config.get('dt', 0.01)
         if config is not None:
             self.config.update(config)
@@ -556,3 +557,122 @@ class AbstractEnv(gym.Env):
             pos.append(self._getPos(self.root))
 
         return pos
+
+
+
+
+class ServerEnv(AbstractEnv):
+    def __init__(self, default_config, config=None, render_mode: Optional[str]=None, root=None):
+        super().__init__(default_config, config, root=root)
+        
+        # Start the server which distributes the calculations to its clients
+        start_server(self.config)
+
+    def step(self, action):
+        """Executes one action in the environment.
+
+        Apply action and execute scale_factor simulation steps of 0.01 s.
+
+        Parameters:
+        ----------
+            action: int
+                Action applied in the environment.
+
+        Returns:
+        -------
+            obs(ObsType):
+                The new state of the agent.
+            reward(float):
+                The reward obtain after applying the action in the current state.
+            done(bool):
+                Whether the agent reaches the terminal state
+            info(dict): 
+                additional information (not used here)
+        """
+
+        # assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+
+        action = self._formataction(action)
+
+        # Pass the actions to the server to launch the simulation.
+        result_id = add_new_step(self.past_actions, action)
+        self.past_actions.append(action)
+
+        # Request results from the server.
+        # print("[INFO]   >>> Result id:", result_id)
+        results = get_result(result_id, timeout=self.timeout)
+
+        obs = np.array(results["observation"])  # to work with baseline
+        reward = results["reward"]
+        done = results["done"]
+
+        # Avoid long explorations by using a timer.
+        self.timer += 1
+        if self.timer >= self.config["timer_limit"]:
+            # reward = -150
+            truncated = True
+        info={}#(not use here)
+
+        if self.config["planning"]:
+            self.clean()
+        return obs, reward, done, info
+    
+    def reset(self):
+        """Reset simulation.
+
+        Parameters:
+        ----------
+            None.
+
+        Returns:
+        -------
+            obs, info
+        """
+        self.clean()
+        self.viewer = None
+
+        splib3.animation.animate.manager = None
+        if not self.goalList:
+            self.goalList = self.config["goalList"]
+
+        # Set a new random goal from the list
+        id_goal = self.np_random.choice(range(len(self.goalList)))
+        self.config.update({'goal_node': id_goal})
+        self.goal = self.goalList[id_goal]
+
+        self.timer = 0
+        self.past_actions = []
+        
+        return
+    
+    def clean(self):
+        """Function to clean the registery .
+
+        Close clients who are processing unused sequences of actions (for
+        planning)
+
+        Parameters:
+        ----------
+            None.
+
+        Returns:
+        -------
+            None.
+        """
+        clean_registry(self.past_actions)
+
+    def close(self):
+        """Terminate simulation.
+
+        Close the viewer and the scene.
+
+        Parametres:
+        ----------
+            None.
+
+        Returns:
+        -------
+            None.
+        """
+        super().close()
+        close_scene()
