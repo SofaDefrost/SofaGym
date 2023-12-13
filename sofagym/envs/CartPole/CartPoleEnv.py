@@ -17,6 +17,7 @@ class CartPoleEnv:
     #Setting a default configuration
     path = path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 4
     DEFAULT_CONFIG = {"scene": "CartPole",
                       "deterministic": True,
                       "source": [0, 0, 160],
@@ -39,11 +40,14 @@ class CartPoleEnv:
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
+                      "nb_actions": 2,
+                      "dim_state": dim_state,
                       "init_x": 0,
+                      "x_threshold": 100,
                       "max_move": 24,
                       "max_angle": 0.418,
                       "randomize_states": True,
-                      "init_states": [0]*4,
+                      "init_states": [0] * dim_state,
                       "use_server": False
                       }
 
@@ -51,7 +55,11 @@ class CartPoleEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        self.x_threshold = 100
+        self.init_states = self.env.config["init_states"]
+        if self.env.config["randomize_states"]:
+            self.randomize_init_states()
+
+        self.x_threshold = self.env.config["x_threshold"]
         self.theta_threshold_radians = self.env.config["max_move"] * math.pi / 180
         self.env.config.update({'max_angle': self.theta_threshold_radians})
         
@@ -65,7 +73,7 @@ class CartPoleEnv:
             dtype=np.float32,
         )
 
-        nb_actions = 2
+        nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
@@ -76,9 +84,18 @@ class CartPoleEnv:
         # assume it is implemented by self.instance
         return self.env.__getattribute__(name)
 
+
+    def randomize_init_states(self):
+        self.init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(self.env.config["dim_state"],))
+        self.env.config.update({'init_states': list(self.init_states)})
+
+
     def reset(self):
         """Reset simulation.
         """
+        if self.env.config["randomize_states"]:
+            self.randomize_init_states()
+        
         self.env.reset()
 
         init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(4,))
