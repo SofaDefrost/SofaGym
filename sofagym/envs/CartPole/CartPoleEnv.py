@@ -44,7 +44,7 @@ class CartPoleEnv:
                       "dim_state": dim_state,
                       "init_x": 0,
                       "x_threshold": 100,
-                      "max_move": 24,
+                      "max_move": 12,
                       "max_angle": 0.418,
                       "randomize_states": True,
                       "init_states": [0] * dim_state,

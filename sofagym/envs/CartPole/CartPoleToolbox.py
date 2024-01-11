@@ -145,8 +145,7 @@ class RewardShaper(Sofa.Core.Controller):
             The reward and the cost.
 
         """
-        cart_pos = self._getCartPos()
-        pole_theta, pole_theta_dot = self.calculatePoleTheta(cart_pos)
+        pole_theta = self.pole.MechanicalObject.position.value.tolist()[0][5]
         
         return 1, pole_theta, self.max_angle
 
@@ -166,26 +165,6 @@ class RewardShaper(Sofa.Core.Controller):
         """
         pass
 
-    def _getPolePos(self):
-        pos = self.pole.MechanicalObject.position.value.tolist()[0]
-        return pos[0], pos[1]
-
-    def _getCartPos(self):
-        pos = self.cart.MechanicalObject.position.value.tolist()[0][0]
-        return pos
-    
-    def calculatePoleTheta(self, cart_pos):
-        x_pos, y_pos = self._getPolePos()
-        sin_theta = (y_pos/self.pole_length)
-        theta = abs((90*math.pi/180) - math.asin(sin_theta))
-        
-        if x_pos < cart_pos:
-            theta = -theta
-
-        theta_dot = self.pole.MechanicalObject.velocity.value.tolist()[0][5]
-        
-        return theta, theta_dot
-
 
 def getState(rootNode):
     """Compute the state of the environment/agent.
@@ -201,11 +180,12 @@ def getState(rootNode):
             The state of the environment/agent.
     """
     cart = rootNode.Modeling.Cart
-
     cart_pos = cart.MechanicalObject.position.value.tolist()[0][0]
     cart_vel = cart.MechanicalObject.velocity.value.tolist()[0][0]
 
-    pole_theta, pole_theta_dot = rootNode.Reward.calculatePoleTheta(cart_pos)
+    pole = rootNode.Modeling.Pole
+    pole_theta = pole.MechanicalObject.position.value.tolist()[0][5]
+    pole_theta_dot = pole.MechanicalObject.velocity.value.tolist()[0][5]
 
     state = [cart_pos, cart_vel, pole_theta, pole_theta_dot]
 
