@@ -47,6 +47,7 @@ class CatheterBeamEnv:
                       "nb_actions": 12,
                       "dim_state": dim_state,
                       "randomize_states": False,
+                      "init_states": [0] * dim_state,
                       "use_server": False
                       }
 
@@ -54,6 +55,8 @@ class CatheterBeamEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
         
+        self.initialize_states()
+
         nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
@@ -71,9 +74,32 @@ class CatheterBeamEnv:
         # assume it is implemented by self.instance
         return self.env.__getattribute__(name)
 
+    def initialize_states(self):
+        if self.env.config["randomize_states"]:
+            self.init_states = self.randomize_init_states()
+            self.env.config.update({'init_states': list(self.init_states)})
+        else:
+            self.init_states = self.env.config["init_states"]
+    
+    def randomize_init_states(self):
+        """Randomize initial states.
+
+        Returns:
+        -------
+            init_states: list
+                List of random initial states for the environment.
+        
+        Note:
+        ----
+            This method should be implemented according to needed random initialization.
+        """
+        return self.env.config["init_states"]
+
     def reset(self):
         """Reset simulation.
         """
+        self.initialize_states()
+        
         self.env.reset()
 
         if self.use_server:
