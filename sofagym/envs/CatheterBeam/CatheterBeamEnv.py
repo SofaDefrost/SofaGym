@@ -15,8 +15,9 @@ class CatheterBeamEnv:
     See the class AbstractEnv for arguments and methods.
     """
     #Setting a default configuration
-    path = path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 12
     DEFAULT_CONFIG = {"scene": "CatheterBeam",
                       "deterministic": True,
                       "source": [-1169.51, 298.574, 257.631],
@@ -43,6 +44,8 @@ class CatheterBeamEnv:
                       "translation": [0.0, 0.0, 0.0],
                       "goal": True,
                       "goalList": [1226, 1663, 1797, 1544, 2233, 2580, 3214],
+                      "nb_actions": 12,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -51,11 +54,11 @@ class CatheterBeamEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
         
-        nb_actions = 12
+        nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 12
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
