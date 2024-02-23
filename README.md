@@ -9,7 +9,7 @@ The toolkit also comprises example scenes based on the SoftRobots plugin for SOF
 ## Installation
 ### Prerequisites
 
-#### 1) SofaGym needs a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) v22.12
+#### 1) SofaGym needs a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/). Currently supported version is v23.06
 with a mandatory plugin :
 * [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
 
@@ -26,7 +26,7 @@ and optional plugins (mandatory to run the example environments integrated with 
 
 
 #### 2) SofaGym python requirements
-We use python3. Sofagym currently works with gym v0.21.0 and stable-baselines3 v1.7.0.
+We use python3. Sofagym currently works with gym v0.21.0, stable-baselines3 v1.7.0, and rlberry v0.5.0.
 
 The following packages are required:
 
@@ -44,7 +44,7 @@ pip install stable-baselines3[extra]==1.7.0
 * [rlberry](https://github.com/rlberry-py/rlberry)
 
 ```bash
-pip install rlberry
+pip install rlberry==0.5.0
 ```
 
 * rendering utils
