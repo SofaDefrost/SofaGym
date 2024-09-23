@@ -173,10 +173,7 @@ class AbstractEnv(gym.Env):
             self.goalList = self.config["goalList"]
             self.init_goal()
 
-        if isinstance(root, type(None)):
-            self.root = self.init_simulation()
-        else:
-            self.root = root
+        self.root = root
 
     def init_goal(self):
         # Set a new random goal from the list
@@ -209,6 +206,9 @@ class AbstractEnv(gym.Env):
             save_path_image = None
 
         self.configure({"save_path_image": save_path_image, "save_path_results": save_path_results})
+
+    def init_root(self):
+        self.init_simulation()
 
     def seed(self, seed=None):
         """
@@ -389,9 +389,12 @@ class AbstractEnv(gym.Env):
 
         self.timer = 0
         self.past_actions = []
+        self.pos = []
         self.past_pos = []
 
-        self.root = self.init_simulation()
+        Sofa.Simulation.reset(self.root)
+        self.root = None
+        self.init_simulation()
         
         obs = np.array(self._getState(self.root), dtype=np.float32)
         
@@ -478,11 +481,11 @@ class AbstractEnv(gym.Env):
 
         """
         # Load the scene
-        root = Sofa.Core.Node("root")
+        self.root = Sofa.Core.Node("root")
 
         SofaRuntime.importPlugin("Sofa.Component")
-        self.create_scene(root, self.config, mode = mode)
-        Sofa.Simulation.init(root)
+        self.create_scene(self.root, self.config, mode=mode)
+        Sofa.Simulation.init(self.root)
 
         # Realise action from history
         if self.config['start_from_history'] is not None and self._startCmd is not None:
@@ -498,28 +501,24 @@ class AbstractEnv(gym.Env):
 
         # Init Reward and GoalSetter
         if self.config["goal"]:
-            root.GoalSetter.update(self.goal)
+            self.root.GoalSetter.update(self.goal)
         
-        root.Reward.update(0)
+        self.root.Reward.update(0)
 
-        try:
-            root.StateInitializer.init_state(self.config["init_states"])
-        except AttributeError as error:
-            print(error)
+        if self.config["randomize_states"]:
+            self.root.StateInitializer.init_state(self.config["init_states"])
 
         if 'time_before_start' in self.config:
             print(">>   Time before start:", self.config["time_before_start"], "steps. Initialization ...")
             for _ in range(self.config["time_before_start"]):
-                Sofa.Simulation.animate(root, self.config["dt"])
+                Sofa.Simulation.animate(self.root, self.config["dt"])
             print(">>   ... Done.")
             
             # Update Reward and GoalSetter
             if self.config["goal"]:
-                root.GoalSetter.update(self.goal)
+                self.root.GoalSetter.update(self.goal)
             
-            root.Reward.update(self.goal)
-
-        return root
+            self.root.Reward.update(self.goal)
 
     def step_simulation(self, action):
         """Realise one step in the simulation.
