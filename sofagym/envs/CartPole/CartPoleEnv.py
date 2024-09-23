@@ -1,13 +1,15 @@
 import math
 import os
 import sys
+from typing import Optional
 
 import numpy as np
 from gym import spaces
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
+from sofagym.rpc_server import start_scene
 
 
-class CartPoleEnv(AbstractEnv):
+class CartPoleEnv:
     """Sub-class of AbstractEnv, dedicated to the cart pole scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -19,9 +21,10 @@ class CartPoleEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [0, 0, 160],
                       "target": [0, 0, 0],
+                      "goal": False,
                       "goalList": [[0]],
                       "start_node": None,
-                      "scale_factor": 1,
+                      "scale_factor": 10,
                       "dt": 0.001,
                       "timer_limit": 80,
                       "timeout": 50,
@@ -40,15 +43,18 @@ class CartPoleEnv(AbstractEnv):
                       "init_x": 0,
                       "max_move": 24,
                       "max_angle": 0.418,
-                      "init_states": [0]*4
+                      "randomize_states": True,
+                      "init_states": [0]*4,
+                      "use_server": False
                       }
 
-    def __init__(self, config=None, root=None):
-        super().__init__(config, root=root)
+    def __init__(self, config=None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
         self.x_threshold = 100
-        self.theta_threshold_radians = self.config["max_move"] * math.pi / 180
-        self.config.update({'max_angle': self.theta_threshold_radians})
+        self.theta_threshold_radians = self.env.config["max_move"] * math.pi / 180
+        self.env.config.update({'max_angle': self.theta_threshold_radians})
         
         high = np.array(
             [
@@ -61,19 +67,29 @@ class CartPoleEnv(AbstractEnv):
         )
 
         nb_actions = 2
-        self.action_space = spaces.Discrete(nb_actions)
+        self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        self.observation_space = spaces.Box(-high, high, dtype=np.float32)
+        self.env.observation_space = spaces.Box(-high, high, dtype=np.float32)
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
 
     def reset(self):
         """Reset simulation.
         """
-        super().reset()
+        self.env.reset()
 
-        self.config.update({'goalPos': self.goal})
-        init_states = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
-        self.config.update({'init_states': list(init_states)})
+        self.env.config.update({'goalPos': self.env.goal})
+        init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(4,))
+        self.env.config.update({'init_states': list(init_states)})
+        
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            return np.array(obs['observation'])
+        
         return np.array(init_states)
 
     def get_available_actions(self):
@@ -87,4 +103,4 @@ class CartPoleEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return self.action_space
+        return self.env.action_space
