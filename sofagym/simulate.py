@@ -61,12 +61,6 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
         config.update({'render': render})
         print(">>   ... Done.")
 
-    # Init Reward and GoalSetter
-    if config["goal"]:
-        root.GoalSetter.update(config['goalPos'])
-    
-    root.Reward.update(0)
-
     if config["randomize_states"]:
         root.StateInitializer.init_state(config["init_states"])
 
@@ -76,12 +70,12 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
             Sofa.Simulation.animate(root, config["dt"])
         print(">>   ... Done.")
         
-        # Update Reward and GoalSetter
-        if config["goal"]:
-            root.GoalSetter.update(config['goalPos'])
-            root.Reward.update(config['goalPos'])
-        else:
-            root.Reward.update()
+    # Update Reward and GoalSetter
+    if config["goal"]:
+        root.GoalSetter.update(config['goalPos'])
+        root.Reward.update(config['goalPos'])
+    else:
+        root.Reward.update()
 
     return root
 
