@@ -15,7 +15,7 @@ class CartPoleEnv:
     See the class AbstractEnv for arguments and methods.
     """
     #Setting a default configuration
-    path = path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
     dim_state = 4
     DEFAULT_CONFIG = {"scene": "CartPole",
@@ -53,11 +53,10 @@ class CartPoleEnv:
 
     def __init__(self, config=None, root=None, use_server: Optional[bool]=False):
         self.use_server = self.DEFAULT_CONFIG["use_server"]
+
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        self.init_states = self.env.config["init_states"]
-        if self.env.config["randomize_states"]:
-            self.randomize_init_states()
+        self.initialize_states()
 
         self.x_threshold = self.env.config["x_threshold"]
         self.theta_threshold_radians = self.env.config["max_move"] * math.pi / 180
@@ -79,33 +78,51 @@ class CartPoleEnv:
 
         self.env.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
     # called when an attribute is not found:
     def __getattr__(self, name):
         # assume it is implemented by self.instance
         return self.env.__getattribute__(name)
 
-
+    def initialize_states(self):
+        if self.env.config["randomize_states"]:
+            self.init_states = self.randomize_init_states()
+            self.env.config.update({'init_states': list(self.init_states)})
+        else:
+            self.init_states = self.env.config["init_states"]
+    
     def randomize_init_states(self):
-        self.init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(self.env.config["dim_state"],))
-        self.env.config.update({'init_states': list(self.init_states)})
+        """Randomize initial states.
 
+        Returns:
+        -------
+            init_states: list
+                List of random initial states for the environment.
+        
+        Note:
+        ----
+            This method should be implemented according to needed random initialization.
+        """
+        init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(self.env.config["dim_state"],))
+
+        return init_states
 
     def reset(self):
         """Reset simulation.
         """
-        if self.env.config["randomize_states"]:
-            self.randomize_init_states()
+        self.initialize_states()
         
         self.env.reset()
-
-        init_states = self.env.np_random.uniform(low=-0.05, high=0.05, size=(4,))
-        self.env.config.update({'init_states': list(init_states)})
         
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
-            return np.array(obs['observation'])
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
         
-        return np.array(init_states)
+        return state
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
