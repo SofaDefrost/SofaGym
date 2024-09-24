@@ -25,6 +25,7 @@ class BubbleMotionEnv:
     #Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 15
     DEFAULT_CONFIG = {"scene": "BubbleMotion",
                       "deterministic": True,
                       "source": [5, -5, 20],
@@ -50,6 +51,8 @@ class BubbleMotionEnv:
                       "dt": 0.01,
                       "max_pressure": 40,
                       "board_dim": 8,
+                      "nb_actions": -1,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -58,13 +61,13 @@ class BubbleMotionEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        nb_actions = -1
+        nb_actions = self.env.config["nb_actions"]
         low = np.array([-1]*9)
         high = np.array([1]*9)
         self.env.action_space = spaces.Box(low=low, high=high, shape=(9,), dtype=np.float32)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 15
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([0]*dim_state)
         high_coordinates = np.array([80]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
