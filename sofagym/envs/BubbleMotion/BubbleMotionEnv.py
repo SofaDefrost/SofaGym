@@ -8,14 +8,16 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
 import os, sys
 import numpy as np
 
-class BubbleMotionEnv(AbstractEnv):
+from typing import Optional
+
+class BubbleMotionEnv:
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -27,6 +29,7 @@ class BubbleMotionEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [5, -5, 20],
                       "target": [5, 5, 0],
+                      "goal": True,
                       "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 20,
@@ -46,43 +49,47 @@ class BubbleMotionEnv(AbstractEnv):
                       "seed": None,
                       "dt": 0.01,
                       "max_pressure": 40,
-                      "board_dim": 8
+                      "board_dim": 8,
+                      "randomize_states": False,
+                      "use_server": False
                       }
+    
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-    def __init__(self, config = None):
-        super().__init__(config)
         nb_actions = -1
         low = np.array([-1]*9)
         high = np.array([1]*9)
-        self.action_space = spaces.Box(low=low, high=high, shape=(9,), dtype='float32')
+        self.env.action_space = spaces.Box(low=low, high=high, shape=(9,), dtype=np.float32)
         self.nb_actions = str(nb_actions)
 
         dim_state = 15
         low_coordinates = np.array([0]*dim_state)
         high_coordinates = np.array([80]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
 
-    def step(self, action):
-        return super().step(action)
-
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
+    
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.env.reset()
 
-        self.config.update({'goalPos': self.goal})
-        obs = start_scene(self.config, self.nb_actions)
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
         
-        return np.array(obs['observation'])
-
+        return state
+    
     def get_available_actions(self):
         """Gives the actions available in the environment.
 
@@ -94,7 +101,4 @@ class BubbleMotionEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return self.action_space
-
-
-
+        return self.env.action_space
