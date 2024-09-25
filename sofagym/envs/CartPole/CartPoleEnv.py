@@ -58,6 +58,9 @@ class CartPoleEnv:
 
         self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
         self.x_threshold = self.env.config["x_threshold"]
         self.theta_threshold_radians = self.env.config["max_move"] * math.pi / 180
         self.env.config.update({'max_angle': self.theta_threshold_radians})
@@ -113,6 +116,9 @@ class CartPoleEnv:
         """Reset simulation.
         """
         self.initialize_states()
+
+        if self.env.config["goal"]:
+            self.init_goal()
         
         self.env.reset()
         
