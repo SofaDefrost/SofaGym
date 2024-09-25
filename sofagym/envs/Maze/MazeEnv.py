@@ -8,15 +8,17 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Inria"
 __date__ = "Oct 7 2020"
 
-import os
+import os, sys
 import numpy as np
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
 
-class MazeEnv(AbstractEnv):
+from typing import Optional
+
+class MazeEnv:
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -28,6 +30,7 @@ class MazeEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [-82.0819, 186.518, 135.963],
                       "target": [-2.09447, 5.75347, -4.34572],
+                      "goal": True,
                       "goalList": [334, 317, 312, 301],
                       "goal_node": 270,
                       "start_node": 269,
@@ -43,41 +46,49 @@ class MazeEnv(AbstractEnv):
                       "discrete": True,
                       "seed": 0,
                       "start_from_history": None,
-                      "python_version": "python3.8",
+                      "python_version": sys.version,
                       "zFar": 1000,
                       "dt": 0.01,
                       "time_before_start": 20,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
-    def __init__(self, config=None):
-        super().__init__(config)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
         nb_actions = 6
-        self.action_space = spaces.Discrete(nb_actions)
+        self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
         dim_state = 9
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
-    def step(self, action):
-        return super().step(action)
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.env.reset()
 
-        self.config.update({'goalPos': self.goal})
-        obs = start_scene(self.config, self.nb_actions)
-
-        return np.array(obs['observation'])
+        self.env.config.update({'goalPos': self.env.goal})
+        
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+        
+        return state
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -90,4 +101,4 @@ class MazeEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return list(range(int(self.nb_actions)))
+        return self.env.action_space
