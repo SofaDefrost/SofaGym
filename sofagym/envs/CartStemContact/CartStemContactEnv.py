@@ -27,6 +27,7 @@ class CartStemContactEnv:
     #Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 8
     DEFAULT_CONFIG = {"scene": "CartStemContact",
                       "deterministic": True,
                       "source": [0, -50, 10],
@@ -53,6 +54,8 @@ class CartStemContactEnv:
                       "init_x": 5,
                       "cube_x": [-6, 6],
                       "max_move": 7.5,
+                      "nb_actions": -1,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -61,13 +64,13 @@ class CartStemContactEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        nb_actions = -1
+        nb_actions = self.env.config["nb_actions"]
         low = np.array([-1]*1)
         high = np.array([1]*1)
         self.env.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype=np.float32)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 8
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
