@@ -86,7 +86,7 @@ class RewardShaper(Sofa.Core.Controller):
 
         return min(3*reward**(1/2), 1.0), current_dist
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -100,7 +100,7 @@ class RewardShaper(Sofa.Core.Controller):
             None.
 
         """
-
+        self.goal_pos = goal
         tip = self.root.InstrumentCombined.DOFs.position[-1][:3]
         self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
         self.prev_dist = self.init_dist
@@ -148,7 +148,7 @@ class GoalSetter(Sofa.Core.Controller):
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
+    def update(self, goal):
         """Set the position of the goal.
 
         This function is used as an initialization function.
@@ -162,6 +162,7 @@ class GoalSetter(Sofa.Core.Controller):
             None.
 
         """
+        self.goalPos = goal
         with self.goalMO.position.writeable() as position:
             print("update", self.goalPos)
             position[0] = self.goalPos

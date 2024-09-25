@@ -67,6 +67,9 @@ class ConcentricTubeRobotEnv:
 
         self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
         nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
@@ -107,6 +110,12 @@ class ConcentricTubeRobotEnv:
         """
         return self.env.config["init_states"]
 
+    def init_goal(self):
+        # Set a new random goal from the list
+        y = -20 + 50 * self.env.np_random.random()
+        self.env.goal = [0.0, y, abs(y) + 30 * self.env.np_random.random()]
+        self.env.config.update({'goalPos': self.env.goal})
+
     def step(self, action):
         if self.use_server:
             if self.env.viewer:
@@ -118,14 +127,11 @@ class ConcentricTubeRobotEnv:
         """Reset simulation.
         """
         self.initialize_states()
-        
+
+        if self.env.config["goal"]:
+            self.init_goal()
+
         self.env.reset()
-
-        y = -20 + 50 * self.env.np_random.random()
-
-        self.env.goal = [0.0, y, abs(y) + 30 * self.env.np_random.random()]
-
-        self.env.config.update({'goalPos': self.env.goal})
 
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
