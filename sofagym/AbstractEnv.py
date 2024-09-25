@@ -168,19 +168,14 @@ class AbstractEnv(gym.Env):
 
         self.init_save_paths()
 
-        self.goal = None
-        if self.config["goal"]:
-            self.goalList = self.config["goalList"]
-            self.init_goal()
-
         self.root = root
 
-    def init_goal(self):
-        # Set a new random goal from the list
-        id_goal = self.np_random.choice(range(len(self.goalList)))
-        self.config.update({'goal_node': id_goal})
-        self.goal = self.goalList[id_goal]
-        self.config.update({'goalPos': self.goal})
+        self.init_states = None
+
+        self.goal = None
+
+        self.nb_actions = self.config["nb_actions"]
+        self.dim_state = self.config["dim_state"]
 
     def init_save_paths(self):
         """Create directories to save results and images.
@@ -210,6 +205,35 @@ class AbstractEnv(gym.Env):
     def init_root(self):
         self.init_simulation()
 
+    def initialize_states(self):
+        if self.config["randomize_states"]:
+            self.init_states = self.randomize_init_states()
+            self.config.update({'init_states': list(self.init_states)})
+        else:
+            self.init_states = self.config["init_states"]
+
+    def randomize_init_states(self):
+        """Randomize initial states.
+
+        Returns:
+        -------
+            init_states: list
+                List of random initial states for the environment.
+        
+        Note:
+        ----
+            This method should be implemented according to needed random initialization.
+        """
+        return self.config["init_states"]
+
+    def init_goal(self):
+        # Set a new random goal from the list
+        goalList = self.config["goalList"]
+        id_goal = self.np_random.choice(range(len(goalList)))
+        self.config.update({'goal_node': id_goal})
+        self.goal = goalList[id_goal]
+        self.config.update({'goalPos': self.goal})
+
     def seed(self, seed=None):
         """
         Computes the random generators of the environment.
@@ -226,6 +250,19 @@ class AbstractEnv(gym.Env):
         """
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
+
+    def get_available_actions(self):
+        """Gives the actions available in the environment.
+
+        Parameters:
+        ----------
+            None.
+
+        Returns:
+        -------
+            list of the action available in the environment.
+        """
+        return self.action_space
 
     def _formataction(self, action):
         """Change the type of action to be in [list, float, int].
@@ -383,9 +420,6 @@ class AbstractEnv(gym.Env):
         self.viewer = None
 
         splib3.animation.animate.manager = None
-
-        if self.config["goal"]:
-            self.init_goal()
 
         self.timer = 0
         self.past_actions = []
@@ -635,9 +669,6 @@ class ServerEnv(AbstractEnv):
         self.viewer = None
 
         splib3.animation.animate.manager = None
-        
-        if self.config["goal"]:
-            self.init_goal()
 
         self.timer = 0
         self.past_actions = []
