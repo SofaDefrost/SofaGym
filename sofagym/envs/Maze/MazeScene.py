@@ -22,6 +22,7 @@ from Maze import Maze
 from MazeToolbox import goalSetter, rewardShaper
 from Sphere import Sphere
 from splib3.animation import animate
+from splib3.animation import AnimationManagerController
 from splib3.numerics import RigidDof
 from stlib3.scene import ContactHeader, Scene
 from tripod import Tripod
@@ -115,6 +116,8 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     scene.Settings.mouseButton.stiffness = 10
     scene.Simulation.TimeIntegrationSchema.rayleighStiffness = 0.05
     ContactHeader(rootNode, alarmDistance=0.5, contactDistance=0.2, frictionCoef=0.2)
+
+    rootNode.addObject(AnimationManagerController(rootNode, name="AnimationManager"))
     
     # Visu
     if visu:
