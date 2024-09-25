@@ -57,7 +57,7 @@ def createScene(rootNode, config={"source": [5, -5, 20],
     visu(rootNode, config, position_spot, direction_spot, cutoff=250)
 
     bd = config["board_dim"]
-    pos_goal = [1+bd*np.random.random(), 1+bd*np.random.random(), 2]
+    pos_goal = config["goalPos"]
     add_goal_node(rootNode, pos_goal)
 
     init_pos = config["init_pos"]

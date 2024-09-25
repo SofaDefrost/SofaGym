@@ -64,6 +64,9 @@ class BubbleMotionEnv:
 
         self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
         nb_actions = self.env.config["nb_actions"]
         low = np.array([-1]*9)
         high = np.array([1]*9)
@@ -107,11 +110,20 @@ class BubbleMotionEnv:
             This method should be implemented according to needed random initialization.
         """
         return self.env.config["init_states"]
+
+    def init_goal(self):
+        bd = self.env.config["board_dim"]
+        pos_goal = [1+bd*self.env.np_random.random(), 1+bd*self.env.np_random.random(), 2]
+        self.env.goal = pos_goal
+        self.env.config.update({'goalPos': self.env.goal})
     
     def reset(self):
         """Reset simulation.
         """
         self.initialize_states()
+        
+        if self.env.config["goal"]:
+            self.init_goal()
         
         self.env.reset()
 
