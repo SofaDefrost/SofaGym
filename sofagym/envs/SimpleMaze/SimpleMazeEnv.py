@@ -26,6 +26,7 @@ class SimpleMazeEnv:
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 13
     DEFAULT_CONFIG = {"scene": "SimpleMaze",
                       "deterministic": True,
                       "source": [0, 200, 0],
@@ -34,7 +35,7 @@ class SimpleMazeEnv:
                       "goalList": [301, 334, 317, 312],
                       "goal_node": 334,
                       "start_node": 269,
-                      "scale_factor": 200,
+                      "scale_factor": 10,
                       "timer_limit": 50,
                       "timeout": 30,
                       "display_size": (1600, 800),
@@ -48,6 +49,8 @@ class SimpleMazeEnv:
                       "python_version": sys.version,
                       "zFar": 5000,
                       "dt": 0.01,
+                      "nb_actions": 4,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -56,11 +59,11 @@ class SimpleMazeEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        nb_actions = 4
+        nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 13
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
