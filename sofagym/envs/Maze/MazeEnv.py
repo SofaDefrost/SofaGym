@@ -26,6 +26,7 @@ class MazeEnv:
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 9
     DEFAULT_CONFIG = {"scene": "Maze",
                       "deterministic": True,
                       "source": [-82.0819, 186.518, 135.963],
@@ -50,6 +51,8 @@ class MazeEnv:
                       "zFar": 1000,
                       "dt": 0.01,
                       "time_before_start": 20,
+                      "nb_actions": 6,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -58,11 +61,11 @@ class MazeEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        nb_actions = 6
+        nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 9
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
