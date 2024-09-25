@@ -27,6 +27,7 @@ class CatchTheObject:
     #Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 5
     DEFAULT_CONFIG = {"scene": "CatchTheObject",
                       "deterministic": True,
                       "source": [0, -70, 10],
@@ -52,6 +53,8 @@ class CatchTheObject:
                       "seed": None,
                       "max_move": 10,
                       "max_pressure": 15,
+                      "nb_actions": -1,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -60,13 +63,13 @@ class CatchTheObject:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        nb_actions = -1
+        nb_actions = self.env.config["nb_actions"]
         low = np.array([-1]*1)
         high = np.array([1]*1)
         self.env.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype=np.float32)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 5
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
