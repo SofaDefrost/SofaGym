@@ -57,6 +57,9 @@ class CatheterBeamEnv:
         
         self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
         nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
@@ -95,11 +98,22 @@ class CatheterBeamEnv:
         """
         return self.env.config["init_states"]
 
+    def init_goal(self):
+        # Set a new random goal from the list
+        goalList = self.env.config["goalList"]
+        id_goal = self.env.np_random.choice(range(len(goalList)))
+        self.env.config.update({'goal_node': id_goal})
+        self.env.goal = goalList[id_goal]
+        self.env.config.update({'goalPos': self.env.goal})
+
     def reset(self):
         """Reset simulation.
         """
         self.initialize_states()
-        
+
+        if self.env.config["goal"]:
+            self.init_goal()
+
         self.env.reset()
 
         if self.use_server:
