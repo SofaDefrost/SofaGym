@@ -52,7 +52,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
                                   "target": [0, 0, 0],
                                   "goalList": [0, 0, 0],
                                   "goal_node": 0,
-                                  "goalPos": [0.0, 0.0, 0.0],
+                                  "goalPos": 0,
                                   "dt": 0.01}, mode='simu_and_visu'):
     
     pluginList = ["ArticulatedSystemPlugin",
