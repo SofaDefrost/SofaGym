@@ -8,14 +8,16 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
-import os
+import os, sys
 import numpy as np
 
-class CartStemEnv(AbstractEnv):
+from typing import Optional
+
+class CartStemEnv:
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -27,6 +29,7 @@ class CartStemEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],
+                      "goal": False,
                       "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
@@ -41,51 +44,59 @@ class CartStemEnv(AbstractEnv):
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
-                      "python_version": "python3.9",
+                      "python_version": sys.version,
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
                       "init_x": 0,
                       "max_move": 40,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
-    def __init__(self, config = None):
-        super().__init__(config)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
         nb_actions = 2
-        self.action_space = spaces.Discrete(nb_actions)
+        self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
         dim_state = 4
         low_coordinates = np.array([-100]*dim_state)
         high_coordinates = np.array([100]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
 
     def step(self, action):
-        obs, reward, done, info = super().step(action)
-        if abs(obs[0]) > self.config["max_move"]:
+        obs, reward, done, info = self.env.step(action)
+        if abs(obs[0]) > self.env.config["max_move"]:
             done = True
 
         return obs, reward, done, info
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.env.reset()
 
-        self.config.update({'init_x': -(self.config["max_move"]/8) + (self.config["max_move"]/4)*np.random.random()})
-        self.config.update({'goalPos': self.goal})
+        self.env.config.update({'init_x': -(self.env.config["max_move"]/8) + (self.env.config["max_move"]/4)*self.env.np_random.random()})
+        self.env.config.update({'goalPos': self.env.goal})
 
-        obs = start_scene(self.config, self.nb_actions)
-        
-        return np.array(obs['observation'])
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+
+        return state
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -98,6 +109,6 @@ class CartStemEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return self.action_space
+        return self.env.action_space
 
 
