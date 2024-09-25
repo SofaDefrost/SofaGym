@@ -67,6 +67,9 @@ class CartStemContactEnv:
 
         self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
         nb_actions = self.env.config["nb_actions"]
         low = np.array([-1]*1)
         high = np.array([1]*1)
@@ -104,7 +107,7 @@ class CartStemContactEnv:
 
         self.env.config.update({'goalList': [[x_goal, 0, 20]]})
         self.env.config.update({'max_move': max(abs(low_cube-1), high_cube+1)})
-        
+
     def randomize_init_states(self):
         """Randomize initial states.
 
@@ -119,16 +122,23 @@ class CartStemContactEnv:
         """
         return self.env.config["init_states"]
 
+    def init_goal(self):
+        # Set a new random goal from the list
+        goalList = self.env.config["goalList"]
+        id_goal = self.env.np_random.choice(range(len(goalList)))
+        self.env.config.update({'goal_node': id_goal})
+        self.env.goal = goalList[id_goal]
+        self.env.config.update({'goalPos': self.env.goal})
+
     def reset(self):
         """Reset simulation.
         """
         self.initialize_states()
 
-        self.goalList = self.env.config["goalList"]
-        
-        self.env.reset()
+        if self.env.config["goal"]:
+            self.init_goal()
 
-        self.env.config.update({'goalPos': self.env.goal})
+        self.env.reset()
 
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
