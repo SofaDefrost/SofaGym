@@ -8,17 +8,19 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Dec 01 2021"
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.CTR.CTRToolbox import startCmd
 
 from gym import spaces
-import os
+import os, sys
 import numpy as np
 
+from typing import Optional
 
-class ConcentricTubeRobotEnv(AbstractEnv):
+
+class ConcentricTubeRobotEnv:
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -34,6 +36,7 @@ class ConcentricTubeRobotEnv(AbstractEnv):
                       "scale": 30,
                       "rotation": [140.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
+                      "goal": True,
                       "goalList": [[0.0, 0.0, 0.0]],
                       "goalPos": [0.0, 0.0, 0.0],
                       "scale_factor": 10,
@@ -47,56 +50,67 @@ class ConcentricTubeRobotEnv(AbstractEnv):
                       "discrete": True,
                       "seed": 0,
                       "start_from_history": None,
-                      "python_version": "python3.8",
+                      "python_version": sys.version,
                       "zFar": 5000,
-                      "dt": 0.01
+                      "dt": 0.01,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
-    def __init__(self, config=None):
-        super().__init__(config)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
         nb_actions = 12
-        self.action_space = spaces.Discrete(nb_actions)
+        self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
         dim_state = 12
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
         self.default_action = 3
 
-    def step(self, action):
-        if self.viewer:
-            self.viewer.step(action)
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
 
-        return super().step(action)
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
+
+    def step(self, action):
+        if self.use_server:
+            if self.env.viewer:
+                self.env.viewer.step(action)
+
+        return self.env.step(action)
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.env.reset()
 
-        y = -20 + 50 * np.random.random()
+        y = -20 + 50 * self.env.np_random.random()
 
-        self.goal = [0.0, y, abs(y) + 30 * np.random.random()]
+        self.env.goal = [0.0, y, abs(y) + 30 * self.env.np_random.random()]
 
-        self.config.update({'goalPos': self.goal})
-        obs = start_scene(self.config, self.nb_actions)
-        if self.viewer:
-            self.viewer.reset()
+        self.env.config.update({'goalPos': self.env.goal})
 
-        self.step(0)
-        self.step(4)
-        self.step(8)
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            if self.env.viewer:
+                self.env.viewer.reset()
 
-        return np.array(obs['observation'])
+                self.env.step(0)
+                self.env.step(4)
+                self.env.step(8)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+        
+        return state
 
     def render(self, mode='rgb_array'):
         """See the current state of the environment.
@@ -113,12 +127,15 @@ class ConcentricTubeRobotEnv(AbstractEnv):
         -------
           None.
         """
-        if not self.viewer:
-            display_size = self.config["display_size"]  # Sim display
-            self.viewer = LegacyViewer(self, display_size, startCmd=startCmd)
+        if self.use_server:
+            if not self.env.viewer:
+                display_size = self.env.config["display_size"]  # Sim display
+                self.env.viewer = LegacyViewer(self, display_size, startCmd=startCmd)
 
-        # Use the viewer to display the environment.
-        self.viewer.render()
+            # Use the viewer to display the environment.
+            self.env.viewer.render()
+        else:
+            self.env.render(mode)
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -131,4 +148,4 @@ class ConcentricTubeRobotEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return list(range(int(self.nb_actions)))
+        return self.env.action_space
