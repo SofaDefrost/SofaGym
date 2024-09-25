@@ -31,7 +31,6 @@ class CartStemEnv:
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],
                       "goal": False,
-                      "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.01,
@@ -63,6 +62,9 @@ class CartStemEnv:
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
         self.initialize_states()
+
+        if self.env.config["goal"]:
+            self.init_goal()
 
         nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
@@ -116,9 +118,10 @@ class CartStemEnv:
         """
         self.initialize_states()
 
-        self.env.reset()
+        if self.env.config["goal"]:
+            self.init_goal()
 
-        self.env.config.update({'goalPos': self.env.goal})
+        self.env.reset()
 
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
