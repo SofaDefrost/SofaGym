@@ -8,16 +8,18 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-import os
+import os, sys
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
 
 import numpy as np
 
-class CatchTheObject(AbstractEnv):
+from typing import Optional
+
+class CatchTheObject:
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -29,6 +31,7 @@ class CatchTheObject(AbstractEnv):
                       "deterministic": True,
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],
+                      "goal": True,
                       "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
@@ -43,50 +46,53 @@ class CatchTheObject(AbstractEnv):
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
-                      "python_version": "python3.9",
+                      "python_version": sys.version,
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
                       "max_move": 10,
-                      "max_pressure": 15
+                      "max_pressure": 15,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
-    def __init__(self, config = None):
-        super().__init__(config)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
         nb_actions = -1
         low = np.array([-1]*1)
         high = np.array([1]*1)
-        self.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype='float32')
+        self.env.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype=np.float32)
         self.nb_actions = str(nb_actions)
 
         dim_state = 5
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
-    def step(self, action):
-        return super().step(action)
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
+        self.env.reset()
 
-        super().reset()
-
-        self.count = 0
-        self.config.update({'goalPos': self.goal})
-        # obs = super().reset()
-        # return np.array(obs)
-        obs = start_scene(self.config, self.nb_actions)
-
-        return np.array(obs['observation'])
+        self.env.config.update({'goalPos': self.env.goal})
+        
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+        
+        return state
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -99,7 +105,7 @@ class CatchTheObject(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return self.action_space
+        return self.env.action_space
 
 
 
