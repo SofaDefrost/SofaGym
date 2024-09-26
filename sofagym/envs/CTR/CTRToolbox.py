@@ -86,7 +86,7 @@ class RewardShaper(Sofa.Core.Controller):
 
         return min(3*reward**(1/2), 1.0), current_dist
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -100,7 +100,7 @@ class RewardShaper(Sofa.Core.Controller):
             None.
 
         """
-
+        self.goal_pos = goal
         tip = self.root.InstrumentCombined.DOFs.position[-1][:3]
         self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
         self.prev_dist = self.init_dist
@@ -148,7 +148,7 @@ class GoalSetter(Sofa.Core.Controller):
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
+    def update(self, goal):
         """Set the position of the goal.
 
         This function is used as an initialization function.
@@ -162,6 +162,7 @@ class GoalSetter(Sofa.Core.Controller):
             None.
 
         """
+        self.goalPos = goal
         with self.goalMO.position.writeable() as position:
             print("update", self.goalPos)
             position[0] = self.goalPos
@@ -377,7 +378,17 @@ def getPos(root):
         _: list
             The position(s) of the object(s) of the scene.
     """
-    return
+    cath_xtip = root.InstrumentCombined.m_ircontroller.xtip.value[0].tolist()
+    cath_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[0].tolist()
+    guide_xtip = root.InstrumentCombined.m_ircontroller.xtip.value[1].tolist()
+    guide_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[1].tolist()    
+    coils_xtip = root.InstrumentCombined.m_ircontroller.xtip.value[2].tolist()
+    coils_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[2].tolist()
+
+    tip = root.InstrumentCombined.DOFs.position.value.tolist()
+    collis = root.InstrumentCombined.Collis.CollisionDOFs.position.value.tolist()
+    
+    return [cath_xtip, cath_rotation, guide_xtip, guide_rotation, coils_xtip, coils_rotation, tip, collis]
 
 
 def setPos(root, pos):
@@ -399,4 +410,17 @@ def setPos(root, pos):
         Don't forget to init the new value of the position.
 
     """
-    return
+    cath_xtip, cath_rotation, guide_xtip, guide_rotation, coils_xtip, coils_rotation, tip, collis = pos
+    
+    controller = root.InstrumentCombined.m_ircontroller
+    with controller.xtip.writeable() as xtip:
+        xtip[0] = np.array(cath_xtip)
+        xtip[1] = np.array(guide_xtip)
+        xtip[2] = np.array(coils_xtip)
+    
+    with controller.rotationInstrument.writeable() as rotation:
+        rotation[0] = np.array(cath_rotation)
+        rotation[1] = np.array(guide_rotation)
+        rotation[2] = np.array(coils_rotation)
+
+    root.InstrumentCombined.DOFs.position.value = np.array(tip)
