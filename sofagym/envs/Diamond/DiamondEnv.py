@@ -53,12 +53,15 @@ class DiamondRobotEnv:
                       "nb_actions": 8,
                       "dim_state": dim_state,
                       "randomize_states": False,
+                      "init_states": 0,
                       "use_server": False
                       }
 
     def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
+        self.initialize_states()
 
         nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
@@ -76,6 +79,27 @@ class DiamondRobotEnv:
     def __getattr__(self, name):
         # assume it is implemented by self.instance
         return self.env.__getattribute__(name)
+    
+    def initialize_states(self):
+        if self.env.config["randomize_states"]:
+            self.init_states = self.randomize_init_states()
+            self.env.config.update({'init_states': list(self.init_states)})
+        else:
+            self.init_states = self.env.config["init_states"]
+
+    def randomize_init_states(self):
+        """Randomize initial states.
+
+        Returns:
+        -------
+            init_states: list
+                List of random initial states for the environment.
+        
+        Note:
+        ----
+            This method should be implemented according to needed random initialization.
+        """
+        return self.env.config["init_states"]
 
     def step(self, action):
         if self.use_server:
@@ -87,6 +111,8 @@ class DiamondRobotEnv:
     def reset(self):
         """Reset simulation.
         """
+        self.initialize_states()
+        
         self.env.reset()
 
         self.env.goal = [-30 + 60 * self.env.np_random.random(), -30 + 60 * self.env.np_random.random(), 125 + 20 * self.env.np_random.random()]
