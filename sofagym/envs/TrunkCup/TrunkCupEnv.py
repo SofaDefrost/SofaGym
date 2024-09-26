@@ -26,6 +26,7 @@ class TrunkCupEnv:
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 66
     DEFAULT_CONFIG = {"scene": "TrunkCup",
                       "deterministic": True,
                       "source": [500.0, 0, 100],
@@ -47,6 +48,8 @@ class TrunkCupEnv:
                       "start_from_history": None,
                       "python_version": sys.version,
                       "dt": 0.01,
+                      "nb_actions": 16,
+                      "dim_state": dim_state,
                       "randomize_states": False,
                       "use_server": False
                       }
@@ -55,11 +58,11 @@ class TrunkCupEnv:
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        nb_actions = 16
+        nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
-        dim_state = 66
+        dim_state = self.env.config["dim_state"]
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
