@@ -51,9 +51,10 @@ class CartPoleEnv:
                       "use_server": False
                       }
 
-    def __init__(self, config=None, root=None, use_server: Optional[bool]=False):
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=None):
+        if use_server is not None:
+            self.DEFAULT_CONFIG.update({'use_server': use_server})
         self.use_server = self.DEFAULT_CONFIG["use_server"]
-
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
         self.initialize_states()
@@ -75,9 +76,8 @@ class CartPoleEnv:
             dtype=np.float32,
         )
 
-        nb_actions = self.env.config["nb_actions"]
-        self.env.action_space = spaces.Discrete(nb_actions)
-        self.nb_actions = str(nb_actions)
+        self.env.action_space = spaces.Discrete(self.env.nb_actions)
+        self.nb_actions = str(self.env.nb_actions)
 
         self.env.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
@@ -129,16 +129,3 @@ class CartPoleEnv:
             state = np.array(self.env._getState(self.env.root), dtype=np.float32)
         
         return state
-
-    def get_available_actions(self):
-        """Gives the actions available in the environment.
-
-        Parameters:
-        ----------
-            None.
-
-        Returns:
-        -------
-            list of the action available in the environment.
-        """
-        return self.env.action_space
