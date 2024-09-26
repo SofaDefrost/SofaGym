@@ -32,7 +32,6 @@ class StemPendulumEnv:
                       "source": [0, 0, 30],
                       "target": [0, 0, 0],
                       "goal": False,
-                      "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.01,
@@ -63,6 +62,9 @@ class StemPendulumEnv:
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
         self.initialize_states()
+
+        if self.env.config["goal"]:
+            self.init_goal()
 
         nb_actions = self.env.config["nb_actions"]
         low = np.array([-1]*1)
@@ -108,10 +110,11 @@ class StemPendulumEnv:
         """Reset simulation.
         """
         self.initialize_states()
-        
-        self.env.reset()
 
-        self.env.config.update({'goalPos': self.env.goal})
+        if self.env.config["goal"]:
+            self.init_goal()
+
+        self.env.reset()
         
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
