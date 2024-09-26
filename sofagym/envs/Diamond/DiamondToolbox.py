@@ -347,7 +347,7 @@ def getPos(root):
         _: list
             The position(s) of the object(s) of the scene.
     """
-    return
+    return root.Robot.tetras.position.value.tolist()
 
 
 def setPos(root, pos):
@@ -369,4 +369,4 @@ def setPos(root, pos):
         Don't forget to init the new value of the position.
 
     """
-    return
+    root.Robot.tetras.position.value = np.array(pos)

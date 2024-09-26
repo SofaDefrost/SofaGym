@@ -88,13 +88,6 @@ class DiamondRobotEnv:
         self.env.goal = [-30 + 60 * self.env.np_random.random(), -30 + 60 * self.env.np_random.random(), 125 + 20 * self.env.np_random.random()]
         self.env.config.update({'goalPos': self.env.goal})
 
-    def step(self, action):
-        if self.use_server:
-            if self.env.viewer:
-                self.env.viewer.step(action)
-
-        return self.env.step(action)
-
     def reset(self):
         """Reset simulation.
         """
@@ -107,35 +100,8 @@ class DiamondRobotEnv:
 
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
-            if self.env.viewer:
-                self.env.viewer.reset()
             state = np.array(obs['observation'], dtype=np.float32)
         else:
             state = np.array(self.env._getState(self.env.root), dtype=np.float32)
         
         return state
-    
-    def render(self, mode='rgb_array'):
-        """See the current state of the environment.
-
-        Get the OpenGL Context to render an image (snapshot) of the simulation
-        state.
-
-        Parameters:
-        ----------
-          mode: string, default = 'rgb_array'
-              Type of representation.
-
-        Returns:
-        -------
-          None.
-        """
-        if self.use_server:
-            if not self.env.viewer:
-                display_size = self.env.config["display_size"]  # Sim display
-                self.env.viewer = LegacyViewer(self, display_size, startCmd=startCmd)
-
-            # Use the viewer to display the environment.
-            self.env.viewer.render()
-        else:
-            self.env.render(mode)
