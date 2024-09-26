@@ -8,9 +8,9 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Dec 01 2021"
 
-import os
+import os, sys
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.Diamond.DiamondToolbox import startCmd
@@ -19,7 +19,9 @@ from gym import spaces
 
 import numpy as np
 
-class DiamondRobotEnv(AbstractEnv):
+from typing import Optional
+
+class DiamondRobotEnv:
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -31,6 +33,7 @@ class DiamondRobotEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [-288, -81, 147],
                       "target": [4, -6, 52],
+                      "goal": True,
                       "goalList": [[30.0, 0.0, 150.0], [-30.0, 0.0, 150.0], [0.0, 30.0, 150.0], [0.0, -30.0, 150.0]],
                       "scale_factor": 5,
                       "timer_limit": 50,
@@ -43,49 +46,59 @@ class DiamondRobotEnv(AbstractEnv):
                       "discrete": True,
                       "seed": 0,
                       "start_from_history": None,
-                      "python_version": "python3.8",
+                      "python_version": sys.version,
                       "zFar": 5000,
-                      "dt": 0.01
+                      "dt": 0.01,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
-    def __init__(self, config=None):
-        super().__init__(config)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
         nb_actions = 8
-        self.action_space = spaces.Discrete(nb_actions)
+        self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
         dim_state = (6, 3)
         low_coordinates = np.ones(shape=dim_state)*-1
         high_coordinates = np.ones(shape=dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
+
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
 
     def step(self, action):
-        if self.viewer:
-            self.viewer.step(action)
+        if self.use_server:
+            if self.env.viewer:
+                self.env.viewer.step(action)
 
-        return super().step(action)
+        return self.env.step(action)
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.env.reset()
 
-        self.goal = [-30 + 60 * np.random.random(), -30 + 60 * np.random.random(), 125 + 20 * np.random.random()]
+        self.env.goal = [-30 + 60 * self.env.np_random.random(), -30 + 60 * self.env.np_random.random(), 125 + 20 * self.env.np_random.random()]
 
-        self.config.update({'goalPos': self.goal})
-        obs = start_scene(self.config, self.nb_actions)
-        if self.viewer:
-            self.viewer.reset()
+        self.env.config.update({'goalPos': self.env.goal})
 
-        return np.array(obs['observation'])
-
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            if self.env.viewer:
+                self.env.viewer.reset()
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+        
+        return state
     
     def render(self, mode='rgb_array'):
         """See the current state of the environment.
@@ -102,13 +115,15 @@ class DiamondRobotEnv(AbstractEnv):
         -------
           None.
         """
-        if not self.viewer:
-            display_size = self.config["display_size"]  # Sim display
-            self.viewer = LegacyViewer(self, display_size, startCmd=startCmd)
+        if self.use_server:
+            if not self.env.viewer:
+                display_size = self.env.config["display_size"]  # Sim display
+                self.env.viewer = LegacyViewer(self, display_size, startCmd=startCmd)
 
-        # Use the viewer to display the environment.
-        self.viewer.render()
-    
+            # Use the viewer to display the environment.
+            self.env.viewer.render()
+        else:
+            self.env.render(mode)
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -121,4 +136,4 @@ class DiamondRobotEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return list(range(int(self.nb_actions)))
+        return self.env.action_space
