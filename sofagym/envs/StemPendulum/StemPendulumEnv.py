@@ -57,7 +57,9 @@ class StemPendulumEnv:
                       "use_server": False
                       }
 
-    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=None):
+        if use_server is not None:
+            self.DEFAULT_CONFIG.update({'use_server': use_server})
         self.use_server = self.DEFAULT_CONFIG["use_server"]
         self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
@@ -65,16 +67,14 @@ class StemPendulumEnv:
 
         if self.env.config["goal"]:
             self.init_goal()
-
-        nb_actions = self.env.config["nb_actions"]
+        
         low = np.array([-1]*1)
         high = np.array([1]*1)
         self.env.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype=np.float32)
-        self.nb_actions = str(nb_actions)
+        self.nb_actions = str(self.env.nb_actions)
 
-        dim_state = self.env.config["dim_state"]
-        low_coordinates = np.array([-2]*dim_state)
-        high_coordinates = np.array([2]*dim_state)
+        low_coordinates = np.array([-2]*self.env.dim_state)
+        high_coordinates = np.array([2]*self.env.dim_state)
         self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
         if self.env.root is None and not self.use_server:
@@ -85,35 +85,14 @@ class StemPendulumEnv:
         # assume it is implemented by self.instance
         return self.env.__getattribute__(name)
 
-    def initialize_states(self):
-        if self.env.config["randomize_states"]:
-            self.init_states = self.randomize_init_states()
-            self.env.config.update({'init_states': list(self.init_states)})
-        else:
-            self.init_states = self.env.config["init_states"]
-
-    def randomize_init_states(self):
-        """Randomize initial states.
-
-        Returns:
-        -------
-            init_states: list
-                List of random initial states for the environment.
-        
-        Note:
-        ----
-            This method should be implemented according to needed random initialization.
-        """
-        return self.env.config["init_states"]
-
     def reset(self):
         """Reset simulation.
         """
         self.initialize_states()
-
+        
         if self.env.config["goal"]:
             self.init_goal()
-
+            
         self.env.reset()
         
         if self.use_server:
@@ -123,16 +102,3 @@ class StemPendulumEnv:
             state = np.array(self.env._getState(self.env.root), dtype=np.float32)
         
         return state
-
-    def get_available_actions(self):
-        """Gives the actions available in the environment.
-
-        Parameters:
-        ----------
-            None.
-
-        Returns:
-        -------
-            list of the action available in the environment.
-        """
-        return self.env.action_space
