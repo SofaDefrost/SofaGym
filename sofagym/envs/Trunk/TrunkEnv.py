@@ -12,14 +12,15 @@ import os
 import numpy as np
 import sys
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
 
+from typing import Optional
 
 
-class TrunkEnv(AbstractEnv):
+class TrunkEnv:
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -31,6 +32,7 @@ class TrunkEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [300, 0, 80],
                       "target": [0, 0, 80],
+                      "goal": True,
                       "goalList": [[40, 40, 100], [-10, 20, 80]],
                       "start_node": None,
                       "scale_factor": 5,
@@ -45,39 +47,47 @@ class TrunkEnv(AbstractEnv):
                       "discrete": True,
                       "seed": None,
                       "start_from_history": None,
-                      "python_version": "python3",
-                      "dt": 0.01
+                      "python_version": sys.version,
+                      "dt": 0.01,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
-    def __init__(self, config = None):
-        super().__init__(config)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=False):
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+
         nb_actions = 16
-        self.action_space = spaces.Discrete(nb_actions)
+        self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
 
         dim_state = 66
         low_coordinates = np.array([-1]*dim_state)
         high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
-    def step(self, action):
-        return super().step(action)
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.env.reset()
 
-        self.config.update({'goalPos': self.goal})
-        obs = start_scene(self.config, self.nb_actions)
-
-        return np.array(obs['observation'])
+        self.env.config.update({'goalPos': self.env.goal})
+        
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+        
+        return state
 
     def get_available_actions(self):
         """Gives the actions available in the environment.
@@ -90,6 +100,4 @@ class TrunkEnv(AbstractEnv):
         -------
             list of the action available in the environment.
         """
-        return list(range(int(self.nb_actions)))
-
-
+        return self.env.action_space
