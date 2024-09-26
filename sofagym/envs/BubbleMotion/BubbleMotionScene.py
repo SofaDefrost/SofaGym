@@ -45,6 +45,7 @@ def createScene(rootNode, config={"source": [5, -5, 20],
                                   "zFar":4000,
                                   "dt": 0.01,
                                   "max_pressure": 40,
+                                  "init_pos": [5, 5, 5],
                                   "board_dim": 8},
                 mode='simu_and_visu'):
 
@@ -56,10 +57,10 @@ def createScene(rootNode, config={"source": [5, -5, 20],
     visu(rootNode, config, position_spot, direction_spot, cutoff=250)
 
     bd = config["board_dim"]
-    pos_goal = [1+bd*np.random.random(), 1+bd*np.random.random(), 2]
+    pos_goal = config["goalPos"]
     add_goal_node(rootNode, pos_goal)
 
-    init_pos = [4+(bd-4)*np.random.random(), 4+(bd-4)*np.random.random(), 5]
+    init_pos = config["init_pos"]
     bubblemotion_config = {'init_pos': init_pos, "dt": config["dt"], "max_pressure": config["max_pressure"]}
 
     bubblemotion = BubbleMotion(bubblemotion_config=bubblemotion_config)
