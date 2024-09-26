@@ -63,6 +63,9 @@ class DiamondRobotEnv:
 
         self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
         nb_actions = self.env.config["nb_actions"]
         self.env.action_space = spaces.Discrete(nb_actions)
         self.nb_actions = str(nb_actions)
@@ -101,6 +104,11 @@ class DiamondRobotEnv:
         """
         return self.env.config["init_states"]
 
+    def init_goal(self):
+        # Set a new random goal from the list
+        self.env.goal = [-30 + 60 * self.env.np_random.random(), -30 + 60 * self.env.np_random.random(), 125 + 20 * self.env.np_random.random()]
+        self.env.config.update({'goalPos': self.env.goal})
+
     def step(self, action):
         if self.use_server:
             if self.env.viewer:
@@ -112,12 +120,11 @@ class DiamondRobotEnv:
         """Reset simulation.
         """
         self.initialize_states()
-        
+
+        if self.env.config["goal"]:
+            self.init_goal()
+
         self.env.reset()
-
-        self.env.goal = [-30 + 60 * self.env.np_random.random(), -30 + 60 * self.env.np_random.random(), 125 + 20 * self.env.np_random.random()]
-
-        self.env.config.update({'goalPos': self.env.goal})
 
         if self.use_server:
             obs = start_scene(self.env.config, self.nb_actions)
