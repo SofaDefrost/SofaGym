@@ -83,7 +83,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         return min(3*reward**(1/2), 1.0), current_dist
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -97,7 +97,7 @@ class rewardShaper(Sofa.Core.Controller):
             None.
 
         """
-
+        self.goal_pos = goal
         tip = self.rootNode.Robot.Actuators.actuatedPoints.position[0]
         self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
         self.prev_dist = self.init_dist
@@ -145,7 +145,7 @@ class goalSetter(Sofa.Core.Controller):
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
+    def update(self, goal):
         """Set the position of the goal.
 
         This function is used as an initialization function.
@@ -159,6 +159,7 @@ class goalSetter(Sofa.Core.Controller):
             None.
 
         """
+        self.goalPos = goal
         with self.goalMO.position.writeable() as position:
             position[0] = self.goalPos
 
@@ -346,7 +347,7 @@ def getPos(root):
         _: list
             The position(s) of the object(s) of the scene.
     """
-    return
+    return root.Robot.tetras.position.value.tolist()
 
 
 def setPos(root, pos):
@@ -368,4 +369,4 @@ def setPos(root, pos):
         Don't forget to init the new value of the position.
 
     """
-    return
+    root.Robot.tetras.position.value = np.array(pos)
