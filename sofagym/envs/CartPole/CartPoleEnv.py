@@ -5,7 +5,8 @@ from typing import Optional
 
 import numpy as np
 from gym import spaces
-from sofagym.AbstractEnv import AbstractEnv, ServerEnv
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
 
