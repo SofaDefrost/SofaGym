@@ -62,7 +62,7 @@ class Viewer:
 
     """
 
-    def __init__(self, env, surface_size, zFar=100, save_path=None, create_video=None, fps=10):
+    def __init__(self, env, root, surface_size, zFar=100, save_path=None, create_video=None, fps=10):
         """
         Classic initialization of a class in python.
 
@@ -97,7 +97,11 @@ class Viewer:
         self.agent_display = None
         self.frame = 0
 
-        self.root = init_simulation(self.env.config, mode = 'visu')
+        if self.env.config["use_server"]:
+            self.root = init_simulation(self.env.config, mode = 'visu')
+        else:
+            self.root = root
+        
         scene = self.env.config['scene']
         self._setPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").setPos
 
@@ -132,15 +136,21 @@ class Viewer:
         # Recovering an image and handling error cases
         try:
             if pos is None:
-                pos = get_position(self.env.past_actions)['position']
+                if self.env.config["use_server"]:
+                    pos = get_position(self.env.past_actions)['position']
+                else:
+                    pos = self.env.pos
+            
             self.frame += 1
+            
             if pos == []:
                 image = np.zeros((self.surface_size[0], self.surface_size[1], 3))
             else:
                 num_im = 0
                 for p in pos:
-                    self._setPos(self.root, p)
-                    Sofa.Simulation.animate(self.root, self.root.getDt())
+                    if self.env.config["use_server"]:
+                        self._setPos(self.root, p)
+                        Sofa.Simulation.animate(self.root, self.root.getDt())
 
                     glViewport(0, 0, self.surface_size[0], self.surface_size[1])
 

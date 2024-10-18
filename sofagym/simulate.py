@@ -61,22 +61,20 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
         config.update({'render': render})
         print(">>   ... Done.")
 
-    # Init Reward and GoalSetter
-    root.GoalSetter.update()
-    root.Reward.update()
-
-    try:
-        root.StateInitializer.init_state()
-    except AttributeError as error:
-        print(error)
+    if config["randomize_states"]:
+        root.StateInitializer.init_state(config["init_states"])
 
     if 'time_before_start' in config:
         print(">>   Time before start:", config["time_before_start"], "steps. Initialization ...")
         for i in range(config["time_before_start"]):
             Sofa.Simulation.animate(root, config["dt"])
         print(">>   ... Done.")
-        # Update Reward and GoalSetter
-        root.GoalSetter.update()
+        
+    # Update Reward and GoalSetter
+    if config["goal"]:
+        root.GoalSetter.update(config['goalPos'])
+        root.Reward.update(config['goalPos'])
+    else:
         root.Reward.update()
 
     return root
@@ -106,11 +104,13 @@ def step_simulation(root, config, action, _startCmd, _getPos, viewer=None):
             The positions of object(s) in the scene.
 
     """
-    goal = config['goalPos']
+    if config["goal"]:
+        goal = config['goalPos']
+        root.GoalSetter.set_mo_pos(goal)
+    
     render = config['render']
     surface_size = config['display_size']
 
-    root.GoalSetter.set_mo_pos(goal)
 
     # Create the command from action
     _startCmd(root, action, config["dt"]*(config["scale_factor"]-1))
