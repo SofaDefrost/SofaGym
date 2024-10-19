@@ -89,7 +89,7 @@ class rewardShaper(Sofa.Core.Controller):
         self.cost = current_cost
         return round(reward, 3)/20, self.cost
 
-    def update(self):
+    def update(self, goal=None):
         """Compute the distance between object and goal.
 
         This function is used as an initialization function.
@@ -103,6 +103,7 @@ class rewardShaper(Sofa.Core.Controller):
             None.
 
         """
+        self.goal_pos = goal
         self.cost = abs(self.effMO.position[0][1] - self.goal_pos[1])
 
 
@@ -145,7 +146,7 @@ class goalSetter(Sofa.Core.Controller):
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
+    def update(self, goal):
         """Set the position of the goal.
 
         This function is used as an initialization function.
@@ -159,6 +160,7 @@ class goalSetter(Sofa.Core.Controller):
             None.
 
         """
+        self.goalPos = goal
         with self.goalMO.position.writeable() as position:
             position += self.goalPos
 

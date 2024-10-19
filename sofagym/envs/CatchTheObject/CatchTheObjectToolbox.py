@@ -88,7 +88,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         return r, dist, under
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -102,6 +102,7 @@ class rewardShaper(Sofa.Core.Controller):
             None.
 
         """
+        pos_goal = goal
         self.max_dist = np.linalg.norm(np.array([0, self.ball.max_high])-np.array([self.cart.max_move, 0]))
 
 
@@ -113,8 +114,8 @@ class goalSetter(Sofa.Core.Controller):
         if 'goalPos' in kwargs:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
-        pass
+    def update(self, goal):
+        self.goalPos = goal
 
     def set_mo_pos(self, goal):
         pass
