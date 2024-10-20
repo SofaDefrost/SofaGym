@@ -11,7 +11,8 @@ __date__ = "Mar 23 2021"
 import os, sys
 import numpy as np
 
-from sofagym.AbstractEnv import AbstractEnv, ServerEnv
+from sofagym.AbstractEnv import AbstractEnv
+from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
