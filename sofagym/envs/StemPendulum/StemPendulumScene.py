@@ -26,20 +26,12 @@ from sofagym.header import addVisu as visu
 from sofagym.utils import addRigidObject
 
 from StemPendulum import StemPendulum
-from StemPendulumToolbox import rewardShaper, sceneModerator, applyAction, goalSetter
+from StemPendulumToolbox import rewardShaper, sceneModerator, applyAction
 from Controller import ControllerStemPendulum
-
-def add_goal_node(root, pos):
-    goal = root.addChild("Goal")
-    goal.addObject('VisualStyle', displayFlags="showCollisionModels")
-    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=0.5,
-                             showColor=[1, 0, 0, 0.5], position= pos)
-    return goal_mo
 
 
 def createScene(rootNode, config = {"source": [0, 0, 30],
                                     "target": [0, 0, 0],
-                                    "goalPos": [7, 0, 20],
                                     "seed": None,
                                     "zFar":4000,
                                     "max_torque": 500,
@@ -60,7 +52,6 @@ def createScene(rootNode, config = {"source": [0, 0, 30],
     stempendulum = StemPendulum(stempendulum_config = stempendulum_config)
     stempendulum.onEnd(rootNode)
 
-    rootNode.addObject(goalSetter(name="GoalSetter"))
     rootNode.addObject(sceneModerator(name="sceneModerator",  stempendulum = stempendulum))
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode))
     rootNode.addObject(applyAction(name="applyAction", root= rootNode, stempendulum=stempendulum))

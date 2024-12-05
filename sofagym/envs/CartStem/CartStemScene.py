@@ -23,20 +23,11 @@ from sofagym.header import addHeader as header
 from sofagym.header import addVisu as visu
 
 from CartStem import CartStem
-from CartStemToolbox import rewardShaper, sceneModerator, applyAction, goalSetter
-
-
-def add_goal_node(root, pos):
-    goal = root.addChild("Goal")
-    goal.addObject('VisualStyle', displayFlags="showCollisionModels")
-    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=0.5,
-                             showColor=[1, 0, 0, 0.5], position= pos)
-    return goal_mo
+from CartStemToolbox import rewardShaper, sceneModerator, applyAction
 
 
 def createScene(rootNode, config={"source": [0, -70, 10],
                                   "target": [0, 0, 10],
-                                  "goalPos": [7, 0, 20],
                                   "seed": None,
                                   "zFar":4000,
                                   "init_x": 0,
@@ -62,7 +53,6 @@ def createScene(rootNode, config={"source": [0, -70, 10],
     cartstem.onEnd(rootNode)
     cartstem.cart.addObject('ConstantForceField', totalForce=[0, 0, 0, 0, 0, 0])
 
-    rootNode.addObject(goalSetter(name="GoalSetter"))
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, max_dist= cartstem_config['max_move']))
     rootNode.addObject(sceneModerator(name="sceneModerator",  cartstem = cartstem))
     rootNode.addObject(applyAction(name="applyAction", root= rootNode, cartstem=cartstem))

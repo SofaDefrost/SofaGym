@@ -8,27 +8,32 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
-import os
+import os, sys
 
 from sofagym.AbstractEnv import AbstractEnv
+from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
 
 import numpy as np
 
-class CartStemContactEnv(AbstractEnv):
+from typing import Optional
+
+class CartStemContactEnv:
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
     """
     #Setting a default configuration
-    path =  os.path.dirname(os.path.abspath(__file__))
+    path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 8
     DEFAULT_CONFIG = {"scene": "CartStemContact",
                       "deterministic": True,
                       "source": [0, -50, 10],
                       "target": [0, 0, 10],
+                      "goal": True,
                       "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 30,
@@ -43,72 +48,77 @@ class CartStemContactEnv(AbstractEnv):
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
-                      "python_version": "python3.9",
+                      "python_version": sys.version,
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
                       "init_x": 5,
                       "cube_x": [-6, 6],
                       "max_move": 7.5,
+                      "nb_actions": -1,
+                      "dim_state": dim_state,
+                      "init_states": [0] * dim_state,
+                      "randomize_states": False,
+                      "use_server": False
                       }
 
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=None):
+        if use_server is not None:
+            self.DEFAULT_CONFIG.update({'use_server': use_server})
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-    def __init__(self, config = None):
-        super().__init__(config)
-        nb_actions = -1
+        self.initialize_states()
+
+        if self.env.config["goal"]:
+            self.init_goal()
+
         low = np.array([-1]*1)
         high = np.array([1]*1)
-        self.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype='float32')
-        self.nb_actions = str(nb_actions)
+        self.env.action_space = spaces.Box(low=low, high=high, shape=(1,), dtype=np.float32)
+        self.nb_actions = str(self.env.nb_actions)
 
-        dim_state = 8
+        low_coordinates = np.array([-1]*self.env.dim_state)
+        high_coordinates = np.array([1]*self.env.dim_state)
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
 
-        low_coordinates = np.array([-1]*dim_state)
-        high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
 
-    def step(self, action):
-        return super().step(action)
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
+    
+    def initialize_states(self):
+        self.env.initialize_states()
+        
+        low_cube, high_cube = -6+ 2*self.env.np_random.random(), 6 - 2*self.env.np_random.random()
+        self.env.config.update({'cube_x': [low_cube, high_cube]})
+        self.env.config.update({'init_x': (low_cube + 3) + (high_cube-low_cube-3)*self.env.np_random.random()})
+
+        if self.env.np_random.random() > 0.5:
+            x_goal = low_cube + 3.5*self.env.np_random.random()
+        else:
+            x_goal = high_cube - 3.5*self.env.np_random.random()
+
+        self.env.config.update({'goalList': [[x_goal, 0, 20]]})
+        self.env.config.update({'max_move': max(abs(low_cube-1), high_cube+1)})
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        low_cube, high_cube = -6+ 2*np.random.random(), 6 - 2*np.random.random()
-        self.config.update({'cube_x': [low_cube, high_cube]})
-        self.config.update({'init_x': (low_cube + 3) + (high_cube-low_cube-3)*np.random.random()})
+        self.initialize_states()
 
-        if np.random.random() > 0.5:
-            x_goal = low_cube + 3.5*np.random.random()
+        if self.env.config["goal"]:
+            self.init_goal()
+
+        self.env.reset()
+
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
         else:
-            x_goal = high_cube - 3.5*np.random.random()
-        self.config.update({'goalList': [[x_goal, 0, 20]]})
-        self.goalList = self.config["goalList"]
-        super().reset()
-        self.config.update({'max_move': max(abs(low_cube-1), high_cube+1)})
-        self.config.update({'goalPos': self.goal})
-
-        obs = start_scene(self.config, self.nb_actions)
-
-        return np.array(obs['observation'])
-
-    def get_available_actions(self):
-        """Gives the actions available in the environment.
-
-        Parameters:
-        ----------
-            None.
-
-        Returns:
-        -------
-            list of the action available in the environment.
-        """
-        return self.action_space
-
-
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+        
+        return state

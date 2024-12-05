@@ -156,7 +156,7 @@ class rewardShaper(Sofa.Core.Controller):
         else:
             return 0.0, False
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -170,7 +170,7 @@ class rewardShaper(Sofa.Core.Controller):
             None.
 
         """
-
+        self.goal_node = goal
         edges = []
         with self.path_mesh.edges.writeable() as Topoedges:
             for edge in Topoedges:
@@ -233,7 +233,7 @@ class goalSetter(Sofa.Core.Controller):
         if kwargs["goalPos"]:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
+    def update(self, goal):
         """Set the position of the goal.
 
         This function is used as an initialization function.
@@ -247,6 +247,7 @@ class goalSetter(Sofa.Core.Controller):
             None.
 
         """
+        self.goalPos = goal
         new_position = self.rootNode.model.Maze.Path.dofs.position.value[self.goalPos][:3]
         with self.goal.GoalMO.position.writeable() as position:
             position[0] = new_position
@@ -447,9 +448,6 @@ def getPos(root):
         _: list
             The position(s) of the object(s) of the scene.
     """
-
-    root.GoalSetter.update()
-
     maze = root.model.Maze.maze_mesh_mo.position.value.tolist()
     spheres = root.Sphere.sphere_mo.position.value.tolist()
 

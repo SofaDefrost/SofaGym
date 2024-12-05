@@ -86,7 +86,7 @@ class rewardShaper(Sofa.Core.Controller):
         dist = abs(sphere_pos-cart_pos)
         return 1, dist
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -149,17 +149,6 @@ def getState(rootNode):
 
     state = [posCart, posTip, vCart, vTip]
     return state
-
-
-class goalSetter(Sofa.Core.Controller):
-    def __init__(self, *args, **kwargs):
-        Sofa.Core.Controller.__init__(self, *args, **kwargs)
-
-    def update(self):
-        pass
-
-    def set_mo_pos(self, goal):
-        pass
 
 
 def getReward(rootNode):

@@ -88,7 +88,7 @@ class rewardShaper(Sofa.Core.Controller):
         r = -float(dist)/(2*self.beam_len)
         return r
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -150,17 +150,6 @@ def getState(rootNode):
     state = angBase + [omegaBase] + posTip
 
     return state
-
-
-class goalSetter(Sofa.Core.Controller):
-    def __init__(self, *args, **kwargs):
-        Sofa.Core.Controller.__init__(self, *args, **kwargs)
-
-    def update(self):
-        pass
-
-    def set_mo_pos(self, goal):
-        pass
 
 
 def getReward(rootNode):

@@ -37,7 +37,7 @@ def add_goal_node(root):
 def createScene(root, config={"source": [0, 1000, 0],
                               "target": [0, 0, 0],
                               "goal_node": 0,
-                              "goalPos": [0.0, 0.0, 0.0],
+                              "goalPos": 0,
                               "dt": 0.01}, mode='simu_and_visu'):
 
     # Chose the mode: visualization or computations (or both)
@@ -92,7 +92,7 @@ def createScene(root, config={"source": [0, 1000, 0],
 
     goal = add_goal_node(root)
 
-    root.addObject(rewardShaper(name="Reward", rootNode=root, goal_node=config['goalList'][config['goal_node']],
+    root.addObject(rewardShaper(name="Reward", rootNode=root, goal_node=config['goalPos'],
                                 path_mesh=p_mesh, path_mo=p_mo, ball_mo=ball_mo))
     root.addObject(goalSetter(name="GoalSetter", rootNode=root, goal=goal, goalPos=config['goalPos']))
 
