@@ -12,6 +12,7 @@ requires-python = ">=3.12"
 dependencies = [
   "build>=1.2.2.post1",
   "cloudpickle==3.1.0",
+  "colorama>=0.4.6",
   "glfw==2.7.0",
   "gym-notices==0.0.8",
   "gym==0.26.2",
