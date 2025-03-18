@@ -83,7 +83,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         return r, dist
 
-    def update(self):
+    def update(self, goal=None):
         """Update function.
 
         This function is used as an initialization function.
@@ -97,6 +97,7 @@ class rewardShaper(Sofa.Core.Controller):
             None.
 
         """
+        self.goal = goal[:2]
         current_sphere_pos = self._getSpherePos()
         self.init_goal_dist = float(np.linalg.norm(current_sphere_pos-self.goal))
 
@@ -158,8 +159,8 @@ class goalSetter(Sofa.Core.Controller):
         if 'goalPos' in kwargs:
             self.goalPos = kwargs["goalPos"]
 
-    def update(self):
-        pass
+    def update(self, goal):
+        self.goalPos = goal
 
     def set_mo_pos(self, goal):
         pass

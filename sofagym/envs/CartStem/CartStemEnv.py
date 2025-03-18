@@ -9,25 +9,29 @@ __copyright__ = "(c) 2021, Inria"
 __date__ = "Feb 3 2021"
 
 from sofagym.AbstractEnv import AbstractEnv
+from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
 from gym import spaces
-import os
+import os, sys
 import numpy as np
 
-class CartStemEnv(AbstractEnv):
+from typing import Optional
+
+class CartStemEnv:
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
     """
     #Setting a default configuration
-    path = path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array']}
+    dim_state = 4
     DEFAULT_CONFIG = {"scene": "CartStem",
                       "deterministic": True,
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],
-                      "goalList": [[7, 0, 20]],
+                      "goal": False,
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.01,
@@ -41,63 +45,71 @@ class CartStemEnv(AbstractEnv):
                       "planning": False,
                       "discrete": False,
                       "start_from_history": None,
-                      "python_version": "python3.9",
+                      "python_version": sys.version,
                       "zFar": 4000,
                       "time_before_start": 0,
                       "seed": None,
                       "init_x": 0,
                       "max_move": 40,
+                      "nb_actions": 2,
+                      "dim_state": dim_state,
+                      "randomize_states": False,
+                      "init_states": [0] * dim_state,
+                      "use_server": False
                       }
 
-    def __init__(self, config = None):
-        super().__init__(config)
-        nb_actions = 2
-        self.action_space = spaces.Discrete(nb_actions)
-        self.nb_actions = str(nb_actions)
+    def __init__(self, config = None, root=None, use_server: Optional[bool]=None):
+        if use_server is not None:
+            self.DEFAULT_CONFIG.update({'use_server': use_server})
+        self.use_server = self.DEFAULT_CONFIG["use_server"]
+        self.env = ServerEnv(self.DEFAULT_CONFIG, config, root=root) if self.use_server else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
 
-        dim_state = 4
-        low_coordinates = np.array([-100]*dim_state)
-        high_coordinates = np.array([100]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates,
-                                            dtype='float32')
+        self.initialize_states()
 
+        if self.env.config["goal"]:
+            self.init_goal()
+
+        self.env.action_space = spaces.Discrete(self.env.nb_actions)
+        self.nb_actions = str(self.env.nb_actions)
+
+        low_coordinates = np.array([-100]*self.env.dim_state)
+        high_coordinates = np.array([100]*self.env.dim_state)
+        self.env.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype=np.float32)
+
+        if self.env.root is None and not self.use_server:
+            self.env.init_root()
+
+    # called when an attribute is not found:
+    def __getattr__(self, name):
+        # assume it is implemented by self.instance
+        return self.env.__getattribute__(name)
+    
+    def initialize_states(self):
+        self.env.initialize_states()
+
+        self.env.config.update({'init_x': -(self.env.config["max_move"]/8) + (self.env.config["max_move"]/4)*self.env.np_random.random()})
 
     def step(self, action):
-        obs, reward, done, info = super().step(action)
-        if abs(obs[0]) > self.config["max_move"]:
+        obs, reward, done, info = self.env.step(action)
+        if abs(obs[0]) > self.env.config["max_move"]:
             done = True
 
         return obs, reward, done, info
 
     def reset(self):
         """Reset simulation.
-
-        Note:
-        ----
-            We launch a client to create the scene. The scene of the program is
-            client_<scene>Env.py.
-
         """
-        super().reset()
+        self.initialize_states()
 
-        self.config.update({'init_x': -(self.config["max_move"]/8) + (self.config["max_move"]/4)*np.random.random()})
-        self.config.update({'goalPos': self.goal})
+        if self.env.config["goal"]:
+            self.init_goal()
 
-        obs = start_scene(self.config, self.nb_actions)
-        
-        return np.array(obs['observation'])
+        self.env.reset()
 
-    def get_available_actions(self):
-        """Gives the actions available in the environment.
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs['observation'], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
 
-        Parameters:
-        ----------
-            None.
-
-        Returns:
-        -------
-            list of the action available in the environment.
-        """
-        return self.action_space
-
-
+        return state
