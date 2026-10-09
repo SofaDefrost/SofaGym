@@ -4,4 +4,6 @@ pygame
 glfw
 pyopengl
 imageio
+pyquaternion
+stable-baselines3
 

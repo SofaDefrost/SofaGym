@@ -20,7 +20,7 @@ def Modelling(parent):
 def Simulation(parent):
     """Create an empty node for simulation"""
     simulation = parent.addChild("Simulation")
-    simulation.addObject("EulerImplicitSolver")
+    simulation.addObject("EulerImplicitIntegrationScheme")
     simulation.addObject("CGLinearSolver", iterations=250, tolerance=1e-20, threshold=1e-20)
     return simulation
 
@@ -30,7 +30,7 @@ def Scene(parent, **kwargs):
     if "plugins" not in kwargs:
         kwargs["plugins"] = []
 
-    kwargs["plugins"].append("SofaSparseSolver")
+    kwargs["plugins"].append("Sofa.Component.LinearSolver.Direct")
 
     scene = stScene(parent, **kwargs)
     setData(scene, dt=0.025)
@@ -40,7 +40,7 @@ def Scene(parent, **kwargs):
     Modelling(scene)
     Simulation(scene)
     parent.addObject("FreeMotionAnimationLoop")
-    parent.addObject("GenericConstraintSolver", maxIterations=250, tolerance=1e-20)
+    parent.addObject("BlockGaussSeidelConstraintSolver", maxIterations=250, tolerance=1e-20)
 
     # ctx = scene.Config
     # ctx.addObject("MeshSTLLoader", name="loader", filename=getLoadingLocation("data/mesh/blueprint.stl", __file__))

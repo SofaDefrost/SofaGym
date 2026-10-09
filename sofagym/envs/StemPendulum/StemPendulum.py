@@ -54,7 +54,7 @@ class StemPendulum():
         self.path = cosserat(self.stempendulum, path_config, name = "Path", orientation =  [ 0, 0.7071068, 0, 0.7071068 ], radius = 0.5)
 
         #ADD CONSTRAINT FOR THE BASE
-        self.beam.addObject('PartialFixedConstraint', indices = [0], fixedDirections=[1, 1, 1, 1, 1, 0])
+        self.beam.addObject('PartialFixedProjectiveConstraint', indices = [0], fixedDirections=[1, 1, 1, 1, 1, 0])
         self.beam.addObject('ConstantForceField', totalForce=[0, 0, 0, 0, 0, 0], indices = [0])
         self.beam.addObject('RestShapeSpringsForceField', name='spring', stiffness=0, angularStiffness=300, external_points="0", mstate=self.beam.MechanicalObject.getLinkPath(), points=0, template="Rigid3d")
 
@@ -67,19 +67,22 @@ class StemPendulum():
 
         positions = [[sectionSize*i+x,y,z] for i in range(nbSections+1)]
         edges=[[i,i+1] for i in range(nbSections)]
-        self.beam.addObject('EulerImplicitSolver')
+        self.beam.addObject('EulerImplicitIntegrationScheme')
         self.beam.addObject('SparseLDLSolver', name='solver')
         self.beam.addObject('EdgeSetTopologyContainer', position=positions, edges=edges)
         self.beam.addObject('MechanicalObject', template='Rigid3', position=[p+[0,0,0,1] for p in positions], rotation = [0, 0, self.init_or])
         self.beam.addObject('BeamInterpolation', radius=2, defaultYoungModulus=3*1e3, straight=False)
         self.beam.addObject('AdaptiveBeamForceFieldAndMass', massDensity=1e-2)
         self.beam.addObject('LinearSolverConstraintCorrection')
-        self.beam.addObject('UniformMass', indices = [nbSections+1], totalMass = 1)
+        # SOFA 26 update: commented out because it crashes the simulation (segfault). The node already has a mass
+        # (AdaptiveBeamForceFieldAndMass) and indices=[nbSections+1] is out of range (the beam has nbSections+1
+        # frames). Inspect this change: if a tip mass was intended, it should use index nbSections.
+        # self.beam.addObject('UniformMass', indices = [nbSections+1], totalMass = 1)
 
         topology = self.beam.addChild('Topology')
-        topology.addObject('MeshObjLoader', name = "cube_topo", filename='mesh/cube.obj', scale3d=[0.2, 0.1, 0.1])
-        topology.addObject('MeshObjLoader', name = "cylinder_topo", filename='mesh/cylinder.obj', scale3d=[0.5, 0.2, 0.5], rotation = [90, 0, 0])
-        topology.addObject('MeshObjLoader', name = "ball_topo", filename='mesh/ball.obj', scale3d=[0.3, 0.3, 0.3])
+        topology.addObject('MeshOBJLoader', name = "cube_topo", filename='mesh/cube.obj', scale3d=[0.2, 0.1, 0.1])
+        topology.addObject('MeshOBJLoader', name = "cylinder_topo", filename='mesh/cylinder.obj', scale3d=[0.5, 0.2, 0.5], rotation = [90, 0, 0])
+        topology.addObject('MeshOBJLoader', name = "ball_topo", filename='mesh/ball.obj', scale3d=[0.3, 0.3, 0.3])
 
         for i in range(nbSections+1):
             if i == nbSections:

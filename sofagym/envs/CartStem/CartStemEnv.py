@@ -28,6 +28,7 @@ class CartStemEnv:
     metadata = {'render.modes': ['human', 'rgb_array']}
     dim_state = 4
     DEFAULT_CONFIG = {"scene": "CartStem",
+                      "keyboard_controller": False,
                       "deterministic": True,
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],

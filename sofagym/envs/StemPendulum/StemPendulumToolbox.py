@@ -187,17 +187,17 @@ class applyAction(Sofa.Core.Controller):
 
     def _move(self, incr):
         baseForceField = self.stempendulum.beam.ConstantForceField
-        force = baseForceField.force.value.tolist()
+        force = baseForceField.totalForce.value.tolist()
         if abs(force[5]+incr)<self.max_torque:
             force[5] += incr
-        baseForceField.force.value = np.array(force)
+        baseForceField.totalForce.value = np.array(force)
 
     def _normalizedAction_to_action(self, action):
         return self.a*action + self.b
 
     def compute_action(self, actions, nb_step):
         torque_goal = self._normalizedAction_to_action(actions[0])
-        current_torque = self.stempendulum.beam.ConstantForceField.force.value.tolist()[5]
+        current_torque = self.stempendulum.beam.ConstantForceField.totalForce.value.tolist()[5]
         incr = (torque_goal - current_torque)/nb_step
         return incr
 

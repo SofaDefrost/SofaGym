@@ -30,6 +30,7 @@ class CatchTheObject:
     metadata = {'render.modes': ['human', 'rgb_array']}
     dim_state = 5
     DEFAULT_CONFIG = {"scene": "CatchTheObject",
+                      "keyboard_controller": False,
                       "deterministic": True,
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],

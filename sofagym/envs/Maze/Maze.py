@@ -50,7 +50,7 @@ def createScene(rootNode):
                   "Sofa.Component.Constraint.Lagrangian.Solver",
                   "Sofa.Component.IO.Mesh", "Sofa.Component.LinearSolver.Direct",
                   "Sofa.Component.LinearSolver.Iterative", "Sofa.Component.Mass",
-                  "Sofa.Component.ODESolver.Backward",
+                  "Sofa.Component.IntegrationScheme.Backward",
                   "Sofa.Component.SolidMechanics.Spring",
                   "Sofa.Component.StateContainer",
                   "Sofa.Component.Topology.Container.Constant",
@@ -63,7 +63,7 @@ def createScene(rootNode):
     rootNode.addObject('DefaultVisualManagerLoop')
 
     effector = rootNode.addChild('Effector')
-    effector.addObject('EulerImplicitSolver', firstOrder=True)
+    effector.addObject('EulerImplicitIntegrationScheme', firstOrder=True)
     effector.addObject('CGLinearSolver', iterations=100, threshold=1e-5, tolerance=1e-5)
     effector.addObject('MechanicalObject', template='Rigid3', name='goalMO', position=[0, 40, 0, 0, 0, 0, 1],
                        showObject=True, showObjectScale=10)

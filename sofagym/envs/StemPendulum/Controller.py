@@ -57,13 +57,13 @@ class ControllerStemPendulum(Sofa.Core.Controller):
 
     def _move(self, incr):
         baseForceField = self.stempendulum.beam.ConstantForceField
-        force = baseForceField.force.value.tolist()
+        force = baseForceField.totalForce.value.tolist()
 
         if incr > 0:
             force[5] = self.max_torque
         else:
             force[5] = - self.max_torque
-        baseForceField.force.value = np.array(force)
+        baseForceField.totalForce.value = np.array(force)
 
 
     def onKeypressedEvent(self, event):

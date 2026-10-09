@@ -79,23 +79,8 @@ def createScene(rootNode, config={"source": [0, 300, 0],
                   "Sofa.GL.Component.Rendering3D",
                   "Sofa.GUI.Component",
                   'SoftRobots',
-                  'SofaPreconditioner',
-                  'SofaPython3',
-                  'SofaOpenglVisual',
-                  'SofaMiscCollision',
-                  'SofaBoundaryCondition',
-                  'SofaConstraint',
-                  'SofaDeformable',
-                  'SofaEngine',
-                  'SofaGeneralAnimationLoop',
-                  'SofaGeneralEngine',
-                  'SofaGeneralRigid',
-                  'SofaImplicitOdeSolver',
-                  'SofaLoader',
-                  'SofaMeshCollision',
-                  'SofaMiscMapping',
-                  'SofaRigid',
-                  'SofaSimpleFem',
+                  'Sofa.Component.IntegrationScheme.Backward',
+                  'Sofa.Component.LinearSolver.Iterative',
                   'Sofa.Component.Mapping.Linear',
                   'Sofa.Component.Mapping.NonLinear',
                   'Sofa.GL.Component.Shader']
@@ -111,7 +96,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     scene.addMainHeader()
     scene.addObject('DefaultVisualManagerLoop')
     scene.addObject('FreeMotionAnimationLoop')
-    scene.addObject('GenericConstraintSolver', name='solver', maxIterations=1000, tolerance=1e-6)
+    scene.addObject('BlockGaussSeidelConstraintSolver', name='solver', maxIterations=1000, tolerance=1e-6)
     scene.Simulation.addObject('GenericConstraintCorrection')
     scene.Settings.mouseButton.stiffness = 10
     scene.Simulation.TimeIntegrationSchema.rayleighStiffness = 0.05
@@ -137,7 +122,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     ball_mo = sphere.sphere_mo
 
     path = maze.addChild("Path")
-    p_mesh = path.addObject('MeshObjLoader', filename=mesh_path+"path.obj", flipNormals=True, triangulate=True,
+    p_mesh = path.addObject('MeshOBJLoader', filename=mesh_path+"path.obj", flipNormals=True, triangulate=True,
                             name='meshLoader', translation=[-50, 0, 50])
     p_mo = path.addObject("MechanicalObject", template="Vec3d", name="dofs", position="@meshLoader.position",
                           showObject=True, showObjectScale=1.0)

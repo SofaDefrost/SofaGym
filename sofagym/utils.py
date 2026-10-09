@@ -16,11 +16,21 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0,
         collisionFilename = filename
 
     object = node.addChild(name)
-    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='SofaRigid SofaLoader')
+    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='Sofa.Component.Collision.Geometry '
+                                                                      'Sofa.Component.Constraint.Lagrangian.Correction '
+                                                                      'Sofa.Component.Engine.Generate '
+                                                                      'Sofa.Component.IO.Mesh '
+                                                                      'Sofa.Component.IntegrationScheme.Backward '
+                                                                      'Sofa.Component.LinearSolver.Iterative '
+                                                                      'Sofa.Component.Mapping.NonLinear '
+                                                                      'Sofa.Component.Mass '
+                                                                      'Sofa.Component.StateContainer '
+                                                                      'Sofa.Component.Topology.Container.Constant '
+                                                                      'Sofa.GL.Component.Rendering3D')
     object.addObject('MechanicalObject', template='Rigid3', position=position, showObject=False, showObjectScale=5)
 
     if withSolver:
-        object.addObject('EulerImplicitSolver')
+        object.addObject('EulerImplicitIntegrationScheme')
         object.addObject('CGLinearSolver', tolerance=1e-5, iterations=25, threshold=1e-5)
         object.addObject('UncoupledConstraintCorrection')
 
@@ -58,6 +68,27 @@ def addEdgeCollision(parentNode, position3D, edges):
     CollisCosserat.addObject('IdentityMapping', name="mapping")
 
 
+def addWireRestShape(node, name, length, straightLength, spireDiameter, spireHeight, densityOfBeams, numEdges,
+                     numEdgesCollis, youngModulus, youngModulusExtremity, radius):
+    """Add a BeamAdapter WireRestShape made of a straight section followed by a spire section.
+
+    SOFA 26 update: the geometry and material of WireRestShape moved to RodStraightSection/RodSpireSection
+    components. This keeps the former WireRestShape parameters; the former numEdges (visual edges of the whole
+    wire) is split between the two sections proportionally to their length, and radius is the one formerly given
+    to WireBeamInterpolation.
+    """
+    nbEdgesVisuStraight = round(numEdges * straightLength / length)
+    node.addObject('RodStraightSection', name=name+'StraightSection', length=straightLength,
+                   nbBeams=densityOfBeams[0], nbEdgesCollis=numEdgesCollis[0], nbEdgesVisu=nbEdgesVisuStraight,
+                   youngModulus=youngModulus, radius=radius)
+    node.addObject('RodSpireSection', name=name+'SpireSection', length=length-straightLength,
+                   nbBeams=densityOfBeams[1], nbEdgesCollis=numEdgesCollis[1], nbEdgesVisu=numEdges-nbEdgesVisuStraight,
+                   spireDiameter=spireDiameter, spireHeight=spireHeight, youngModulus=youngModulusExtremity,
+                   radius=radius)
+    return node.addObject('WireRestShape', name=name, template='Rigid3d',
+                          wireMaterials='@'+name+'StraightSection @'+name+'SpireSection')
+
+
 def buildEdges(cable3DPos):
     """ This function is used to build edges required in the EdgeSetTopologyContainer component"""
     points_size = len(cable3DPos)
@@ -89,7 +120,7 @@ def createCosserat(parent, config, name="Cosserat", orientation=[0, 0, 0, 1], ra
     #################################
 
     base = parent.addChild(name)
-    base.addObject('EulerImplicitSolver', firstOrder=0, rayleighStiffness=0.2, rayleighMass=0.1)
+    base.addObject('EulerImplicitIntegrationScheme', firstOrder=0, rayleighStiffness=0.2, rayleighMass=0.1)
     base.addObject('SparseLDLSolver', template="CompressedRowSparseMatrixd", name='solver')
     base.addObject('GenericConstraintCorrection')
 

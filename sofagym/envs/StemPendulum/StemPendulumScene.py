@@ -35,7 +35,8 @@ def createScene(rootNode, config = {"source": [0, 0, 30],
                                     "seed": None,
                                     "zFar":4000,
                                     "max_torque": 500,
-                                    "dt": 0.01},
+                                    "dt": 0.01,
+                                    "keyboard_controller": True},
                          mode = 'simu_and_visu'):
 
     header(rootNode, alarmDistance=1.0, contactDistance=0.1, tolerance = 1e-6, maxIterations=100, gravity = [0,-981.0,0], dt = config['dt'])
@@ -56,7 +57,8 @@ def createScene(rootNode, config = {"source": [0, 0, 30],
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode))
     rootNode.addObject(applyAction(name="applyAction", root= rootNode, stempendulum=stempendulum))
 
-    # rootNode.addObject(ControllerStemPendulum(name="Controller", root= rootNode, stempendulum = stempendulum, max_torque = config['max_torque']))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(ControllerStemPendulum(name="Controller", root= rootNode, stempendulum = stempendulum, max_torque = config['max_torque']))
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")

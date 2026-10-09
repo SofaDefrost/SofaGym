@@ -29,6 +29,7 @@ class GripperEnv:
     metadata = {'render.modes': ['human', 'rgb_array']}
     dim_state = 31
     DEFAULT_CONFIG = {"scene": "Gripper",
+                      "keyboard_controller": False,
                       "deterministic": True,
                       "source": [0, -80, 350],
                       "target": [0, -80, 0],

@@ -34,11 +34,21 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0,0,0,0,0,0
         collisionFilename = filename
 
     object = node.addChild(name)
-    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='SofaRigid SofaLoader')
+    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='Sofa.Component.Collision.Geometry '
+                                                                      'Sofa.Component.Constraint.Lagrangian.Correction '
+                                                                      'Sofa.Component.Engine.Generate '
+                                                                      'Sofa.Component.IO.Mesh '
+                                                                      'Sofa.Component.IntegrationScheme.Backward '
+                                                                      'Sofa.Component.LinearSolver.Iterative '
+                                                                      'Sofa.Component.Mapping.NonLinear '
+                                                                      'Sofa.Component.Mass '
+                                                                      'Sofa.Component.StateContainer '
+                                                                      'Sofa.Component.Topology.Container.Constant '
+                                                                      'Sofa.GL.Component.Rendering3D')
     object.addObject('MechanicalObject', template='Rigid3', position=position, showObject=False, showObjectScale=5)
 
     if withSolver:
-        object.addObject('EulerImplicitSolver')
+        object.addObject('EulerImplicitIntegrationScheme')
         object.addObject('CGLinearSolver', tolerance=1e-5, iterations=25, threshold = 1e-5)
         object.addObject('UncoupledConstraintCorrection')
 

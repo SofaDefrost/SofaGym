@@ -77,7 +77,7 @@ class ServoMotor(Sofa.Prefab):
                             translation=self.translation.value, rotation=self.rotation.value,
                             scale3d=self.scale3d.value
                             )
-        servoBody.addObject('FixedConstraint', indices=0)
+        servoBody.addObject('FixedProjectiveConstraint', indices=0)
         servoBody.addObject('UniformMass', totalMass=0.01)
 
         visual = servoBody.addChild('VisualModel')
@@ -118,20 +118,20 @@ def createScene(rootNode):
     def animation(target, factor):
         target.angleIn.value = math.cos(factor * 2 * math.pi)
 
-    scene = Scene(rootNode, plugins=['SofaConstraint', 'SofaGeneralRigid', 'SofaOpenglVisual', 'SofaRigid',
+    scene = Scene(rootNode, plugins=["Sofa.Component.Mapping.NonLinear", "Sofa.Component.StateContainer",
                                      "ArticulatedSystemPlugin", "Sofa.Component.AnimationLoop",
                                      "Sofa.Component.Constraint.Lagrangian.Correction",
                                      "Sofa.Component.Constraint.Lagrangian.Solver",
                                      "Sofa.Component.Constraint.Projective", "Sofa.Component.IO.Mesh",
                                      "Sofa.Component.LinearSolver.Direct", "Sofa.Component.Mass",
-                                     "Sofa.Component.ODESolver.Backward", "Sofa.Component.SolidMechanics.Spring",
+                                     "Sofa.Component.IntegrationScheme.Backward", "Sofa.Component.SolidMechanics.Spring",
                                      "Sofa.Component.Topology.Container.Constant", "Sofa.Component.Visual",
                                      "Sofa.GL.Component.Rendering3D", "Sofa.GUI.Component", ], iterative=False)
 
     scene.addMainHeader()
     scene.addObject('DefaultVisualManagerLoop')
     scene.addObject('FreeMotionAnimationLoop')
-    scene.addObject('GenericConstraintSolver', maxIterations=1e3, tolerance=1e-5)
+    scene.addObject('BlockGaussSeidelConstraintSolver', maxIterations=1e3, tolerance=1e-5)
     scene.Simulation.addObject('GenericConstraintCorrection')
 
     scene.dt = 0.01

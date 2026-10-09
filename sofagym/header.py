@@ -16,31 +16,39 @@ from splib3.animation import AnimationManagerController
 def addHeader(rootNode, alarmDistance=2.0, contactDistance=0.5, tolerance=1e-6, maxIterations=500,
               gravity=[0, -981.0, 0], dt=0.03, mu='0.8', genericConstraintSolver=True):
 
-    rootNode.addObject('RequiredPlugin', name='SofaPlugins', pluginName='SofaGeneralRigid '
-                                                                        'SofaSparseSolver '
-                                                                        'SofaSimpleFem '
-                                                                        'SofaTopologyMapping '
-                                                                        'SofaEngine '
-                                                                        'SofaGeneralLinearSolver '
-                                                                        'SofaRigid '
-                                                                        'SofaGeneralAnimationLoop '
+    rootNode.addObject('RequiredPlugin', name='SofaPlugins', pluginName='Sofa.Component.AnimationLoop '
+                                                                        'Sofa.Component.Collision.Detection.Algorithm '
+                                                                        'Sofa.Component.Collision.Detection.Intersection '
+                                                                        'Sofa.Component.Collision.Geometry '
+                                                                        'Sofa.Component.Collision.Response.Contact '
+                                                                        'Sofa.Component.Constraint.Lagrangian.Correction '
+                                                                        'Sofa.Component.Constraint.Lagrangian.Model '
+                                                                        'Sofa.Component.Constraint.Lagrangian.Solver '
+                                                                        'Sofa.Component.Constraint.Projective '
+                                                                        'Sofa.Component.Engine.Generate '
+                                                                        'Sofa.Component.Engine.Select '
+                                                                        'Sofa.Component.IO.Mesh '
+                                                                        'Sofa.Component.IntegrationScheme.Backward '
+                                                                        'Sofa.Component.LinearSolver.Direct '
+                                                                        'Sofa.Component.LinearSolver.Iterative '
+                                                                        'Sofa.Component.Mapping.Linear '
+                                                                        'Sofa.Component.Mapping.NonLinear '
+                                                                        'Sofa.Component.Mass '
+                                                                        'Sofa.Component.MechanicalLoad '
+                                                                        'Sofa.Component.Setting '
+                                                                        'Sofa.Component.SolidMechanics.FEM.Elastic '
+                                                                        'Sofa.Component.SolidMechanics.Spring '
+                                                                        'Sofa.Component.StateContainer '
+                                                                        'Sofa.Component.Topology.Container.Constant '
+                                                                        'Sofa.Component.Topology.Container.Dynamic '
+                                                                        'Sofa.Component.Visual '
+                                                                        'Sofa.GL.Component.Rendering3D '
+                                                                        'Sofa.GL.Component.Shader '
                                                                         'BeamAdapter '
-                                                                        'SofaBoundaryCondition '
-                                                                        'SofaConstraint '
-                                                                        'SofaMiscCollision '
-                                                                        'SofaPreconditioner '
-                                                                        'SofaPython3 '
-                                                                        'SofaDeformable '
-                                                                        'SofaGeneralEngine '
-                                                                        'SofaImplicitOdeSolver '
-                                                                        'SofaMeshCollision '
-                                                                        'SofaOpenglVisual '
-                                                                        'CosseratPlugin '
-                                                                        'SofaLoader '
-                                                                        'SofaGeneralLoader')
+                                                                        'Cosserat')
     rootNode.addObject('BackgroundSetting', color=[1, 1, 1, 1])
 
-    rootNode.addObject("DefaultPipeline")
+    rootNode.addObject("CollisionPipeline")
     rootNode.addObject('BVHNarrowPhase')
     rootNode.addObject('BruteForceBroadPhase')
     rootNode.addObject('RuleBasedContactManager', responseParams='mu='+mu, response='FrictionContactConstraint')
@@ -48,7 +56,7 @@ def addHeader(rootNode, alarmDistance=2.0, contactDistance=0.5, tolerance=1e-6, 
     rootNode.addObject('FreeMotionAnimationLoop')
 
     if genericConstraintSolver:
-        rootNode.addObject('GenericConstraintSolver', tolerance=tolerance, maxIterations=maxIterations)
+        rootNode.addObject('BlockGaussSeidelConstraintSolver', tolerance=tolerance, maxIterations=maxIterations)
 
     rootNode.addObject(AnimationManagerController(rootNode, name="AnimationManager"))
     rootNode.gravity = gravity

@@ -9,6 +9,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
 from Constants import *
+from Controllers import FingerController
 
 path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
 MeshesPath = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
@@ -18,11 +19,11 @@ SurfaceMeshPath = MeshesPath + 'FingerWithCavities.stl'
 
 
 def Finger(rootNode, fixingBox, visu, simu, pullPointLocation, control1='1', control2='2', name="Finger",
-           rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0]):
+           rotation=[0.0, 0.0, 0.0], translation=[0.0, 0.0, 0.0], keyboard_controller=False):
 
     model = rootNode.addChild(name)
     if simu:
-        model.addObject('EulerImplicitSolver', name='odesolver')
+        model.addObject('EulerImplicitIntegrationScheme', name='odesolver')
         model.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
 
     model.addObject('MeshVTKLoader', name='loader', filename=VolumetricMeshPath, scale3d=[1, 1, 1],
@@ -41,7 +42,7 @@ def Finger(rootNode, fixingBox, visu, simu, pullPointLocation, control1='1', con
     c.addObject('RestShapeSpringsForceField', points='@BoxROI.indices', stiffness='1e12')
 
     if simu:
-        model.addObject('LinearSolverConstraintCorrection', name='GCS', solverName='@precond')
+        model.addObject('LinearSolverConstraintCorrection', name='GCS', linearSolver='@linearSolver')
 
         collisionmodel = model.addChild("CollisionMesh")
         collisionmodel.addObject("MeshSTLLoader", name="loader", filename=SurfaceMeshPath,
@@ -94,5 +95,6 @@ def Finger(rootNode, fixingBox, visu, simu, pullPointLocation, control1='1', con
     cable1.addObject('CableConstraint', name="aCableActuator", indices="0 1 2 3 4 5", pullPoint=pullPointLocation)
     cable1.addObject('BarycentricMapping')
 
-    # model.addObject(FingerController(node=model, name=name, control1=control1, control2=control2))
+    if keyboard_controller:
+        model.addObject(FingerController(node=model, name=name, control1=control1, control2=control2))
     return model

@@ -24,6 +24,7 @@ from sofagym.header import addVisu as visu
 
 from CartStem import CartStem
 from CartStemToolbox import rewardShaper, sceneModerator, applyAction
+from Controller import ControllerCartStem
 
 
 def createScene(rootNode, config={"source": [0, -70, 10],
@@ -32,7 +33,8 @@ def createScene(rootNode, config={"source": [0, -70, 10],
                                   "zFar":4000,
                                   "init_x": 0,
                                   "max_move": 40,
-                                  "dt": 0.01},
+                                  "dt": 0.01,
+                                  "keyboard_controller": True},
                 mode='simu_and_visu'):
 
     header(rootNode, alarmDistance=1.0, contactDistance=0.1, tolerance = 1e-6, maxIterations=100,
@@ -57,7 +59,8 @@ def createScene(rootNode, config={"source": [0, -70, 10],
     rootNode.addObject(sceneModerator(name="sceneModerator",  cartstem = cartstem))
     rootNode.addObject(applyAction(name="applyAction", root= rootNode, cartstem=cartstem))
 
-    # rootNode.addObject(ControllerCartStem(name="Controller", root= rootNode, cartstem = cartstem))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(ControllerCartStem(name="Controller", root= rootNode, cartstem = cartstem))
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")

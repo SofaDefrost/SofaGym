@@ -71,9 +71,9 @@ class ControllerCartStem(Sofa.Core.Controller):
 
     def _move(self, incr):
         cartForceField = self.cartstem.cart.ConstantForceField
-        force = cartForceField.force.value.tolist()
+        force = cartForceField.totalForce.value.tolist()
         force[0]=incr
-        cartForceField.force.value = np.array(force)
+        cartForceField.totalForce.value = np.array(force)
 
 
     def onKeypressedEvent(self, event):

@@ -68,16 +68,29 @@ def createScene(rootNode, config={"source": [220, -500, 100],
         simu = True
 
     rootNode.addObject('RequiredPlugin', name='SoftRobots', pluginName='SoftRobots')
-    rootNode.addObject('RequiredPlugin', name='SofaPython', pluginName='SofaPython3')
     rootNode.addObject('RequiredPlugin', name='ModelOrderReduction', pluginName='ModelOrderReduction')
-    rootNode.addObject('RequiredPlugin', name='SofaOpenglVisual')
-    rootNode.addObject('RequiredPlugin', name="SofaSparseSolver")
-    rootNode.addObject('RequiredPlugin', name="SofaConstraint")
-    rootNode.addObject('RequiredPlugin', name="SofaEngine")
-    rootNode.addObject('RequiredPlugin', name="SofaImplicitOdeSolver")
-    rootNode.addObject('RequiredPlugin', name="SofaLoader")
-    rootNode.addObject('RequiredPlugin', name="SofaMeshCollision")
-    rootNode.addObject('RequiredPlugin', name="SofaGeneralLoader")
+    pluginList = ["Sofa.Component.AnimationLoop",
+                  "Sofa.Component.Collision.Detection.Algorithm",
+                  "Sofa.Component.Collision.Detection.Intersection",
+                  "Sofa.Component.Collision.Geometry",
+                  "Sofa.Component.Collision.Response.Contact",
+                  "Sofa.Component.Constraint.Lagrangian.Correction",
+                  "Sofa.Component.Constraint.Lagrangian.Solver",
+                  "Sofa.Component.Engine.Select",
+                  "Sofa.Component.IO.Mesh",
+                  "Sofa.Component.IntegrationScheme.Backward",
+                  "Sofa.Component.LinearSolver.Direct",
+                  "Sofa.Component.LinearSolver.Iterative",
+                  "Sofa.Component.Mapping.Linear",
+                  "Sofa.Component.Mass",
+                  "Sofa.Component.Setting",
+                  "Sofa.Component.StateContainer",
+                  "Sofa.Component.Topology.Container.Constant",
+                  "Sofa.Component.Topology.Container.Dynamic",
+                  "Sofa.Component.Visual",
+                  "Sofa.GL.Component.Rendering3D",
+                  "Sofa.GL.Component.Shader"]
+    rootNode.addObject('RequiredPlugin', pluginName=pluginList)
     rootNode.dt.value = 0.01
 
     if simu:
@@ -89,11 +102,11 @@ def createScene(rootNode, config={"source": [220, -500, 100],
     rootNode.addObject("DefaultVisualManagerLoop")
     if simu:
         rootNode.addObject('FreeMotionAnimationLoop')
-        rootNode.addObject('GenericConstraintSolver', printLog=False, tolerance=1e-6, maxIterations=500)
-        rootNode.addObject('DefaultPipeline', verbose=0)
+        rootNode.addObject('BlockGaussSeidelConstraintSolver', printLog=False, tolerance=1e-6, maxIterations=500)
+        rootNode.addObject('CollisionPipeline', verbose=0)
         rootNode.addObject('BVHNarrowPhase')
         rootNode.addObject('BruteForceBroadPhase')
-        rootNode.addObject('DefaultContactManager', response="FrictionContactConstraint", responseParams="mu=0.7")
+        rootNode.addObject('CollisionResponse', response="FrictionContactConstraint", responseParams="mu=0.7")
         rootNode.addObject('LocalMinDistance', name="Proximity", alarmDistance=2.5, contactDistance=0.5, angleCone=0.01)
 
     if visu:
@@ -102,10 +115,10 @@ def createScene(rootNode, config={"source": [220, -500, 100],
     solverNode = rootNode.addChild('solverNode')
 
     if simu:
-        solverNode.addObject('EulerImplicitSolver', name='odesolver', firstOrder=False, rayleighStiffness=0.1,
+        solverNode.addObject('EulerImplicitIntegrationScheme', name='odesolver', firstOrder=False, rayleighStiffness=0.1,
                              rayleighMass=0.1, printLog=False)
         solverNode.addObject('SparseLDLSolver', name="preconditioner", template="CompressedRowSparseMatrixd")
-        solverNode.addObject('GenericConstraintCorrection', solverName='preconditioner')
+        solverNode.addObject('GenericConstraintCorrection', linearSolver='@preconditioner')
         solverNode.addObject('MechanicalMatrixMapperMOR', template='Vec1d,Vec1d', object1='@./reducedModel/alpha',
                              object2='@./reducedModel/alpha', nodeToParse='@./reducedModel/model',
                              performECSW=performECSWBoolMappedMatrix, listActiveNodesPath=listActiveNodesFile,
@@ -232,7 +245,7 @@ def createScene(rootNode, config={"source": [220, -500, 100],
         planeNode.addObject('LineCollisionModel', simulated=0, moving=0, group=1)
         planeNode.addObject('PointCollisionModel', simulated=0, moving=0, group=1)
         planeNode.addObject('UncoupledConstraintCorrection')
-        planeNode.addObject('EulerImplicitSolver', name='odesolver')
+        planeNode.addObject('EulerImplicitIntegrationScheme', name='odesolver')
         planeNode.addObject('CGLinearSolver', name='Solver', iterations=500, tolerance=1e-5, threshold=1e-5)
 
     goal_mo = add_goal_node(rootNode)

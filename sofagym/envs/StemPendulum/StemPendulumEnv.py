@@ -29,6 +29,7 @@ class StemPendulumEnv:
     metadata = {'render.modes': ['human', 'rgb_array']}
     dim_state = 5
     DEFAULT_CONFIG = {"scene": "StemPendulum",
+                      "keyboard_controller": False,
                       "deterministic": True,
                       "source": [0, 0, 30],
                       "target": [0, 0, 0],

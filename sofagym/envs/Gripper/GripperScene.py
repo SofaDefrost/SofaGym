@@ -23,22 +23,33 @@ SofaRuntime.importPlugin("Sofa.Component")
 
 def add_plugins(root):
     root.addObject('RequiredPlugin', pluginName='BeamAdapter')
-    root.addObject('RequiredPlugin', name='SofaOpenglVisual')
-    root.addObject('RequiredPlugin', name="SofaMiscCollision")
-    root.addObject('RequiredPlugin', name="SofaPython3")
-    root.addObject('RequiredPlugin', name="SofaPreconditioner")
     root.addObject('RequiredPlugin', name="SoftRobots")
-    root.addObject('RequiredPlugin', name="SofaConstraint")
-    root.addObject('RequiredPlugin', name="SofaImplicitOdeSolver")
-    root.addObject('RequiredPlugin', name="SofaLoader")
-    root.addObject('RequiredPlugin', name="SofaSparseSolver")
 
-    root.addObject('RequiredPlugin', name="SofaDeformable")
-    root.addObject('RequiredPlugin', name="SofaEngine")
-    root.addObject('RequiredPlugin', name="SofaMeshCollision")
-    root.addObject('RequiredPlugin', name="SofaMiscFem")
-    root.addObject('RequiredPlugin', name="SofaRigid")
-    root.addObject('RequiredPlugin', name="SofaSimpleFem")
+    pluginList = ["Sofa.Component.AnimationLoop",
+                  "Sofa.Component.Collision.Detection.Algorithm",
+                  "Sofa.Component.Collision.Detection.Intersection",
+                  "Sofa.Component.Collision.Geometry",
+                  "Sofa.Component.Collision.Response.Contact",
+                  "Sofa.Component.Constraint.Lagrangian.Correction",
+                  "Sofa.Component.Constraint.Lagrangian.Solver",
+                  "Sofa.Component.Engine.Select",
+                  "Sofa.Component.IO.Mesh",
+                  "Sofa.Component.IntegrationScheme.Backward",
+                  "Sofa.Component.LinearSolver.Direct",
+                  "Sofa.Component.LinearSolver.Iterative",
+                  "Sofa.Component.Mapping.Linear",
+                  "Sofa.Component.Mapping.NonLinear",
+                  "Sofa.Component.Mass",
+                  "Sofa.Component.Setting",
+                  "Sofa.Component.SolidMechanics.FEM.Elastic",
+                  "Sofa.Component.SolidMechanics.Spring",
+                  "Sofa.Component.StateContainer",
+                  "Sofa.Component.Topology.Container.Constant",
+                  "Sofa.Component.Topology.Container.Dynamic",
+                  "Sofa.Component.Visual",
+                  "Sofa.GL.Component.Rendering3D",
+                  "Sofa.GL.Component.Shader"]
+    root.addObject('RequiredPlugin', pluginName=pluginList)
     return root
 
 
@@ -57,14 +68,14 @@ def add_visuals_and_solvers(root, config, visu, simu):
         root.addObject('BackgroundSetting', color=[1, 1, 1, 1])
     if simu:
         root.addObject('FreeMotionAnimationLoop')
-        root.addObject('GenericConstraintSolver', tolerance=1e-6, maxIterations=1000)
-        root.addObject('DefaultPipeline', draw=False, depth=6, verbose=False)
+        root.addObject('BlockGaussSeidelConstraintSolver', tolerance=1e-6, maxIterations=1000)
+        root.addObject('CollisionPipeline', draw=False, depth=6, verbose=False)
         root.addObject('BruteForceBroadPhase')
         root.addObject('BVHNarrowPhase')
     
         root.addObject('LocalMinDistance', contactDistance=5.0, alarmDistance=10.0, name='localmindistance',
                        angleCone=0.2)
-        root.addObject('DefaultContactManager', name='Response', response='FrictionContactConstraint')
+        root.addObject('CollisionResponse', name='Response', response='FrictionContactConstraint')
 
         root.addObject(AnimationManagerController(root))
 
@@ -84,13 +95,13 @@ def CreateObject(node, name, surfaceMeshFileName, visu, simu, translation=[0., 0
 
     if not isAStaticObject:
         object.addObject('UncoupledConstraintCorrection')
-        object.addObject('EulerImplicitSolver', name='odesolver')
+        object.addObject('EulerImplicitIntegrationScheme', name='odesolver')
         object.addObject('CGLinearSolver', name='Solver')
 
     # collision
     if simu:
         objectCollis = object.addChild('collision')
-        objectCollis.addObject('MeshObjLoader', name="loader", filename=surfaceMeshFileName, triangulate="true",
+        objectCollis.addObject('MeshOBJLoader', name="loader", filename=surfaceMeshFileName, triangulate="true",
                                scale=uniformScale)
 
         objectCollis.addObject('MeshTopology', src="@loader")
@@ -107,7 +118,7 @@ def CreateObject(node, name, surfaceMeshFileName, visu, simu, translation=[0., 0
     if visu:
         objectVisu = object.addChild("VisualModel")
 
-        objectVisu.loader = objectVisu.addObject('MeshObjLoader', name="loader", filename=surfaceMeshFileName)
+        objectVisu.loader = objectVisu.addObject('MeshOBJLoader', name="loader", filename=surfaceMeshFileName)
 
         objectVisu.addObject('OglModel', name="model", src="@loader", scale3d=[uniformScale]*3, color=color,
                              updateNormals=False)
@@ -136,18 +147,18 @@ def create_scene(root,  config, visu, simu):
     root.dt.value = config["dt"]
 
     goal_mo = add_goal_node(root)
-    Gripper(root, visu, simu)
+    Gripper(root, visu, simu, keyboard_controller=config.get("keyboard_controller", False))
     CreateObject(root, name="Floor", surfaceMeshFileName="mesh/floor.obj", visu=visu, simu=simu, color=[1.0, 0.0, 0.0],
                  uniformScale=1.5, translation=[0.0, -160.0, 0.0], isAStaticObject=True)
 
     cubeNode = root.addChild("Cube")
 
     if simu:
-        cubeNode.addObject('EulerImplicitSolver')
+        cubeNode.addObject('EulerImplicitIntegrationScheme')
         cubeNode.addObject('SparseLDLSolver', name='solver')
-        cubeNode.addObject('GenericConstraintCorrection', solverName='solver')
+        cubeNode.addObject('GenericConstraintCorrection', linearSolver='@solver')
 
-    cubeNode.addObject('MeshObjLoader', filename="mesh/cube.obj", flipNormals=False, triangulate=True,
+    cubeNode.addObject('MeshOBJLoader', filename="mesh/cube.obj", flipNormals=False, triangulate=True,
                        name='meshLoader', scale=10.0)
     cubeNode.addObject('MeshTopology', position='@meshLoader.position', tetrahedra='@meshLoader.tetrahedra',
                        triangles='@meshLoader.triangles', drawTriangles='0')
@@ -177,7 +188,8 @@ def create_scene(root,  config, visu, simu):
 def createScene(root, config={"source": [-600.0, -25, 100],
                               "target": [30, -25, 100],
                               "goalPos": [0, 0, 0],
-                              "dt": 0.01}, mode='simu_and_visu'):
+                              "dt": 0.01,
+                              "keyboard_controller": True}, mode='simu_and_visu'):
     # Chose the mode: visualization or computations (or both)
     visu, simu = False, False
     if 'visu' in mode:
@@ -192,10 +204,9 @@ def createScene(root, config={"source": [-600.0, -25, 100],
 def main():
     import SofaRuntime
     import Sofa.Gui
-    SofaRuntime.importPlugin("SofaOpenglVisual")
+    SofaRuntime.importPlugin("Sofa.GL.Component")
     SofaRuntime.importPlugin("CImgPlugin")
-    SofaRuntime.importPlugin("SofaBaseMechanics")
-    SofaRuntime.importPlugin("SofaImplicitOdeSolver")
+    SofaRuntime.importPlugin("Sofa.Component")
 
     root=Sofa.Core.Node("root")
     createScene(root)

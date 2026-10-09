@@ -24,6 +24,7 @@ from sofagym.header import addVisu as visu
 import numpy as np
 from CatchTheObject import Cart, Ball, Gripper
 from CatchTheObjectToolbox import rewardShaper, sceneModerator, applyAction, goalSetter
+from Controller import ControllerCatchTheObject
 
 
 def createScene(rootNode, config={"source": [0, -70, 10],
@@ -33,11 +34,13 @@ def createScene(rootNode, config={"source": [0, -70, 10],
                                   "zFar":4000,
                                   "dt": 0.01,
                                   "max_move": 10,
-                                  "max_pressure": 15},
+                                  "max_pressure": 15,
+                                  "keyboard_controller": True},
                 mode='simu_and_visu'):
 
     header(rootNode, alarmDistance=3.0, contactDistance=0.1, tolerance=1e-6, maxIterations=100, gravity=[0, 0, -981.0],
            dt=config['dt'])
+    rootNode.addObject('RequiredPlugin', pluginName='SoftRobots')
 
     position_spot = [[0, -50, 10]]
     direction_spot = [[0.0, 1, 0]]
@@ -64,7 +67,8 @@ def createScene(rootNode, config={"source": [0, -70, 10],
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode))
     rootNode.addObject(applyAction(name="applyAction", root=rootNode, cart=cart, gripper=gripper))
 
-    # rootNode.addObject(ControllerCatchTheObject(name="Controller", root= rootNode, cart = cart, gripper = gripper, ball = ball))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(ControllerCatchTheObject(name="Controller", root= rootNode, cart = cart, gripper = gripper, ball = ball))
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")

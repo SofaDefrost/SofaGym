@@ -48,10 +48,27 @@ def createScene(root, config={"source": [0, 1000, 0],
         simu = True
 
     root.addObject("RequiredPlugin", name="SoftRobots")
-    root.addObject("RequiredPlugin", name="SofaPython3")
-    root.addObject("RequiredPlugin", name="SofaOpenglVisual")
-    root.addObject("RequiredPlugin", name="SofaMiscCollision")
-    root.addObject("RequiredPlugin", name="SofaSparseSolver")
+    pluginList = ["Sofa.Component.AnimationLoop",
+                  "Sofa.Component.Collision.Detection.Algorithm",
+                  "Sofa.Component.Collision.Detection.Intersection",
+                  "Sofa.Component.Collision.Geometry",
+                  "Sofa.Component.Collision.Response.Contact",
+                  "Sofa.Component.Constraint.Lagrangian.Correction",
+                  "Sofa.Component.Constraint.Lagrangian.Solver",
+                  "Sofa.Component.Engine.Generate",
+                  "Sofa.Component.IO.Mesh",
+                  "Sofa.Component.IntegrationScheme.Backward",
+                  "Sofa.Component.LinearSolver.Direct",
+                  "Sofa.Component.LinearSolver.Iterative",
+                  "Sofa.Component.Mapping.NonLinear",
+                  "Sofa.Component.Mass",
+                  "Sofa.Component.SolidMechanics.Spring",
+                  "Sofa.Component.StateContainer",
+                  "Sofa.Component.Topology.Container.Constant",
+                  "Sofa.Component.Visual",
+                  "Sofa.GL.Component.Rendering3D",
+                  "Sofa.GL.Component.Shader"]
+    root.addObject("RequiredPlugin", pluginName=pluginList)
 
     root.gravity = [0.0, -981, 0.0]
     root.dt.value = config["dt"]
@@ -60,17 +77,17 @@ def createScene(root, config={"source": [0, 1000, 0],
     if visu:
         root.addObject('VisualStyle', displayFlags="showBehaviorModels showCollisionModels hideInteractionForceFields")
 
-    root.addObject('DefaultPipeline')
+    root.addObject('CollisionPipeline')
     root.addObject('BruteForceDetection')
     root.addObject('RuleBasedContactManager', responseParams="mu=0.0001", name='Response', response='FrictionContactConstraint')
     root.addObject('LocalMinDistance', alarmDistance=6, contactDistance=0.1, angleCone=0.01)
     root.addObject('FreeMotionAnimationLoop')
-    root.addObject('GenericConstraintSolver', tolerance="1e-6", maxIterations="1000")
+    root.addObject('BlockGaussSeidelConstraintSolver', tolerance="1e-6", maxIterations="1000")
 
     root.addObject(AnimationManagerController(root, name="AnimationManager"))
 
     model = root.addChild('model')
-    model.addObject('EulerImplicitSolver', firstOrder=True)
+    model.addObject('EulerImplicitIntegrationScheme', firstOrder=True)
     model.addObject('CGLinearSolver', iterations=100, threshold=1e-5, tolerance=1e-5)
     maze_mo = model.addObject('MechanicalObject', name='rigid_maze_mo', template='Rigid3d',
                               position=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0], showObject=True, showObjectScale=10)
@@ -84,7 +101,7 @@ def createScene(root, config={"source": [0, 1000, 0],
     ball_mo = sphere.sphere_mo
 
     path_node = maze.addChild("Path")
-    p_mesh = path_node.addObject('MeshObjLoader', filename=path_mesh+"path.obj", flipNormals=True, triangulate=True,
+    p_mesh = path_node.addObject('MeshOBJLoader', filename=path_mesh+"path.obj", flipNormals=True, triangulate=True,
                                  name='meshLoader', translation=[-50.0, 0.0, 50.0])
     p_mo = path_node.addObject("MechanicalObject", template="Vec3d", name="dofs", position="@meshLoader.position",
                                showObject=True, showObjectScale=1.0)

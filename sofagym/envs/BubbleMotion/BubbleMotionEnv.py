@@ -28,6 +28,7 @@ class BubbleMotionEnv:
     metadata = {'render.modes': ['human', 'rgb_array']}
     dim_state = 15
     DEFAULT_CONFIG = {"scene": "BubbleMotion",
+                      "keyboard_controller": False,
                       "deterministic": True,
                       "source": [5, -5, 20],
                       "target": [5, 5, 0],

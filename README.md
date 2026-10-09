@@ -73,7 +73,7 @@ export SOFA_ROOT=/sofa/build_dir/
 export PYTHONPATH=/sofa/build_dir/lib/python3/site-packages:$PYTHONPATH
 ```
 ```python
-import sofagym
+import sofagym.envs  # registers the environments
 ```
 
 ### Test Script
@@ -178,6 +178,27 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 
 
 
+
+### Keyboard Control
+
+Some scenes can be driven by hand from the SOFA GUI, through a keyboard controller defined in the environment's `Controller.py` (`Controllers.py` for the Gripper). The controller is added when the scene config has `"keyboard_controller": True`. This is the case in the scene's default config, which runSofa uses, so opening the scene is enough:
+
+```bash
+$SOFA_ROOT/bin/runSofa -l SofaPython3 sofagym/envs/CartStem/CartStemScene.py
+```
+
+Key presses only reach the scene while a modifier is held: **Ctrl+Shift** in the default SofaGLFW interface (**Ctrl** in the Qt interface).
+
+| Environment | Scene file | Keys |
+|---|---|---|
+| BubbleMotion | `BubbleMotionScene.py` | ←/→ select the cavity, ↑/↓ increase/decrease its pressure |
+| CartStem | `CartStemScene.py` | ←/→ push the cart left/right |
+| CartStemContact | `CartStemContactScene.py` | ←/→ push the cart left/right |
+| CatchTheObject | `CatchTheObjectScene.py` | ←/→ decrease/increase the pressure |
+| StemPendulum | `StemPendulumScene.py` | ←/→ apply torque in either direction |
+| Gripper | `GripperScene.py` | ←/→ and ↑/↓ move the fingers horizontally, U/D move them up/down, A/C, 5/6 and 7/8 rotate them around y, x and z, 1/2 pull/release the cables |
+
+The environments set `"keyboard_controller": False` in their `DEFAULT_CONFIG`, so no controller is added in batch mode (training, tests). Pass `config={"keyboard_controller": True}` to the environment to add it anyway.
 
 ### Adding New Environment
 

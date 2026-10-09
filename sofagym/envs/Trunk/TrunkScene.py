@@ -28,7 +28,7 @@ def add_goal_node(root):
 
 def effectorTarget(parentNode, position=[0., 0., 200]):
     target = parentNode.addChild("Target")
-    target.addObject("EulerImplicitSolver", firstOrder=True)
+    target.addObject("EulerImplicitIntegrationScheme", firstOrder=True)
     target.addObject("CGLinearSolver")
     target.addObject("MechanicalObject", name="dofs", position=position, showObject=True, showObjectScale=3,
                      drawMode=2, showColor=[1., 1., 1., 1.])
@@ -135,14 +135,17 @@ class Trunk(SofaObject):
             part.addObject('MeshSTLLoader', name="loader", filename=path+"trunk_colli"+str(i+1)+".stl")
             part.addObject('MeshTopology', src="@loader")
             part.addObject('MechanicalObject')
-            part.addObject('TTriangleModel', group=1 if not selfCollision else i)
-            part.addObject('TLineModel', group=1 if not selfCollision else i)
-            part.addObject('TPointModel', group=1 if not selfCollision else i)
+            # SOFA 26 update: commented out because TTriangleModel, TLineModel and TPointModel were removed from
+            # SOFA (since v20.06). Inspect this change: TriangleCollisionModel, LineCollisionModel and
+            # PointCollisionModel are the likely replacements.
+            # part.addObject('TTriangleModel', group=1 if not selfCollision else i)
+            # part.addObject('TLineModel', group=1 if not selfCollision else i)
+            # part.addObject('TPointModel', group=1 if not selfCollision else i)
             part.addObject('BarycentricMapping')
 
     def fixExtremity(self):
         self.node.addObject('BoxROI', name='boxROI', box=[[-20, -20, 0], [20, 20, 20]], drawBoxes=False)
-        self.node.addObject('PartialFixedConstraint', fixedDirections="1 1 1", indices="@boxROI.indices")
+        self.node.addObject('PartialFixedProjectiveConstraint', fixedDirections="1 1 1", indices="@boxROI.indices")
 
     def addEffectors(self, target, position=[0., 0., 195.]):
         effectors = self.node.addChild("Effectors")
@@ -163,18 +166,31 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
         simu = True
 
     rootNode.addObject("RequiredPlugin", name="SoftRobots")
-    rootNode.addObject("RequiredPlugin", name="SofaSparseSolver")
-    rootNode.addObject("RequiredPlugin", name="SofaPreconditioner")
-    rootNode.addObject("RequiredPlugin", name="SofaPython3")
     rootNode.addObject('RequiredPlugin', name='BeamAdapter')
-    rootNode.addObject('RequiredPlugin', name='SofaOpenglVisual')
-    rootNode.addObject('RequiredPlugin', name="SofaMiscCollision")
-    rootNode.addObject("RequiredPlugin", name="SofaBoundaryCondition")
-    rootNode.addObject("RequiredPlugin", name="SofaConstraint")
-    rootNode.addObject("RequiredPlugin", name="SofaEngine")
-    rootNode.addObject('RequiredPlugin', name='SofaImplicitOdeSolver')
-    rootNode.addObject('RequiredPlugin', name='SofaLoader')
-    rootNode.addObject('RequiredPlugin', name="SofaSimpleFem")
+
+    pluginList = ["Sofa.Component.AnimationLoop",
+                  "Sofa.Component.Collision.Detection.Algorithm",
+                  "Sofa.Component.Collision.Detection.Intersection",
+                  "Sofa.Component.Collision.Response.Contact",
+                  "Sofa.Component.Constraint.Lagrangian.Correction",
+                  "Sofa.Component.Constraint.Lagrangian.Solver",
+                  "Sofa.Component.Constraint.Projective",
+                  "Sofa.Component.Engine.Select",
+                  "Sofa.Component.IO.Mesh",
+                  "Sofa.Component.IntegrationScheme.Backward",
+                  "Sofa.Component.LinearSolver.Direct",
+                  "Sofa.Component.LinearSolver.Iterative",
+                  "Sofa.Component.Mapping.Linear",
+                  "Sofa.Component.Mass",
+                  "Sofa.Component.Setting",
+                  "Sofa.Component.SolidMechanics.FEM.Elastic",
+                  "Sofa.Component.StateContainer",
+                  "Sofa.Component.Topology.Container.Constant",
+                  "Sofa.Component.Topology.Container.Dynamic",
+                  "Sofa.Component.Visual",
+                  "Sofa.GL.Component.Rendering3D",
+                  "Sofa.GL.Component.Shader"]
+    rootNode.addObject('RequiredPlugin', pluginName=pluginList)
 
     if visu:
         source = config["source"]
@@ -188,9 +204,9 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
         rootNode.addObject("InteractiveCamera", name='camera', position=source, lookAt=target, zFar=500)
         rootNode.addObject('BackgroundSetting', color=[1, 1, 1, 1])
     if simu:
-        rootNode.addObject('DefaultPipeline')
+        rootNode.addObject('CollisionPipeline')
         rootNode.addObject('FreeMotionAnimationLoop')
-        rootNode.addObject('GenericConstraintSolver', tolerance="1e-6", maxIterations="1000")
+        rootNode.addObject('BlockGaussSeidelConstraintSolver', tolerance="1e-6", maxIterations="1000")
         rootNode.addObject('BruteForceDetection')
         rootNode.addObject('RuleBasedContactManager', responseParams="mu="+str(0.3), name='Response',
                            response='FrictionContactConstraint')
@@ -205,10 +221,10 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
     simulation = rootNode.addChild("Simulation")
 
     if simu:
-        simulation.addObject('EulerImplicitSolver', name='odesolver', firstOrder="0", rayleighMass="0.1",
+        simulation.addObject('EulerImplicitIntegrationScheme', name='odesolver', firstOrder="0", rayleighMass="0.1",
                              rayleighStiffness="0.1")
         simulation.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
-        simulation.addObject('GenericConstraintCorrection', solverName="@linearSolver")
+        simulation.addObject('GenericConstraintCorrection', linearSolver="@linearSolver")
 
     trunk = Trunk(simulation, inverseMode=False)
     rootNode.trunk = trunk

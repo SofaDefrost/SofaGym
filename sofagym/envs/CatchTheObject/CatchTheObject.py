@@ -44,7 +44,7 @@ class Cart:
         init_pos = [self.init_x-3, self.init_pos[1]-2, self.init_pos[2]]
         self.cart.addObject('MechanicalObject', template='Rigid3', position=init_pos+[0, 0, 0, 1])
 
-        self.cart.addObject('EulerImplicitSolver')
+        self.cart.addObject('EulerImplicitIntegrationScheme')
         self.cart.addObject('CGLinearSolver', tolerance=1e-5, iterations=25, threshold=1e-5)
         self.cart.addObject('UncoupledConstraintCorrection')
 
@@ -76,7 +76,7 @@ class Cart:
         self.path = cosserat(rootNode, path_config, name="path", orientation=[0, 0, 0, 1], radius=0.5)
 
         # ADD PARTIAL CONSTRAINT FOR THE CART
-        self.cart.addObject('PartialFixedConstraint', fixedDirections=[0, 1, 1, 1, 1, 1])
+        self.cart.addObject('PartialFixedProjectiveConstraint', fixedDirections=[0, 1, 1, 1, 1, 1])
 
     def getPos(self):
         return self.cart.MechanicalObject.position.value.tolist()
@@ -103,9 +103,9 @@ class Ball:
     def onEnd(self, rootNode, collisionGroup=0):
         print(">>  Init Ball ...")
         self.sphere = rootNode.addChild("sphere")
-        self.sphere.addObject("EulerImplicitSolver", rayleighMass=5)
+        self.sphere.addObject("EulerImplicitIntegrationScheme", rayleighMass=5)
         self.sphere.addObject("SparseLDLSolver", name="ldl", template="CompressedRowSparseMatrixd")
-        self.sphere.addObject("GenericConstraintCorrection", solverName='@ldl')
+        self.sphere.addObject("GenericConstraintCorrection", linearSolver='@ldl')
         self.sphere.addObject("MechanicalObject", name="sphere_mo", template='Vec3', position=self.init_pos)
         self.sphere.addObject("UniformMass", totalMass=self.mass_ball)
         self.sphere.addObject("SphereCollisionModel", radius=self.size_ball, name='Sphere', color=[0, 0, 255, 255])
@@ -159,7 +159,7 @@ class Gripper:
 
     def _createExternalPart(self, parent, name, scale, rotation, translation):
         external_part = parent.addChild(name)
-        external_part.addObject('EulerImplicitSolver', name='odesolver')
+        external_part.addObject('EulerImplicitIntegrationScheme', name='odesolver')
         external_part.addObject('EigenSimplicialLDLT', template='CompressedRowSparseMatrixd',name='linearsolver')
         external_part.addObject('MeshVTKLoader', name='loader', filename=self.path + "/mesh/Gripper_Volumetric.vtk",
                                 scale3d=scale, rotation=rotation, translation=translation)
@@ -170,8 +170,11 @@ class Gripper:
         external_part.addObject('TetrahedronFEMForceField', template='Vec3', name='FEM', method='large',
                                 poissonRatio=0.3,  youngModulus=30000)
 
-        external_part.addObject('SparseLDLSolver', name='preconditioner', template="CompressedRowSparseMatrixd")
-        external_part.addObject('LinearSolverConstraintCorrection', solverName='@preconditioner')
+        # SOFA 26 update: commented out because a node's linear system can only be associated to one linear solver,
+        # so this second solver was never assembled and the constraint correction crashed (division by zero).
+        # The correction now uses 'linearsolver'. Inspect this change.
+        # external_part.addObject('SparseLDLSolver', name='preconditioner', template="CompressedRowSparseMatrixd")
+        external_part.addObject('LinearSolverConstraintCorrection', linearSolver='@linearsolver')
         external_part.addObject('TriangleCollisionModel', group=1, color=[1, 0.2, 0.1, 0.4])
         # external_part.addObject('LineCollisionModel', group=1, color = [1, 0, 0, 0.2] )
         # external_part.addObject('PointCollisionModel', group=1, color = [1, 0, 0, 0.2] )

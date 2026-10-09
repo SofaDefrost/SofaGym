@@ -61,17 +61,17 @@ class CartStem:
         self.sphere = self._createSphere(rootNode, name="sphere", scale=0.5,
                                          translation=[self.init_pos[0], self.init_pos[1], self.init_pos[2]+25],
                                          collisionGroup=0)
-        rootNode.addObject('BilateralInteractionConstraint', template='Rigid3d',
+        rootNode.addObject('BilateralLagrangianConstraint', template='Rigid3d',
                            object2=self.cart.MappedFrames.FramesMO.getLinkPath(),
                            object1=self.sphere.MechanicalObject.getLinkPath(), first_point=0, second_point=id)
 
         # ADD PARTIAL CONSTRAINT FOR THE CART
-        self.cart.addObject('PartialFixedConstraint', fixedDirections=[0, 1, 1, 1, 1, 1])
+        self.cart.addObject('PartialFixedProjectiveConstraint', fixedDirections=[0, 1, 1, 1, 1, 1])
 
     def _createSphere(self, parent, name="Sphere", scale=1., translation=[0, 0, 0], collisionGroup=0):
         sphere = parent.addChild(name)
 
-        sphere.addObject('EulerImplicitSolver', firstOrder=0, rayleighStiffness=0.2, rayleighMass=0.1)
+        sphere.addObject('EulerImplicitIntegrationScheme', firstOrder=0, rayleighStiffness=0.2, rayleighMass=0.1)
         sphere.addObject('SparseLDLSolver', template='CompressedRowSparseMatrixd', name='solver')
         sphere.addObject('GenericConstraintCorrection')
 

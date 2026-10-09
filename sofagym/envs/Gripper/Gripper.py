@@ -11,6 +11,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
 from Finger import Finger
+from Controllers import GripperController
 
 
 def rotate_x(point, angle, rotationCenter):
@@ -45,7 +46,7 @@ def rotatePullPointXYZ(pullpoint, rot_x, rot_y, rot_z):
     return pullpointXYZ
 
 
-def Gripper(rootNode, visu, simu):
+def Gripper(rootNode, visu, simu, keyboard_controller=False):
     selfNode = rootNode.addChild("Gripper")
 
     translate_gripper = 0
@@ -61,7 +62,8 @@ def Gripper(rootNode, visu, simu):
     pullpoint1 = rotatePullPointXYZ(pullpoint, 0, 0, rot1rad)
     pullpoint1 = [pullpoint1[0]+translation1[0], pullpoint1[1]+translation1[1], pullpoint1[2]+translation1[2]]
     f1 = Finger(selfNode, fixingBox=fixingBox, visu=visu, simu=simu, pullPointLocation=pullpoint1, control1='1',
-                control2='2', name="Finger1", rotation=[0, 0, rot1], translation=translation1)
+                control2='2', name="Finger1", rotation=[0, 0, rot1], translation=translation1,
+                keyboard_controller=keyboard_controller)
 
     translation2 = [-45 + x_trans, translate_gripper, z_trans]
 
@@ -73,9 +75,11 @@ def Gripper(rootNode, visu, simu):
     pullpoint2 = rotatePullPointXYZ(pullpoint, rot2rad_x, 0, rot2rad_z)
     pullpoint2 = [pullpoint2[0]+translation2[0], pullpoint2[1]+translation2[1], pullpoint2[2]+translation2[2]]
 
-    Finger(selfNode, fixingBox=fixingBox, visu=visu, simu=simu, pullPointLocation=pullpoint2, control1='1',
-           control2='2', name="Finger2", rotation=[rot2_x, 0, rot2_z], translation=translation2)
+    f2 = Finger(selfNode, fixingBox=fixingBox, visu=visu, simu=simu, pullPointLocation=pullpoint2, control1='1',
+                control2='2', name="Finger2", rotation=[rot2_x, 0, rot2_z], translation=translation2,
+                keyboard_controller=keyboard_controller)
 
-    # selfNode.addObject(GripperController(node=selfNode, fingers=[f1, f2], rootNode=rootNode))
+    if keyboard_controller:
+        selfNode.addObject(GripperController(node=selfNode, fingers=[f1, f2], rootNode=rootNode))
 
     return selfNode

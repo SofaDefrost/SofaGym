@@ -48,7 +48,7 @@ class BubbleMotion:
     def _createBoard(self, parent):
         board = parent.addChild('board')
         path = os.path.dirname(os.path.abspath(__file__))
-        board.addObject('EulerImplicitSolver', name='odesolver')
+        board.addObject('EulerImplicitIntegrationScheme', name='odesolver')
         board.addObject('SparseLDLSolver', name='preconditioner', template="CompressedRowSparseMatrixd")
         board.addObject('MeshVTKLoader', name='loader', filename=path + "/mesh/Board_Volumetric.vtk")
         board.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra", name='container')
@@ -96,7 +96,7 @@ class BubbleMotion:
         object = parent.addChild(name)
         object.addObject('MechanicalObject', template='Rigid3', position=translation+[0, 0, 0, 1])
 
-        object.addObject('EulerImplicitSolver')
+        object.addObject('EulerImplicitIntegrationScheme')
         object.addObject('CGLinearSolver', tolerance=1e-5, iterations=25)
         object.addObject('UncoupledConstraintCorrection')
 

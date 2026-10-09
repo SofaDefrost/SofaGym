@@ -52,14 +52,27 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
 
     # Required plugin
     rootNode.addObject('RequiredPlugin', name='ExternalPlugins', pluginName='SoftRobots')
-    rootNode.addObject('RequiredPlugin', name='SofaPlugins', pluginName=['SofaBoundaryCondition',
-                                                                         'SofaImplicitOdeSolver',
-                                                                         'SofaPreconditioner',
-                                                                         'SofaSimpleFem',
-                                                                         'SofaSparseSolver',
-                                                                         'SofaLoader',
-                                                                         'SofaEngine',
-                                                                         'SofaConstraint',
+    rootNode.addObject('RequiredPlugin', name='SofaPlugins', pluginName=['Sofa.Component.AnimationLoop',
+                                                                         'Sofa.Component.Collision.Detection.Algorithm',
+                                                                         'Sofa.Component.Collision.Detection.Intersection',
+                                                                         'Sofa.Component.Collision.Geometry',
+                                                                         'Sofa.Component.Collision.Response.Contact',
+                                                                         'Sofa.Component.Constraint.Lagrangian.Correction',
+                                                                         'Sofa.Component.Constraint.Lagrangian.Solver',
+                                                                         'Sofa.Component.Constraint.Projective',
+                                                                         'Sofa.Component.Engine.Select',
+                                                                         'Sofa.Component.IO.Mesh',
+                                                                         'Sofa.Component.IntegrationScheme.Backward',
+                                                                         'Sofa.Component.LinearSolver.Direct',
+                                                                         'Sofa.Component.LinearSolver.Iterative',
+                                                                         'Sofa.Component.Mapping.Linear',
+                                                                         'Sofa.Component.Mass',
+                                                                         'Sofa.Component.Setting',
+                                                                         'Sofa.Component.SolidMechanics.FEM.Elastic',
+                                                                         'Sofa.Component.StateContainer',
+                                                                         'Sofa.Component.Topology.Container.Constant',
+                                                                         'Sofa.Component.Topology.Container.Dynamic',
+                                                                         'Sofa.Component.Visual',
                                                                          'Sofa.GL.Component.Shader'])
     
     rootNode.dt.value = config["dt"]
@@ -73,13 +86,13 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
 
     # Constraint solver, here we use a Gauss Seidel algorithm
     rootNode.addObject('FreeMotionAnimationLoop')
-    rootNode.addObject('GenericConstraintSolver', maxIterations=500, tolerance=1e-8)
+    rootNode.addObject('BlockGaussSeidelConstraintSolver', maxIterations=500, tolerance=1e-8)
 
     rootNode.addObject(AnimationManagerController(rootNode))
 
     # goal
     goal = rootNode.addChild('goal')
-    goal.addObject('EulerImplicitSolver', firstOrder=True)
+    goal.addObject('EulerImplicitIntegrationScheme', firstOrder=True)
     goal.addObject('CGLinearSolver', iterations=100, threshold=1e-5, tolerance=1e-5)
     goal_mo = goal.addObject('MechanicalObject', name='goalMO', position=[0.0, 0.0, 125.0])
     goal.addObject('SphereCollisionModel', radius=5.0, group='1')
@@ -88,7 +101,7 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
     # Robot
     robot = rootNode.addChild('Robot')
     # The solvers
-    robot.addObject('EulerImplicitSolver')
+    robot.addObject('EulerImplicitIntegrationScheme')
     robot.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name="linearsolver")
     
     # Load the volume mesh
@@ -101,8 +114,8 @@ def createScene(rootNode, config=DEFAULT_CONFIG, mode='simu_and_visu'):
     robot.addObject('TetrahedronFEMForceField', youngModulus=180, poissonRatio=0.45)
     # Fix a part of the model
     robot.addObject('BoxROI', name="boxROI", box=[-15, -15, -40,  15, 15, 10], drawBoxes=True)
-    robot.addObject('FixedConstraint', indices="@boxROI.indices")
-    robot.addObject('LinearSolverConstraintCorrection', solverName="@preconditioner")
+    robot.addObject('FixedProjectiveConstraint', indices="@boxROI.indices")
+    robot.addObject('LinearSolverConstraintCorrection', linearSolver="@linearsolver")
 
     # Actuators
     actuators = robot.addChild('Actuators')

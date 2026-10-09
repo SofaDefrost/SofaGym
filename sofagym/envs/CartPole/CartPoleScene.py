@@ -18,11 +18,20 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0,
         collisionFilename = filename
 
     object = node.addChild(name)
-    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='SofaRigid SofaLoader')
+    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='Sofa.Component.Collision.Geometry '
+                                                                      'Sofa.Component.Constraint.Lagrangian.Correction '
+                                                                      'Sofa.Component.IO.Mesh '
+                                                                      'Sofa.Component.IntegrationScheme.Backward '
+                                                                      'Sofa.Component.LinearSolver.Iterative '
+                                                                      'Sofa.Component.Mapping.NonLinear '
+                                                                      'Sofa.Component.Mass '
+                                                                      'Sofa.Component.StateContainer '
+                                                                      'Sofa.Component.Topology.Container.Constant '
+                                                                      'Sofa.GL.Component.Rendering3D')
     object.addObject('MechanicalObject', template='Rigid3', position=position, showObject=False, showObjectScale=5)
 
     if withSolver:
-        object.addObject('EulerImplicitSolver', name='TimeIntegrationSchema')
+        object.addObject('EulerImplicitIntegrationScheme', name='TimeIntegrationSchema')
         object.addObject('CGLinearSolver', tolerance=1e-9, iterations=200, threshold=1e-9)
         object.addObject('UncoupledConstraintCorrection')
 
@@ -77,7 +86,7 @@ def createScene(root,
                     "Sofa.Component.StateContainer",
                     "Sofa.Component.Mapping.NonLinear",
                     "Sofa.Component.LinearSolver.Iterative",
-                    "Sofa.Component.ODESolver.Backward",
+                    "Sofa.Component.IntegrationScheme.Backward",
                     "Sofa.Component.Engine.Generate",
                     "Sofa.Component.Mass",
                     "Sofa.Component.Constraint.Projective",
@@ -153,7 +162,7 @@ def createScene(root,
     pole = addRigidObject(modeling, filename= mesh_obj, collisionFilename=mesh_obj, position=pole_position, scale=pole_scale, color=pole_color, mass=pole_mass, name='Pole', withSolver=True, withCollision=True)
 
     # Constraints
-    pole.addObject('PartialFixedConstraint', fixedDirections=[0, 0, 0, 1, 1, 0])
+    pole.addObject('PartialFixedProjectiveConstraint', fixedDirections=[0, 0, 0, 1, 1, 0])
     pole_constraints = pole.addChild("PoleConstraints")
     pole_constraints.addObject('MechanicalObject', name='point', template='Vec3', position=[0, -11, -1.15], showObject=False, showObjectScale=5)
     pole_constraints.addObject('RigidMapping')
@@ -161,8 +170,8 @@ def createScene(root,
     # Simulation
     simulation = root.addChild('Simulation')
     simulation.addChild(modeling)
-    simulation.addObject("SlidingConstraint", name="constraint1", object1=cart_sliding_constraints.sliding_point.getLinkPath(), object2=sliding_line.points.getLinkPath(), sliding_point="0", axis_1="0", axis_2="1")
-    simulation.addObject("BilateralInteractionConstraint", template="Vec3", object1=cart_pivot_constraints.pivot_point.getLinkPath(), object2=pole_constraints.point.getLinkPath(), first_point="0", second_point="0")
+    simulation.addObject("SlidingLagrangianConstraint", name="constraint1", object1=cart_sliding_constraints.sliding_point.getLinkPath(), object2=sliding_line.points.getLinkPath(), sliding_point="0", axis_1="0", axis_2="1")
+    simulation.addObject("BilateralLagrangianConstraint", template="Vec3", object1=cart_pivot_constraints.pivot_point.getLinkPath(), object2=pole_constraints.point.getLinkPath(), first_point="0", second_point="0")
 
     # SofaGym Env Components
     root.addObject(StateInitializer(name="StateInitializer", rootNode=root, pole_length=pole_length, init_states=config['init_states']))

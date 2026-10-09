@@ -25,6 +25,7 @@ from sofagym.header import addVisu as visu
 
 from BubbleMotion import BubbleMotion
 from BubbleMotionToolbox import rewardShaper, sceneModerator, applyAction, goalSetter
+from Controller import ControllerBubbleMotion
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
@@ -46,11 +47,13 @@ def createScene(rootNode, config={"source": [5, -5, 20],
                                   "dt": 0.01,
                                   "max_pressure": 40,
                                   "init_pos": [5, 5, 5],
-                                  "board_dim": 8},
+                                  "board_dim": 8,
+                                  "keyboard_controller": True},
                 mode='simu_and_visu'):
 
     header(rootNode, alarmDistance=0.3, contactDistance=0.1, tolerance=1e-4, maxIterations=100, gravity=[0, 0, -981.0],
            dt=config['dt'])
+    rootNode.addObject('RequiredPlugin', pluginName='SoftRobots')
 
     position_spot = [[0, 0, -25]]
     direction_spot = [[0.0, 0, 1]]
@@ -71,7 +74,8 @@ def createScene(rootNode, config={"source": [5, -5, 20],
     rootNode.addObject(sceneModerator(name="sceneModerator", bubblemotion=bubblemotion))
     rootNode.addObject(applyAction(name="applyAction", root=rootNode, bubblemotion=bubblemotion))
 
-    # rootNode.addObject(ControllerBubbleMotion(name="Controller", root= rootNode, bubblemotion = bubblemotion, max_pressure = config["max_pressure"]))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(ControllerBubbleMotion(name="Controller", root= rootNode, bubblemotion = bubblemotion, max_pressure = config["max_pressure"]))
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")

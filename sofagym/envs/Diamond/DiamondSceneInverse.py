@@ -23,18 +23,18 @@ def createScene(rootNode):
     # Required plugin
     rootNode.addObject('RequiredPlugin', pluginName='SoftRobots SoftRobots.Inverse')
 
-    rootNode.addObject('FreeMotionMasterSolver')
-    rootNode.addObject('DefaultPipeline', verbose=False)
+    rootNode.addObject('FreeMotionAnimationLoop')
+    rootNode.addObject('CollisionPipeline', verbose=False)
     rootNode.addObject('BruteForceBroadPhase')
     rootNode.addObject('BVHNarrowPhase')
-    rootNode.addObject('DefaultContactManager', response='FrictionContact')
+    rootNode.addObject('CollisionResponse', response='FrictionContactConstraint')
     rootNode.addObject('LocalMinDistance', name="Proximity", alarmDistance=3.0, contactDistance=0.5)
     rootNode.addObject('QPInverseProblemSolver', name="QP", printLog=False)
     rootNode.addObject('BackgroundSetting', color=[0.0, 0.168627, 0.211765])
 
     # goal
     goal = rootNode.addChild('goal')
-    goal.addObject('EulerImplicitSolver', firstOrder=True)
+    goal.addObject('EulerImplicitIntegrationScheme', firstOrder=True)
     goal.addObject('CGLinearSolver', iterations=100, threshold=1e-5, tolerance=1e-5)
     goal.addObject('MechanicalObject', name='goalMO', position=[30.0, 0.0, 125.0])
     goal.addObject('SphereCollisionModel', radius=5.0, group='1')
@@ -42,9 +42,14 @@ def createScene(rootNode):
 
     # feuille
     feuille = rootNode.addChild('feuille')
-    feuille.addObject('EulerImplicitSolver')
-    feuille.addObject('ShewchukPCGLinearSolver', iterations=1, name="linearsolver", tolerance=1e-5,
-                      preconditioners="preconditioner", use_precond=True, update_step=1)
+    feuille.addObject('EulerImplicitIntegrationScheme')
+    # SOFA 26 update: PCGLinearSolver.update_step was removed, its role is taken by assemblingRate on a
+    # PreconditionedMatrixFreeSystem.
+    feuille.addObject('PreconditionedMatrixFreeSystem', assemblingRate=1)
+    # SOFA 26 update: the preconditioner must exist before PCGLinearSolver links to it.
+    feuille.addObject('SparseLDLSolver', name="preconditioner")
+    feuille.addObject('PCGLinearSolver', iterations=1, name="linearsolver", tolerance=1e-5,
+                      preconditioner="@preconditioner", use_precond=True)
     feuille.addObject('MeshVTKLoader', name="loader", filename=path+'siliconeV0.vtu')
     feuille.addObject('TetrahedronSetTopologyContainer', src="@loader")
     feuille.addObject('TetrahedronSetGeometryAlgorithms', drawTetrahedra=False, template="Vec3")
@@ -53,9 +58,8 @@ def createScene(rootNode):
     feuille.addObject('UniformMass', totalMass=0.5)
     feuille.addObject('TetrahedronFEMForceField', youngModulus=180, poissonRatio=0.45)
     feuille.addObject('BoxROI', name="boxROI", box=[[-15, -15, -40], [15, 15, 10]], drawBoxes=True)
-    feuille.addObject('FixedConstraint', indices="@boxROI.indices")
-    feuille.addObject('SparseLDLSolver', name="preconditioner")
-    feuille.addObject('LinearSolverConstraintCorrection', solverName="preconditioner")
+    feuille.addObject('FixedProjectiveConstraint', indices="@boxROI.indices")
+    feuille.addObject('LinearSolverConstraintCorrection', linearSolver="@preconditioner")
 
     # feuille/controlledPoints
     controlledPoints = feuille.addChild('controlledPoints')

@@ -125,28 +125,40 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
 	rootNode.dt.value = config["dt"]
 
 	rootNode.addObject('RequiredPlugin', name="SoftRobots", pluginName='SoftRobots')
-	rootNode.addObject('RequiredPlugin', name="SofaPython", pluginName='SofaPython3')
-	rootNode.addObject('RequiredPlugin', name='SofaOpenglVisual')
-	rootNode.addObject('RequiredPlugin', name="SofaSparseSolver")
-	rootNode.addObject('RequiredPlugin', name='SofaPreconditioner')
-	rootNode.addObject('RequiredPlugin', name='SofaConstraint')
-	rootNode.addObject('RequiredPlugin', name="SofaImplicitOdeSolver")
-	rootNode.addObject('RequiredPlugin', name='SofaLoader')
-	rootNode.addObject('RequiredPlugin', name='SofaBoundaryCondition')
-	rootNode.addObject('RequiredPlugin', name='SofaDeformable')
-	rootNode.addObject('RequiredPlugin', name="SofaEngine")
-	rootNode.addObject('RequiredPlugin', name='SofaGeneralLoader')
-	rootNode.addObject('RequiredPlugin', name="SofaMeshCollision")
-	rootNode.addObject('RequiredPlugin', name='SofaSimpleFem')
+	pluginList = ["Sofa.Component.AnimationLoop",
+				  "Sofa.Component.Collision.Detection.Algorithm",
+				  "Sofa.Component.Collision.Detection.Intersection",
+				  "Sofa.Component.Collision.Geometry",
+				  "Sofa.Component.Collision.Response.Contact",
+				  "Sofa.Component.Constraint.Lagrangian.Correction",
+				  "Sofa.Component.Constraint.Lagrangian.Solver",
+				  "Sofa.Component.Constraint.Projective",
+				  "Sofa.Component.Engine.Select",
+				  "Sofa.Component.IO.Mesh",
+				  "Sofa.Component.IntegrationScheme.Backward",
+				  "Sofa.Component.LinearSolver.Direct",
+				  "Sofa.Component.Mapping.Linear",
+				  "Sofa.Component.Mass",
+				  "Sofa.Component.Playback",
+				  "Sofa.Component.Setting",
+				  "Sofa.Component.SolidMechanics.FEM.Elastic",
+				  "Sofa.Component.SolidMechanics.Spring",
+				  "Sofa.Component.StateContainer",
+				  "Sofa.Component.Topology.Container.Constant",
+				  "Sofa.Component.Topology.Container.Dynamic",
+				  "Sofa.Component.Visual",
+				  "Sofa.GL.Component.Rendering3D",
+				  "Sofa.GL.Component.Shader"]
+	rootNode.addObject('RequiredPlugin', pluginName=pluginList)
 
 	rootNode.addObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels hideBoundingCollisionModels hideForceFields showInteractionForceFields hideWireframe')
 
 	if simu:
-		rootNode.addObject('GenericConstraintSolver', maxIterations=2500, tolerance=1e-15)
+		rootNode.addObject('BlockGaussSeidelConstraintSolver', maxIterations=2500, tolerance=1e-15)
 		rootNode.addObject('FreeMotionAnimationLoop')
-		rootNode.addObject('DefaultPipeline', verbose=0)
+		rootNode.addObject('CollisionPipeline', verbose=0)
 		rootNode.addObject('BruteForceDetection', name="N2")
-		rootNode.addObject('DefaultContactManager', response="FrictionContactConstraint", responseParams="mu=0.8")
+		rootNode.addObject('CollisionResponse', response="FrictionContactConstraint", responseParams="mu=0.8")
 		rootNode.addObject('LocalMinDistance', name="Proximity", alarmDistance=2, contactDistance=0.5, angleCone=0, coneFactor=0.5)
 
 	if visu:
@@ -154,7 +166,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
 		rootNode.addObject('BackgroundSetting', color=[1, 1, 1, 1])
 	#cylinder
 	cylinder = rootNode.addChild('cylinder')
-	cylinder.addObject('EulerImplicitSolver')
+	cylinder.addObject('EulerImplicitIntegrationScheme')
 	cylinder.addObject('SparseLDLSolver', template="CompressedRowSparseMatrixMat3x3d")
 	cylinder.addObject('MeshVTKLoader', name='loader', filename=path+'cup.vtk', translation=[42, -50, 40], rotation=[-90, 0, 0])
 
@@ -192,7 +204,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
 
 	#trunk
 	trunk = rootNode.addChild('trunk')
-	trunk.addObject('EulerImplicitSolver', name='odesolver', firstOrder=0, rayleighMass=0.1, rayleighStiffness=0.1)
+	trunk.addObject('EulerImplicitIntegrationScheme', name='odesolver', firstOrder=0, rayleighMass=0.1, rayleighStiffness=0.1)
 	trunk.addObject('EigenSimplicialLDLT', template='CompressedRowSparseMatrixd', name='linearSolver')
 
 	trunk.addObject('MeshVTKLoader', name='loader', filename=path+'trunk2.vtk')
@@ -206,10 +218,10 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
 	trunk.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large', poissonRatio=0.3,  youngModulus=600)
 
 	trunk.addObject('BoxROI', name='boxROI', box=[-10, -10, 0, 10, 10, 10], drawBoxes=True)
-	trunk.addObject('PartialFixedConstraint', fixedDirections=[1, 1, 1], indices="@boxROI.indices")
+	trunk.addObject('PartialFixedProjectiveConstraint', fixedDirections=[1, 1, 1], indices="@boxROI.indices")
 
 	if simu:
-		trunk.addObject('LinearSolverConstraintCorrection', name='GCS', solverName='precond')
+		trunk.addObject('LinearSolverConstraintCorrection', name='GCS', linearSolver='@linearSolver')
 
 	# trunk/cables
 	add_cable(trunk)
@@ -247,7 +259,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
 		boxVisu.addObject('OglModel', name="support", template='Vec3d', color=[0.2, 0.2, 0.2, 1.], src="@loaderSupport")
 
 	boxContact = rootNode.addChild('boxContact')
-	boxContact.addObject('MeshObjLoader', name='loader', filename=path+'square1.obj', scale=300, rotation=[90, 0, 180], translation=[150, -100, -20])
+	boxContact.addObject('MeshOBJLoader', name='loader', filename=path+'square1.obj', scale=300, rotation=[90, 0, 180], translation=[150, -100, -20])
 	boxContact.addObject('MeshTopology', src='@loader', name='topo')
 	boxContact.addObject('MechanicalObject')
 	boxContact.addObject('TriangleCollisionModel', group=2)

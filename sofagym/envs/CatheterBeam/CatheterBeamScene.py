@@ -7,6 +7,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 import numpy as np
 from CatheterBeamToolbox import GoalSetter, RewardShaper
+from sofagym.utils import addWireRestShape
 from splib3.animation import AnimationManagerController
 
 path = dirname(abspath(__file__)) + '/mesh/'
@@ -48,7 +49,7 @@ def createScene(root,
                     "Sofa.Component.Mapping.NonLinear",
                     "Sofa.Component.LinearSolver.Direct",
                     "Sofa.Component.LinearSolver.Iterative",
-                    "Sofa.Component.ODESolver.Backward",
+                    "Sofa.Component.IntegrationScheme.Backward",
                     "Sofa.Component.Engine.Generate",
                     "Sofa.Component.Mass",
                     "Sofa.Component.MechanicalLoad",
@@ -81,17 +82,17 @@ def createScene(root,
     root.addObject('FreeMotionAnimationLoop')
     root.addObject('LCPConstraintSolver', mu=0.1, tolerance=1e-10, maxIt=1000, build_lcp=False)
 
-    root.addObject('DefaultPipeline', depth=6, verbose=True, draw=False)
+    root.addObject('CollisionPipeline', depth=6, verbose=True, draw=False)
     root.addObject('BruteForceBroadPhase')
     root.addObject('BVHNarrowPhase')
     root.addObject('LocalMinDistance', alarmDistance=2, contactDistance=1, angleCone=0.8, coneFactor=0.8)
-    root.addObject('DefaultContactManager', name='Response', response='FrictionContactConstraint')
+    root.addObject('CollisionResponse', name='Response', response='FrictionContactConstraint')
 
     # SCENE
     ## Catheter
     cath = root.addChild('topoLines_cath')
-    cath.addObject('WireRestShape', template='Rigid3d', printLog=False, name='catheterRestShape', length=1000.0, straightLength=600, spireDiameter=4000.0, spireHeight=0.0,
-                   densityOfBeams=[40, 10], numEdges=200, numEdgesCollis=[40, 20], youngModulus=10000, youngModulusExtremity=10000)		
+    addWireRestShape(cath, name='catheterRestShape', length=1000.0, straightLength=600, spireDiameter=4000.0, spireHeight=0.0,
+                   densityOfBeams=[40, 10], numEdges=200, numEdgesCollis=[40, 20], youngModulus=10000, youngModulusExtremity=10000, radius=1)		
     cath.addObject('EdgeSetTopologyContainer', name='meshLinesCath')
     cath.addObject('EdgeSetTopologyModifier', name='Modifier')
     cath.addObject('EdgeSetGeometryAlgorithms', name='GeomAlgo', template='Rigid3d')
@@ -99,8 +100,8 @@ def createScene(root,
 
     ## Guide
     guide = root.addChild('topoLines_guide')
-    guide.addObject('WireRestShape', template='Rigid3d', printLog=False, name='GuideRestShape', length=1000.0, straightLength=980.0, spireDiameter=25, spireHeight=0.0,
-                    densityOfBeams=[30, 5], numEdges=200, numEdgesCollis=[50, 10], youngModulus=10000, youngModulusExtremity=10000)
+    addWireRestShape(guide, name='GuideRestShape', length=1000.0, straightLength=980.0, spireDiameter=25, spireHeight=0.0,
+                    densityOfBeams=[30, 5], numEdges=200, numEdgesCollis=[50, 10], youngModulus=10000, youngModulusExtremity=10000, radius=0.9)
     guide.addObject('EdgeSetTopologyContainer', name='meshLinesGuide')
     guide.addObject('EdgeSetTopologyModifier', name='Modifier')
     guide.addObject('EdgeSetGeometryAlgorithms', name='GeomAlgo', template='Rigid3d')
@@ -108,8 +109,8 @@ def createScene(root,
 	
     ## Coils
     coils = root.addChild('topoLines_coils')
-    coils.addObject('WireRestShape', template='Rigid3d', printLog=False, name='CoilRestShape', length=600.0, straightLength=540.0, spireDiameter=7, spireHeight=5.0,
-                    densityOfBeams=[40, 20], numEdges=400, numEdgesCollis=[30, 30], youngModulus=168000, youngModulusExtremity=168000)
+    addWireRestShape(coils, name='CoilRestShape', length=600.0, straightLength=540.0, spireDiameter=7, spireHeight=5.0,
+                    densityOfBeams=[40, 20], numEdges=400, numEdgesCollis=[30, 30], youngModulus=168000, youngModulusExtremity=168000, radius=0.1)
     coils.addObject('EdgeSetTopologyContainer', name='meshLinesCoils')
     coils.addObject('EdgeSetTopologyModifier', name='Modifier')
     coils.addObject('EdgeSetGeometryAlgorithms', name='GeomAlgo', template='Rigid3d')
@@ -117,25 +118,25 @@ def createScene(root,
 
     ## Combined Instrument
     instrument = root.addChild('InstrumentCombined')
-    instrument.addObject('EulerImplicitSolver', rayleighStiffness=0.2, rayleighMass=0.1, printLog=False)
+    instrument.addObject('EulerImplicitIntegrationScheme', rayleighStiffness=0.2, rayleighMass=0.1, printLog=False)
     instrument.addObject('BTDLinearSolver', subpartSolve=False, verification=False, verbose=False)
     instrument.addObject('RegularGridTopology', name='meshLinesCombined', nx=60, ny=1, nz=1, xmin=0.0, xmax=1.0, ymin=0, ymax=0, zmin=1, zmax=1)
     instrument.addObject('MechanicalObject', template='Rigid3d', name='DOFs', showIndices=False, ry=-90)
     
-    instrument.addObject('WireBeamInterpolation', name='InterpolCatheter', WireRestShape='@../topoLines_cath/catheterRestShape', radius=1, printLog=False)
+    instrument.addObject('WireBeamInterpolation', name='InterpolCatheter', WireRestShape='@../topoLines_cath/catheterRestShape', printLog=False)
     instrument.addObject('AdaptiveBeamForceFieldAndMass', name='CatheterForceField', interpolation='@InterpolCatheter', massDensity=0.00000155)	
     
-    instrument.addObject('WireBeamInterpolation', name='InterpolGuide', WireRestShape='@../topoLines_guide/GuideRestShape', radius=0.9, printLog=False)
+    instrument.addObject('WireBeamInterpolation', name='InterpolGuide', WireRestShape='@../topoLines_guide/GuideRestShape', printLog=False)
     instrument.addObject('AdaptiveBeamForceFieldAndMass', name='GuideForceField', interpolation='@InterpolGuide', massDensity=0.00000155)
     
-    instrument.addObject('WireBeamInterpolation', name='InterpolCoils', WireRestShape='@../topoLines_coils/CoilRestShape', radius=0.1, printLog=False)
+    instrument.addObject('WireBeamInterpolation', name='InterpolCoils', WireRestShape='@../topoLines_coils/CoilRestShape', printLog=False)
     instrument.addObject('AdaptiveBeamForceFieldAndMass', name='CoilsForceField', interpolation='@InterpolCoils', massDensity=0.000021)	
     
     instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[1, 0, 0], step=3, rotationInstrument=[0, 0, 0],
                          controlledInstrument=0, startingPos=[0, 0, 0, 0, -0.7071068, 0, 0.7071068], speed=0, instruments=['InterpolCatheter', 'InterpolGuide', 'InterpolCoils'])
     
     instrument.addObject('LinearSolverConstraintCorrection', printLog=False, wire_optimization=True)
-    instrument.addObject('FixedConstraint', name='FixedConstraint', indices=0)
+    instrument.addObject('FixedProjectiveConstraint', name='FixedProjectiveConstraint', indices=0)
     instrument.addObject('RestShapeSpringsForceField', points='@m_ircontroller.indexFirstNode', stiffness=1e8, angularStiffness=1e8)
     
     collis = instrument.addChild('Collis', activated=True)

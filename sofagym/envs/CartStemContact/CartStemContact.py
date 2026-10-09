@@ -61,7 +61,7 @@ class CartStem:
                                          collisionGroup=0)
 
         # ADD PARTIAL CONSTRAINT FOR THE CART
-        self.cart.addObject('PartialFixedConstraint', fixedDirections=[0, 1, 1, 1, 1, 1])
+        self.cart.addObject('PartialFixedProjectiveConstraint', fixedDirections=[0, 1, 1, 1, 1, 1])
 
     def _createSphere(self, parent, idx, name="Sphere", scale=1., translation=[0, 0, 0], collisionGroup=0):
         sphereVisu = parent.addChild(name+"_VisualModel")
@@ -119,14 +119,14 @@ class Contacts:
         pos_Cube_1[0] = pos_Cube_1[0] + self.cube_x[0]
         self.Cube_1 = addRigidObject(self.contacts, filename='mesh/cube.obj', name='Cube_1', scale=self.cube_size,
                                      position=pos_Cube_1 + [0, 0.3826834, 0, 0.9238795])
-        self.Cube_1.addObject('FixedConstraint', indices=0)
+        self.Cube_1.addObject('FixedProjectiveConstraint', indices=0)
 
         # ADD Cube2
         pos_Cube_2 = [p for p in self.init_pos]
         pos_Cube_2[0] = pos_Cube_2[0] + self.cube_x[1]
         self.Cube_2 = addRigidObject(self.contacts, filename='mesh/cube.obj', name='Cube_2', scale=self.cube_size,
                                      position=pos_Cube_2 + [0, 0.3826834, 0, 0.9238795])
-        self.Cube_2.addObject('FixedConstraint', indices=0)
+        self.Cube_2.addObject('FixedProjectiveConstraint', indices=0)
 
     def getPos(self):
         return self.cube_x + self.cube_size

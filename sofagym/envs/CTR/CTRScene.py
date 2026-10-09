@@ -21,6 +21,7 @@ import SofaRuntime
 from splib3.animation import AnimationManagerController
 
 from CTRToolbox import RewardShaper, GoalSetter
+from sofagym.utils import addWireRestShape
 
 # Register all the common component in the factory.
 SofaRuntime.importPlugin("Sofa.Component")
@@ -30,16 +31,29 @@ path = dirname(abspath(__file__)) + '/'
 
 def add_plugins(root):
     root.addObject('RequiredPlugin', pluginName='BeamAdapter')
-    root.addObject('RequiredPlugin', name='SofaOpenglVisual')
 
-    root.addObject('RequiredPlugin', name='SofaBoundaryCondition')
-    root.addObject('RequiredPlugin', name='SofaConstraint')
-    root.addObject('RequiredPlugin', name='SofaDeformable')
-    root.addObject('RequiredPlugin', name='SofaGeneralLinearSolver')
-    root.addObject('RequiredPlugin', name='SofaImplicitOdeSolver')
-    root.addObject('RequiredPlugin', name='SofaLoader')
-    root.addObject('RequiredPlugin', name='SofaMeshCollision')
-    root.addObject('RequiredPlugin', name='SofaTopologyMapping')
+    pluginList = ["Sofa.Component.AnimationLoop",
+                  "Sofa.Component.Collision.Detection.Algorithm",
+                  "Sofa.Component.Collision.Detection.Intersection",
+                  "Sofa.Component.Collision.Geometry",
+                  "Sofa.Component.Collision.Response.Contact",
+                  "Sofa.Component.Constraint.Lagrangian.Correction",
+                  "Sofa.Component.Constraint.Lagrangian.Solver",
+                  "Sofa.Component.Constraint.Projective",
+                  "Sofa.Component.IO.Mesh",
+                  "Sofa.Component.IntegrationScheme.Backward",
+                  "Sofa.Component.LinearSolver.Direct",
+                  "Sofa.Component.Mapping.Linear",
+                  "Sofa.Component.SolidMechanics.Spring",
+                  "Sofa.Component.StateContainer",
+                  "Sofa.Component.Topology.Container.Constant",
+                  "Sofa.Component.Topology.Container.Dynamic",
+                  "Sofa.Component.Topology.Container.Grid",
+                  "Sofa.Component.Topology.Mapping",
+                  "Sofa.Component.Visual",
+                  "Sofa.GL.Component.Rendering3D",
+                  "Sofa.GL.Component.Shader"]
+    root.addObject('RequiredPlugin', pluginName=pluginList)
 
     return root
 
@@ -61,13 +75,13 @@ def add_visuals_and_solvers(root, config, mode_simu=True, mode_visu=True):
     lcp_solver = root.addObject('LCPConstraintSolver', mu=0.1, tolerance=3e-4, maxIt=10000, build_lcp=False)
 
     if mode_simu:
-        root.addObject('DefaultPipeline', draw=False, depth=6, verbose=False)
+        root.addObject('CollisionPipeline', draw=False, depth=6, verbose=False)
         # root.addObject('BruteForceBroadPhase')
         # root.addObject('BVHNarrowPhase')
 
-        root.addObject('GenericConstraintSolver', maxIterations=500, tolerance=1e-8)
+        root.addObject('BlockGaussSeidelConstraintSolver', maxIterations=500, tolerance=1e-8)
         root.addObject('BruteForceDetection', name="N2")
-        root.addObject('DefaultContactManager', name='Response', response="FrictionContactConstraint")
+        root.addObject('CollisionResponse', name='Response', response="FrictionContactConstraint")
         root.addObject('LocalMinDistance', contactDistance=0.1, alarmDistance=1.0, name='localmindistance',
                        angleCone=0.2)
 
@@ -87,10 +101,9 @@ def add_goal_node(root):
 def add_instrument_topology(root, name, i):
     # Topo Guide
     topology_node = root.addChild('topoLines_'+name)
-    topology_node.addObject('WireRestShape', name=name+'RestShape', straightLength=475+i*5, length=500, numEdges=200,
-                            youngModulus=50000, spireDiameter=25-i*5, numEdgesCollis=[50, 10], printLog=False,
-                            template='Rigid3d', spireHeight=0.0, densityOfBeams=[30, 5],
-                            youngModulusExtremity=50000*(i+1))
+    addWireRestShape(topology_node, name=name+'RestShape', straightLength=475+i*5, length=500, numEdges=200,
+                     youngModulus=50000, spireDiameter=25-i*5, numEdgesCollis=[50, 10],
+                     spireHeight=0.0, densityOfBeams=[30, 5], youngModulusExtremity=50000*(i+1), radius=0.15)
     topology_node.addObject('MechanicalObject', name='dofTopo2', template='Rigid3d')
     topology_node.addObject('EdgeSetTopologyContainer', name='meshLines'+name)
     topology_node.addObject('EdgeSetTopologyModifier', name='Modifier')
@@ -102,7 +115,7 @@ def add_instruments_combined(root, instrument_list, mode_simu=True):
     instrument_combined_node = root.addChild('InstrumentCombined')
     instrument_combined_node.addObject('VisualStyle', displayFlags='hideWireframe')
     # if mode_simu:
-    instrument_combined_node.addObject('EulerImplicitSolver', rayleighStiffness=0.2, printLog=False, rayleighMass=0.1)
+    instrument_combined_node.addObject('EulerImplicitIntegrationScheme', rayleighStiffness=0.2, printLog=False, rayleighMass=0.1)
     instrument_combined_node.addObject('BTDLinearSolver', verification=False, subpartSolve=False, verbose=False)
     instrument_combined_node.addObject('RegularGridTopology', name='meshLinesCombined', zmax=1, zmin=1, nx=60, ny=1,
                                        nz=1, xmax=1.0, xmin=0.0, ymin=0, ymax=0)
@@ -111,7 +124,7 @@ def add_instruments_combined(root, instrument_list, mode_simu=True):
     for instrument in instrument_list:
         instrument_combined_node.addObject('WireBeamInterpolation',
                                            WireRestShape='@../topoLines_'+instrument+'/'+instrument+'RestShape',
-                                           radius=0.15, printLog=False, name='Interpol'+instrument,
+                                           printLog=False, name='Interpol'+instrument,
                                            edgeList=[k for k in range(60)])
         instrument_combined_node.addObject('AdaptiveBeamForceFieldAndMass', massDensity=0.00000155,
                                            name=instrument+'ForceField', interpolation='@Interpol'+instrument)
@@ -123,7 +136,7 @@ def add_instruments_combined(root, instrument_list, mode_simu=True):
                                        controlledInstrument=0)
     if mode_simu:
         instrument_combined_node.addObject('LinearSolverConstraintCorrection', wire_optimization='true', printLog=False)
-    instrument_combined_node.addObject('FixedConstraint', indices=0, name='FixedConstraint')
+    instrument_combined_node.addObject('FixedProjectiveConstraint', indices=0, name='FixedProjectiveConstraint')
     instrument_combined_node.addObject('RestShapeSpringsForceField', points='@m_ircontroller.indexFirstNode',
                                        angularStiffness=1e0, stiffness=1e0)
 
@@ -162,7 +175,7 @@ def add_instrument_visual(instrument_combined_node, instrument_name, color, i):
 
 def add_geometry(root, config, mode_simu=True, mode_visu=True):
     geometry = root.addChild('Vessels')
-    geometry.addObject('MeshObjLoader', filename=path+config["mesh"], flipNormals=True, triangulate=True,
+    geometry.addObject('MeshOBJLoader', filename=path+config["mesh"], flipNormals=True, triangulate=True,
                        name='meshLoader', scale=config["scale"], translation=config["translation"],
                        rotation=config["rotation"], printLog=False)
     geometry.addObject('MeshTopology', position='@meshLoader.position', triangles='@meshLoader.triangles')
