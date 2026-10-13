@@ -7,47 +7,35 @@ the keys expected by the controller. Something must have moved between the two r
 
 import importlib.util
 import json
-import os
-import pathlib
-import subprocess
-import sys
 
 import pytest
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-RUNNER = pathlib.Path(__file__).resolve().parent / "scene_runner.py"
+from helpers import REPO_ROOT, run_script
+
 ENVS = REPO_ROOT / "sofagym" / "envs"
 
 NB_PRESSES = 5
-TIMEOUT = 300
 
 # Key codes sent by the SOFA GUI: 18 left, 19 up, 20 right, 21 down.
 SCENE_KEYS = {
-    "BubbleMotion": 19,     # increase the pressure of the selected cavity
-    "CartStem": 20,         # push the cart right
+    "BubbleMotion": 19,  # increase the pressure of the selected cavity
+    "CartStem": 20,  # push the cart right
     "CartStemContact": 20,  # push the cart right
-    "CatchTheObject": 20,   # increase the pressure
-    "StemPendulum": 20,     # apply a torque
-    "Gripper": ord("1"),    # pull the finger cables
+    "CatchTheObject": 20,  # increase the pressure
+    "StemPendulum": 20,  # apply a torque
+    "Gripper": ord("1"),  # pull the finger cables
 }
 
-pytestmark = pytest.mark.skipif(importlib.util.find_spec("Sofa") is None,
-                                reason="SOFA python bindings not found, set SOFA_ROOT and PYTHONPATH")
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("Sofa") is None, reason="SOFA python bindings not found, set SOFA_ROOT and PYTHONPATH"
+)
 
 
 def run_scene(scene_file, dump, keys=()):
-    env = dict(os.environ)
-    env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(REPO_ROOT), env.get("PYTHONPATH")]))
-    key_args = [arg for key in keys for arg in ("--key", str(key))]
-
-    result = subprocess.run([sys.executable, str(RUNNER), str(scene_file), "--keyboard-controller",
-                             "--dump", str(dump), *key_args],
-                            cwd=REPO_ROOT, env=env, capture_output=True, text=True, timeout=TIMEOUT,
-                            check=False)
-
-    output = (result.stdout + result.stderr)[-5000:]
-    assert result.returncode == 0 and "SCENE_OK" in result.stdout, \
-        f"{scene_file.relative_to(REPO_ROOT)} failed (exit code {result.returncode}):\n{output}"
+    key_args = [arg for key in keys for arg in ("--key", key)]
+    run_script(
+        "scene_runner.py", scene_file, "--keyboard-controller", "--dump", dump, *key_args, success_marker="SCENE_OK"
+    )
     return json.loads(dump.read_text())
 
 

@@ -179,6 +179,23 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 
 
 
+### Units
+
+Each scene module declares the unit system its SOFA values are expressed in, with SofaPython3's `Sofa.Units`:
+
+```python
+UNITS = MechanicalUnitSystem(time=s, length=cm, mass=kg)
+```
+
+`tests/test_units.py` checks that each scene's gravity is either off or 9.81 m/s² in its declared units.
+
+| Unit system | Scenes |
+|---|---|
+| s, cm, kg | BubbleMotion, CartPole, CartStem, CartStemContact, CatchTheObject, SimpleMaze, StemPendulum |
+| s, mm, kg | Diamond, DiamondSceneInverse, Gripper, Maze, MultiGaitRobot, Trunk, TrunkCup, CTR and CatheterBeam (gravity off) |
+
+Diamond, DiamondSceneInverse and Gripper used a gravity of 9.81 (m/s²) with mm geometry, and TrunkCup 9180: they use 9810 mm/s² since the SOFA 26 update (towards the fixed base, -z, for the Diamond). CTR used 9.81 too: it has no gravity, as CatheterBeam.
+
 ### Keyboard Control
 
 Some scenes can be driven by hand from the SOFA GUI, through a keyboard controller defined in the environment's `Controller.py` (`Controllers.py` for the Gripper). The controller is added when the scene config has `"keyboard_controller": True`. This is the case in the scene's default config, which runSofa uses, so opening the scene is enough:
@@ -196,9 +213,13 @@ Key presses only reach the scene while a modifier is held: **Ctrl+Shift** in the
 | CartStemContact | `CartStemContactScene.py` | ←/→ push the cart left/right |
 | CatchTheObject | `CatchTheObjectScene.py` | ←/→ decrease/increase the pressure |
 | StemPendulum | `StemPendulumScene.py` | ←/→ apply torque in either direction |
+| CTR | `CTRScene.py` | 0/1/2 select the tube, ↑/↓ push/pull it, →/← spin it, D drop the tool (built in, see below) |
+| CatheterBeam | `CatheterBeamScene.py` | 0/1/2 select the catheter, guide or coils, ↑/↓ push/pull it, →/← spin it (built in, see below) |
 | Gripper | `GripperScene.py` | ←/→ and ↑/↓ move the fingers horizontally, U/D move them up/down, A/C, 5/6 and 7/8 rotate them around y, x and z, 1/2 pull/release the cables |
 
 The environments set `"keyboard_controller": False` in their `DEFAULT_CONFIG`, so no controller is added in batch mode (training, tests). Pass `config={"keyboard_controller": True}` to the environment to add it anyway.
+
+CTR and CatheterBeam do not use a Python controller: their keys are handled by BeamAdapter's `InterventionalRadiologyController` itself (`listening=True` in the scenes). It is always active in the GUI and is not affected by `keyboard_controller`, and it is not covered by the keyboard tests since SofaPython3 cannot send key events to C++ components.
 
 ### Adding New Environment
 

@@ -2,9 +2,8 @@
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
-
 
 
 from stlib3.scene import Scene as stScene
@@ -27,6 +26,7 @@ def Simulation(parent):
 
 def Scene(parent, **kwargs):
     import os
+
     if "plugins" not in kwargs:
         kwargs["plugins"] = []
 
@@ -34,7 +34,7 @@ def Scene(parent, **kwargs):
 
     scene = stScene(parent, **kwargs)
     setData(scene, dt=0.025)
-    setData(scene, gravity=[0., -9810., 0.])
+    setData(scene, gravity=[0.0, -9810.0, 0.0])
     setData(scene.VisualStyle, displayFlags="showBehavior showForceFields")
 
     Modelling(scene)

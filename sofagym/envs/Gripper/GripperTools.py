@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "emenager", "ekhairallah", "PSC"
 __contact__ = "etienne.menager@ens-rennes.fr", "pierre.schegg@robocath.com"
@@ -15,7 +14,6 @@ import SofaRuntime
 
 from math import cos, sin
 import numpy as np
-
 
 SofaRuntime.importPlugin("Sofa.Component")
 
@@ -41,6 +39,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -87,7 +86,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         reward = self.cost - current_cost
         self.cost = current_cost
-        return round(reward, 3)/20, self.cost
+        return round(reward, 3) / 20, self.cost
 
     def update(self, goal=None):
         """Compute the distance between object and goal.
@@ -208,12 +207,14 @@ def getState(root):
     """
     cs = 3
 
-    cube_pos = [round(float(k), cs) for k in root.Cube.mstate.position.value.reshape(-1)]
+    # The 8 corners of the cube, nodes of its 5x5x5 grid.
+    corners = [i + 5 * (j + 5 * k) for k in (0, 4) for j in (0, 4) for i in (0, 4)]
+    cube_pos = [round(float(k), cs) for k in root.Cube.mstate.position.value[corners].reshape(-1)]
 
     finger1 = root.Gripper.Finger1
     finger2 = root.Gripper.Finger2
 
-    displacement = [float((finger1.cables.cable1.aCableActuator.getData('value').value[0]-12.5)/12.5)]
+    displacement = [float((finger1.cables.cable1.aCableActuator.getData("value").value[0] - 12.5) / 12.5)]
 
     goal_pos = _getGoalPos(root).tolist()
     goal_pos[1] /= 30
@@ -228,7 +229,7 @@ def getState(root):
     finger_tips2[1] /= 140
     finger_tips2[2] /= 120
 
-    finger_tips = [(finger_tips1[i] + finger_tips2[i])/2 for i in range(3)]
+    finger_tips = [(finger_tips1[i] + finger_tips2[i]) / 2 for i in range(3)]
 
     state = cube_pos + displacement + finger_tips + goal_pos
 
@@ -276,13 +277,13 @@ def getTranslated(points, vec):
     r = []
 
     for v in points:
-        x = v[0]+vec[0]
-        y = v[1]+vec[1]
-        z = v[2]+vec[2]
+        x = v[0] + vec[0]
+        y = v[1] + vec[1]
+        z = v[2] + vec[2]
 
         r.append([x, y, z])
 
-        if not (abs(x)<120 and abs(y) < 140 and abs(z) < 120):
+        if not (abs(x) < 120 and abs(y) < 140 and abs(z) < 120):
             return None
 
     return r
@@ -305,13 +306,15 @@ def rotate_y(point, angle, rotation_center):
             The new coordinates of the point.
 
     """
-    translated = [point[0]-rotation_center[0], point[1]-rotation_center[1], point[2]-rotation_center[2]]
+    translated = [point[0] - rotation_center[0], point[1] - rotation_center[1], point[2] - rotation_center[2]]
 
-    rotated = [translated[0]*cos(angle)+translated[2]*sin(angle),
-               translated[1],
-               -translated[0]*sin(angle)+translated[2]*cos(angle)]
+    rotated = [
+        translated[0] * cos(angle) + translated[2] * sin(angle),
+        translated[1],
+        -translated[0] * sin(angle) + translated[2] * cos(angle),
+    ]
 
-    return [rotated[0]+rotation_center[0], rotated[1]+rotation_center[1], rotated[2]+rotation_center[2]]
+    return [rotated[0] + rotation_center[0], rotated[1] + rotation_center[1], rotated[2] + rotation_center[2]]
 
 
 def getRotated(points, angle, rotation_center):
@@ -357,9 +360,11 @@ def translateFingers(fingers, direction):
     res_list = []
     possible = True
 
+    # SOFA 26 update: the rest positions are translated, as in rotateFingers. Translating the positions left the base
+    # anchored to its rest position by the springs of FixedBox: the base never moved and the fingers bent away.
     for finger in fingers:
         mecaobject = finger.tetras
-        res = getTranslated(mecaobject.position.value,  direction)
+        res = getTranslated(mecaobject.rest_position.value, direction)
         res_list.append(res)
         if res is None:
             possible = False
@@ -368,11 +373,11 @@ def translateFingers(fingers, direction):
 
         for i, finger in enumerate(fingers):
             mecaobject = finger.tetras
-            mecaobject.position.value = res_list[i]
+            mecaobject.rest_position.value = res_list[i]
 
             cable = finger.cables.cable1.aCableActuator
             p = cable.pullPoint
-            cable.pullPoint.value = [p[0]+direction[0], p[1]+direction[1], p[2]+direction[2]]
+            cable.pullPoint.value = [p[0] + direction[0], p[1] + direction[1], p[2] + direction[2]]
 
 
 def getRotationCenter(fingers):
@@ -393,9 +398,11 @@ def getRotationCenter(fingers):
     for finger in fingers:
         cable = finger.cables.cable1.aCableActuator
         p = cable.pullPoint
-        rotation_center = [rotation_center[0] + p[0]/len(fingers),
-                           rotation_center[1] + p[1]/len(fingers),
-                           rotation_center[2] + p[2]/len(fingers)]
+        rotation_center = [
+            rotation_center[0] + p[0] / len(fingers),
+            rotation_center[1] + p[1] / len(fingers),
+            rotation_center[2] + p[2] / len(fingers),
+        ]
     return rotation_center
 
 
@@ -418,8 +425,9 @@ def rotateFingers(fingers, rot):
 
     for finger in fingers:
         mecaobject = finger.tetras
-        mecaobject.getData('rest_position').value = getRotated(mecaobject.getData('rest_position').value, rot,
-                                                               rotation_center)
+        mecaobject.getData("rest_position").value = getRotated(
+            mecaobject.getData("rest_position").value, rot, rotation_center
+        )
         cable = finger.cables.cable1.aCableActuator
         p = cable.pullPoint
         cable.getData("pullPoint").value = rotate_y(p, rot, rotation_center)
@@ -440,7 +448,7 @@ def displace(finger, displacement):
         None.
 
     """
-    cable = finger.cables.cable1.aCableActuator.getData('value')
+    cable = finger.cables.cable1.aCableActuator.getData("value")
 
     displacement = cable.value[0] + displacement
 

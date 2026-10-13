@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = ("emenager", "PSC")
 __contact__ = ("etienne.menager@ens-rennes.fr", "pierre.schegg@inria.fr")
@@ -19,7 +18,7 @@ from splib3.animation.animate import Animation
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from MazeTools import Graph, dijkstra
@@ -48,6 +47,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -95,15 +95,17 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         pos = self.ball_mo.position.value[0]
-        dist_to_path = [{'id': k, 'dist': np.linalg.norm(pos - path_point)}
-                        for k, path_point in enumerate(self.path_pos)]
-        sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
+        dist_to_path = [
+            {"id": k, "dist": np.linalg.norm(pos - path_point)} for k, path_point in enumerate(self.path_pos)
+        ]
+        sorted_dist = sorted(dist_to_path, key=lambda item: item["dist"])
         if len(sorted_dist) < 2:
             return 0.0
         closest_points = [sorted_dist[0]["id"], sorted_dist[1]["id"]]
 
-        new_ratio = max(max(self.path_length[closest_points[0]],
-                            self.path_length[closest_points[1]]), 0)/self.path_length[-1]
+        new_ratio = (
+            max(max(self.path_length[closest_points[0]], self.path_length[closest_points[1]]), 0) / self.path_length[-1]
+        )
         if new_ratio > self.prev_ratio:
             self.prev_ratio = new_ratio
             return 1.0, None
@@ -128,8 +130,16 @@ class rewardShaper(Sofa.Core.Controller):
         edges = []
         with self.path_mesh.edges.writeable() as Topoedges:
             for edge in Topoedges:
-                edges += [(edge[0], edge[1], np.linalg.norm(np.array(self.path_mesh.position.value[edge[0]]) -
-                                                            np.array(self.path_mesh.position.value[edge[1]])))]
+                edges += [
+                    (
+                        edge[0],
+                        edge[1],
+                        np.linalg.norm(
+                            np.array(self.path_mesh.position.value[edge[0]])
+                            - np.array(self.path_mesh.position.value[edge[1]])
+                        ),
+                    )
+                ]
 
         self.path_graph = Graph()
         for edge in edges:
@@ -203,7 +213,9 @@ class goalSetter(Sofa.Core.Controller):
 
         """
         self.goalPos = goal
-        new_position = self.rootNode.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.Path.dofs.position.value[self.goalPos][:3]
+        new_position = self.rootNode.Modelling.Tripod.RigidifiedStructure.FreeCenter.Maze.Path.dofs.position.value[
+            self.goalPos
+        ][:3]
         with self.goal.GoalMO.position.writeable() as position:
             position[0] = new_position
         with self.goal.mapping.initialPoints.writeable() as position:
@@ -307,9 +319,11 @@ def startCmd(root, action, duration):
 
     """
     num_actuator, displacement = action_to_command(action)
-    actuators = [root.Modelling.Tripod.ActuatedArm0,
-                 root.Modelling.Tripod.ActuatedArm1,
-                 root.Modelling.Tripod.ActuatedArm2]
+    actuators = [
+        root.Modelling.Tripod.ActuatedArm0,
+        root.Modelling.Tripod.ActuatedArm1,
+        root.Modelling.Tripod.ActuatedArm2,
+    ]
     actuator = actuators[num_actuator]
 
     startCmd_Maze(root, actuator, displacement, duration)
@@ -359,8 +373,13 @@ def startCmd_Maze(rootNode, actuator, displacement, duration):
 
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
-        Animation(onUpdate=executeAnimation, params={"actuator": actuator, "displacement": displacement},
-                  duration=duration, mode="once"))
+        Animation(
+            onUpdate=executeAnimation,
+            params={"actuator": actuator, "displacement": displacement},
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action):

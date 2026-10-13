@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""ServerEnv to use the server-client architecture.
-"""
+"""ServerEnv to use the server-client architecture."""
 
 __authors__ = ("PSC", "dmarchal", "emenager")
 __contact__ = ("pierre.schegg@robocath.com", "damien.marchal@univ-lille.fr", "etienne.menager@ens-rennes.fr")
@@ -13,7 +12,7 @@ from typing import Optional
 import numpy as np
 import copy
 
-import splib3
+import importlib
 
 from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
 
@@ -21,9 +20,9 @@ from sofagym.AbstractEnv import AbstractEnv
 
 
 class ServerEnv(AbstractEnv):
-    def __init__(self, default_config, config=None, render_mode: Optional[str]=None, root=None):
+    def __init__(self, default_config, config=None, render_mode: Optional[str] = None, root=None):
         super().__init__(default_config, config, root=root)
-        
+
         # Start the server which distributes the calculations to its clients
         start_server(self.config)
 
@@ -45,7 +44,7 @@ class ServerEnv(AbstractEnv):
                 The reward obtain after applying the action in the current state.
             done(bool):
                 Whether the agent reaches the terminal state
-            info(dict): 
+            info(dict):
                 additional information (not used here)
         """
         # assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
@@ -69,13 +68,13 @@ class ServerEnv(AbstractEnv):
         if self.timer >= self.config["timer_limit"]:
             # reward = -150
             truncated = True
-        
-        info = {} #(not use here)
+
+        info = {}  # (not use here)
 
         if self.config["planning"]:
             self.clean()
         return obs, reward, done, info
-    
+
     def async_step(self, action):
         """Executes one action in the environment.
 
@@ -113,7 +112,7 @@ class ServerEnv(AbstractEnv):
                 return obs, reward, done, {}
 
         return LateResult(copy.copy(result_id))
-    
+
     def reset(self):
         """Reset simulation.
 
@@ -128,13 +127,14 @@ class ServerEnv(AbstractEnv):
         self.clean()
         self.viewer = None
 
-        splib3.animation.animate.manager = None
+        # splib3.animation.animate is shadowed by the animate function, reset the global of the module itself.
+        importlib.import_module("splib3.animation.animate").manager = None
 
         self.timer = 0
         self.past_actions = []
 
         return
-    
+
     def clean(self):
         """Function to clean the registery .
 

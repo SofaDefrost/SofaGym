@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "PSC"
 __contact__ = "pierre.schegg@robocath.com"
@@ -15,7 +14,6 @@ import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
 from splib3.animation.animate import Animation
-
 
 SofaRuntime.importPlugin("Sofa.Component")
 
@@ -41,6 +39,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -76,12 +75,12 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         tip = self.rootNode.Robot.Actuators.actuatedPoints.position[0]
-        current_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
-        reward = max((self.prev_dist - current_dist)/self.prev_dist, 0)
+        current_dist = np.linalg.norm(np.array(tip) - np.array(self.goal_pos))
+        reward = max((self.prev_dist - current_dist) / self.prev_dist, 0)
         if current_dist < self.prev_dist:
             self.prev_dist = current_dist
 
-        return min(3*reward**(1/2), 1.0), current_dist
+        return min(3 * reward ** (1 / 2), 1.0), current_dist
 
     def update(self, goal=None):
         """Update function.
@@ -99,7 +98,7 @@ class rewardShaper(Sofa.Core.Controller):
         """
         self.goal_pos = goal
         tip = self.rootNode.Robot.Actuators.actuatedPoints.position[0]
-        self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
+        self.init_dist = np.linalg.norm(np.array(tip) - np.array(self.goal_pos))
         self.prev_dist = self.init_dist
 
 
@@ -263,10 +262,16 @@ def displace(root, displacement, n_steps):
     """
 
     cable_num, cable_disp = displacement
-    cables = [root.Robot.Actuators.north, root.Robot.Actuators.west, root.Robot.Actuators.south,
-              root.Robot.Actuators.east]
+    cables = [
+        root.Robot.Actuators.north,
+        root.Robot.Actuators.west,
+        root.Robot.Actuators.south,
+        root.Robot.Actuators.east,
+    ]
     cable = cables[cable_num - 1]
-    cable.value += cable_disp/n_steps
+    # A cable can only pull: actions never make its displacement negative (it pushed and folded the robot).
+    old = cable.value.value[0]
+    cable.value = [max(old + cable_disp / n_steps, min(old, 0.0))]
 
 
 def startCmd_Diamond(root, displacement, duration):
@@ -296,10 +301,11 @@ def startCmd_Diamond(root, displacement, duration):
     root.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"root": root,
-                    "displacement": displacement,
-                    "n_steps": duration},
-            duration=duration, mode="once"))
+            params={"root": root, "displacement": displacement, "n_steps": duration},
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action):

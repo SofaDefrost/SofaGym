@@ -35,8 +35,12 @@ def load_default_config(env_file):
         if not isinstance(node, ast.ClassDef):
             continue
         assignments = [stmt for stmt in node.body if isinstance(stmt, ast.Assign)]
-        if not any(target.id == "DEFAULT_CONFIG" for stmt in assignments for target in stmt.targets
-                   if isinstance(target, ast.Name)):
+        if not any(
+            target.id == "DEFAULT_CONFIG"
+            for stmt in assignments
+            for target in stmt.targets
+            if isinstance(target, ast.Name)
+        ):
             continue
         namespace = {"os": os, "sys": sys, "__file__": str(env_file)}
         exec(compile(ast.Module(body=assignments, type_ignores=[]), str(env_file), "exec"), namespace)
@@ -93,7 +97,20 @@ def mechanical_positions(root):
     return positions
 
 
-def run_scene(scene_file, steps, keyboard_controller=False, keys=(), dump=None):
+def check_units(module, root):
+    """The scene declares its UNITS, and its gravity is either off or 9.81 m/s^2 in these units."""
+    from Sofa.Units.Definitions import m, s
+
+    units = getattr(module, "UNITS", None)
+    if units is None:
+        raise RuntimeError("The scene does not declare its UNITS")
+    gravity = math.hypot(*root.gravity.value)
+    expected = units.convert(9.81, m / s**2)
+    if gravity != 0 and not math.isclose(gravity, expected, rel_tol=1e-3):
+        raise RuntimeError(f"Gravity is {gravity}, expected 0 or {expected} with the declared units")
+
+
+def run_scene(scene_file, steps, keyboard_controller=False, keys=(), dump=None, units=False):
     import numpy as np
     import Sofa
     import Sofa.Core
@@ -105,6 +122,12 @@ def run_scene(scene_file, steps, keyboard_controller=False, keys=(), dump=None):
     np.random.seed(0)
 
     module = load_scene_module(scene_file)
+
+    # SOFA 22.06 (used for regression references) has no initRoot, and crashes on the first message emitted from
+    # Python unless the SofaPython3 plugin is loaded. Loading it on SOFA 26 crashes at exit instead.
+    legacy_sofa = not hasattr(Sofa.Simulation, "initRoot")
+    if legacy_sofa:
+        SofaRuntime.importPlugin("SofaPython3")
 
     root = Sofa.Core.Node("root")
     SofaRuntime.importPlugin("Sofa.Component")
@@ -119,7 +142,9 @@ def run_scene(scene_file, steps, keyboard_controller=False, keys=(), dump=None):
         module.createScene(root, config, mode="simu_and_visu")
     else:
         module.createScene(root)
-    Sofa.Simulation.init(root)
+    (Sofa.Simulation.init if legacy_sofa else Sofa.Simulation.initRoot)(root)
+    if units:
+        check_units(module, root)
 
     dt = root.dt.value
     for step in range(steps):
@@ -140,11 +165,25 @@ if __name__ == "__main__":
     parser.add_argument("scene_file", help="Path to a *Scene*.py file defining createScene")
     parser.add_argument("--steps", type=int, default=10, help="Number of animation steps")
     parser.add_argument("--keyboard-controller", action="store_true", help="Add the scene keyboard controller")
-    parser.add_argument("--key", type=int, action="append", default=[],
-                        help="Key code to press halfway through the simulation, can be repeated")
+    parser.add_argument(
+        "--key",
+        type=int,
+        action="append",
+        default=[],
+        help="Key code to press halfway through the simulation, can be repeated",
+    )
     parser.add_argument("--dump", help="Write the positions of all MechanicalObjects to this json file")
+    parser.add_argument(
+        "--check-units", action="store_true", help="Check that the scene declares UNITS consistent with its gravity"
+    )
     args = parser.parse_args()
 
-    run_scene(os.path.abspath(args.scene_file), args.steps, args.keyboard_controller,
-              [chr(key) for key in args.key], args.dump)
+    run_scene(
+        os.path.abspath(args.scene_file),
+        args.steps,
+        args.keyboard_controller,
+        [chr(key) for key in args.key],
+        args.dump,
+        args.check_units,
+    )
     print("SCENE_OK")

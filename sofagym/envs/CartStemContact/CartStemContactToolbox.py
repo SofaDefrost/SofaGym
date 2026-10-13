@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Fab 3 2021"
@@ -19,7 +18,7 @@ from splib3.animation.animate import Animation
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
@@ -41,6 +40,7 @@ class rewardShaper(Sofa.Core.Controller):
             The scene.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -82,9 +82,9 @@ class rewardShaper(Sofa.Core.Controller):
         """
 
         current_sphere_pos = self._getSpherePos()
-        dist = float(abs(current_sphere_pos[0]-self.goal[0]))
+        dist = float(abs(current_sphere_pos[0] - self.goal[0]))
         r = -dist  # /self.init_goal_dist
-        reward = max(-self.max_dist, r)/self.max_dist
+        reward = max(-self.max_dist, r) / self.max_dist
         # reward = -dist
 
         return reward, dist
@@ -105,7 +105,7 @@ class rewardShaper(Sofa.Core.Controller):
         """
         self.goal = goal
         current_sphere_pos = self._getSpherePos()
-        self.init_goal_dist = float(abs(current_sphere_pos[0]-self.goal[0]))
+        self.init_goal_dist = float(abs(current_sphere_pos[0] - self.goal[0]))
 
     def _getSpherePos(self):
         pos = self.sphere.MechanicalObject.position.value[0, :3]
@@ -117,7 +117,7 @@ class goalSetter(Sofa.Core.Controller):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
         self.goalPos = None
-        if 'goalPos' in kwargs:
+        if "goalPos" in kwargs:
             self.goalPos = kwargs["goalPos"]
 
     def update(self, goal):
@@ -131,11 +131,11 @@ class sceneModerator(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
-        self.cartstem=None
+        self.cartstem = None
         if kwargs["cartstem"]:
             self.cartstem = kwargs["cartstem"]
 
-        self.contacts=None
+        self.contacts = None
         if kwargs["contacts"]:
             self.contacts = kwargs["contacts"]
 
@@ -200,7 +200,7 @@ class applyAction(Sofa.Core.Controller):
             print(">>  ERROR: No cartstem ...")
             exit(1)
 
-        self.max_incr = self.cartstem.max_v*self.cartstem.dt
+        self.max_incr = self.cartstem.max_v * self.cartstem.dt
         self.set_max_move(self.cartstem.max_move)
         print(">>  Init done.")
 
@@ -211,17 +211,17 @@ class applyAction(Sofa.Core.Controller):
     def _move(self, incr):
         cartMO = self.cart.RigidBaseMO
         pos = cartMO.position.value.tolist()
-        if abs(pos[0][0]+incr) < self.max_move:
+        if abs(pos[0][0] + incr) < self.max_move:
             pos[0][0] += incr
         cartMO.position.value = np.array(pos)
 
     def _normalizedAction_to_action(self, action):
-        return self.a*action + self.b
+        return self.a * action + self.b
 
     def compute_action(self, actions, nb_step):
         position_goal = self._normalizedAction_to_action(actions[0])
         current_position = self.cart.RigidBaseMO.position.value.tolist()[0][0]
-        incr = (position_goal - current_position)/nb_step
+        incr = (position_goal - current_position) / nb_step
 
         if abs(incr) > self.max_incr:
             if incr >= 0:
@@ -270,7 +270,7 @@ def startCmd(root, actions, duration):
         None.
 
     """
-    incr = action_to_command(actions, root, duration/root.dt.value + 1)
+    incr = action_to_command(actions, root, duration / root.dt.value + 1)
     startCmd_CartStem(root, incr, duration)
 
 
@@ -298,7 +298,6 @@ def startCmd_CartStem(rootNode, incr, duration):
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
         Animation(
-            onUpdate=executeAnimation,
-            params={"rootNode": rootNode,
-                    "incr": incr},
-            duration=duration, mode="once"))
+            onUpdate=executeAnimation, params={"rootNode": rootNode, "incr": incr}, duration=duration, mode="once"
+        )
+    )

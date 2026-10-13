@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "emenager"
 __contact__ = "etienne.menager@ens-rennes.fr"
@@ -44,6 +43,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -83,7 +83,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         robotFront = self._computeFront()
-        current_dist = np.sum(np.abs(robotFront-self.goal_pos))
+        current_dist = np.sum(np.abs(robotFront - self.goal_pos))
 
         # With velocity
         # return self._computeVelocity(), current_dist
@@ -100,7 +100,10 @@ class rewardShaper(Sofa.Core.Controller):
         # reward = (pos[0] - self.init_dist)
 
         # print(">>> Distance to positive x:", pos[0] - self.init_dist)
-        return reward, current_dist  # pos[0] - self.init_dist, current_dist  # (-10 + pos[0] - self.init_dist)/10,current_dist
+        return (
+            reward,
+            current_dist,
+        )  # pos[0] - self.init_dist, current_dist  # (-10 + pos[0] - self.init_dist)/10,current_dist
 
     def update(self):
         """Update function.
@@ -141,7 +144,7 @@ class rewardShaper(Sofa.Core.Controller):
         front_left = self.rootNode.solverNode.reducedModel.model.centerCavity.centerCavity.position.value[426]
         front_right = self.rootNode.solverNode.reducedModel.model.centerCavity.centerCavity.position.value[622]
 
-        return (front_left+front_right)/2
+        return (front_left + front_right) / 2
 
     def _computeVelocity(self):
         """Compute the  average velocity of tot_points points of the robot.
@@ -154,9 +157,9 @@ class rewardShaper(Sofa.Core.Controller):
         ------
             The average velocity.
         """
-        list_point_legs = [100*i for i in range(29)]
-        list_point_cent = [100*i for i in range(65)]
-        tot_points = 4*len(list_point_legs) + len(list_point_cent)
+        list_point_legs = [100 * i for i in range(29)]
+        list_point_cent = [100 * i for i in range(65)]
+        tot_points = 4 * len(list_point_legs) + len(list_point_cent)
 
         node = self.rootNode.solverNode.reducedModel.model
         points_RLC = np.sum(node.rearLeftCavity.rearLeftCavity.velocity.value[list_point_legs], axis=0)
@@ -165,7 +168,7 @@ class rewardShaper(Sofa.Core.Controller):
         points_GFC = np.sum(node.frontRightCavity.frontRightCavity.velocity.value[list_point_legs], axis=0)
         points_cent = np.sum(node.centerCavity.centerCavity.velocity.value[list_point_cent], axis=0)
 
-        vel = (points_RLC + points_GLC + points_RFC + points_GFC + points_cent)/tot_points
+        vel = (points_RLC + points_GLC + points_RFC + points_GFC + points_cent) / tot_points
 
         return vel[0]
 
@@ -183,9 +186,9 @@ class rewardShaper(Sofa.Core.Controller):
         # list_point_legs = [100*i for i in range(29)]
         # list_point_cent = [100*i for i in range(65)]
 
-        list_point_legs = [i for i in range(29*100)]
-        list_point_cent = [i for i in range(65*100)]
-        tot_points = 4*len(list_point_legs) + len(list_point_cent)
+        list_point_legs = [i for i in range(29 * 100)]
+        list_point_cent = [i for i in range(65 * 100)]
+        tot_points = 4 * len(list_point_legs) + len(list_point_cent)
 
         node = self.rootNode.solverNode.reducedModel.model
         points_RLC = np.sum(node.rearLeftCavity.rearLeftCavity.position.value[list_point_legs], axis=0)
@@ -194,7 +197,7 @@ class rewardShaper(Sofa.Core.Controller):
         points_GFC = np.sum(node.frontRightCavity.frontRightCavity.position.value[list_point_legs], axis=0)
         points_cent = np.sum(node.centerCavity.centerCavity.position.value[list_point_cent], axis=0)
 
-        pos = (points_RLC + points_GLC + points_RFC + points_GFC + points_cent)/tot_points
+        pos = (points_RLC + points_GLC + points_RFC + points_GFC + points_cent) / tot_points
 
         return pos
 
@@ -458,14 +461,18 @@ def changePressure(root, num_part, pressure, nb_step):
 
     factor = 4
     if num_part == 0:
-        pressureValue = part.SurfacePressureConstraint.value.value + factor*pressure/nb_step
+        pressureValue = part.SurfacePressureConstraint.value.value + factor * pressure / nb_step
         if pressureValue >= 0 and pressureValue <= CENTER_PRESSUR:
             part.SurfacePressureConstraint.value.value = pressureValue
     else:
-        pressureValue1 = part1.SurfacePressureConstraint.value.value + factor*pressure/nb_step
-        pressureValue2 = part2.SurfacePressureConstraint.value.value + factor*pressure/nb_step
-        if pressureValue1 >= 0 and pressureValue1 <= LEG_PRESSUR and pressureValue2 >= 0 and \
-                pressureValue2 <= LEG_PRESSUR:
+        pressureValue1 = part1.SurfacePressureConstraint.value.value + factor * pressure / nb_step
+        pressureValue2 = part2.SurfacePressureConstraint.value.value + factor * pressure / nb_step
+        if (
+            pressureValue1 >= 0
+            and pressureValue1 <= LEG_PRESSUR
+            and pressureValue2 >= 0
+            and pressureValue2 <= LEG_PRESSUR
+        ):
             part1.SurfacePressureConstraint.value.value = pressureValue1
             part2.SurfacePressureConstraint.value.value = pressureValue2
 
@@ -499,11 +506,11 @@ def startCmd_MultiGaitRobot(rootNode, num_part, pressure, duration):
     rootNode.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"rootNode": rootNode,
-                    "num_part": num_part,
-                    "pressure":pressure,
-                    "nb_step": duration/0.01 + 1},
-            duration=duration, mode="once"))
+            params={"rootNode": rootNode, "num_part": num_part, "pressure": pressure, "nb_step": duration / 0.01 + 1},
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action, root):

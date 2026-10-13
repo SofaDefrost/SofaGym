@@ -3,8 +3,7 @@ import warnings
 
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.vec_env import (VecMonitor, VecVideoRecorder,
-                                              sync_envs_normalization)
+from stable_baselines3.common.vec_env import VecMonitor, VecVideoRecorder, sync_envs_normalization
 
 
 class SaveCallback(CheckpointCallback):
@@ -36,6 +35,7 @@ class SaveCallback(CheckpointCallback):
     will effectively correspond to ``n_envs`` steps.
     To account for that, you can use ``save_freq = max(save_freq // n_envs, 1)``
     """
+
     def __init__(
         self,
         save_freq: int,
@@ -45,7 +45,7 @@ class SaveCallback(CheckpointCallback):
         save_vecnormalize: bool = False,
         verbose: int = 0,
     ):
-        super().__init__(save_freq, save_path, name_prefix, save_replay_buffer, save_vecnormalize,verbose)
+        super().__init__(save_freq, save_path, name_prefix, save_replay_buffer, save_vecnormalize, verbose)
 
     def _checkpoint_path(self, checkpoint_type: str = "", extension: str = "") -> str:
         """Helper to get checkpoint path for each type of checkpoint.
@@ -74,7 +74,11 @@ class SaveCallback(CheckpointCallback):
             if self.verbose >= 2:
                 print(f"Saving latest model checkpoint to {model_path}")
 
-            if self.save_replay_buffer and hasattr(self.model, "replay_buffer") and self.model.replay_buffer is not None:
+            if (
+                self.save_replay_buffer
+                and hasattr(self.model, "replay_buffer")
+                and self.model.replay_buffer is not None
+            ):
                 # If model has a replay buffer, save it too
                 replay_buffer_path = os.path.join(self.save_path, "replay_buffer_latest_model.pkl")
                 self.model.save_replay_buffer(replay_buffer_path)
@@ -102,6 +106,7 @@ class SaveBestNormalizeCallback(BaseCallback):
     verbose: int, default=0
         Verbosity level: 0 for no output, 2 for indicating when saving model checkpoint.
     """
+
     def __init__(self, save_path: str, verbose: int = 0):
         super().__init__(verbose=verbose)
         self.save_path = save_path
@@ -125,7 +130,7 @@ class SaveBestNormalizeCallback(BaseCallback):
             self.model.get_vec_normalize_env().save(vec_normalize_path)
             if self.verbose >= 2:
                 print(f"Saving best model VecNormalize to {vec_normalize_path}")
-        
+
         return True
 
 
@@ -143,6 +148,7 @@ class VideoRecordCallback(BaseCallback):
     verbose: int, default=0
         Verbosity level: 0 for no output, 1 for info messages, 2 for debug messages.
     """
+
     def __init__(self, save_path: str, video_length: int, log_dir: str, verbose: int = 0):
         super().__init__(verbose=verbose)
         self.save_path = save_path
@@ -151,11 +157,15 @@ class VideoRecordCallback(BaseCallback):
 
     def _init_callback(self) -> None:
         assert self.parent is not None, "``VideoRecordCallback`` callback must be used with an ``EvalCallback``"
-        
+
         self.eval_env = self.parent.eval_env
-        self.eval_env = VecVideoRecorder(self.eval_env, self.save_path,
-                                         record_video_trigger=lambda x: x == 0, video_length=self.video_length,
-                                         name_prefix="eval_callback_video")
+        self.eval_env = VecVideoRecorder(
+            self.eval_env,
+            self.save_path,
+            record_video_trigger=lambda x: x == 0,
+            video_length=self.video_length,
+            name_prefix="eval_callback_video",
+        )
         self.eval_env = VecMonitor(self.eval_env, self.log_dir)
 
         # Does not work in some corner cases, where the wrapper is not the same
@@ -185,7 +195,7 @@ class VideoRecordCallback(BaseCallback):
             render=True,
             deterministic=True,
             return_episode_rewards=True,
-            warn=True
+            warn=True,
         )
 
         self.eval_env.close_video_recorder()

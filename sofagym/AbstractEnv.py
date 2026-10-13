@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""AbstractEnv to make the link between Gym and Sofa.
-"""
+"""AbstractEnv to make the link between Gym and Sofa."""
 
 __authors__ = ("PSC", "dmarchal", "emenager")
 __contact__ = ("pierre.schegg@robocath.com", "damien.marchal@univ-lille.fr", "etienne.menager@ens-rennes.fr")
@@ -17,7 +16,6 @@ import numpy as np
 import copy
 import os
 
-import splib3
 
 from sofagym.viewer import Viewer
 
@@ -115,7 +113,8 @@ class AbstractEnv(gym.Env):
 
 
     """
-    def __init__(self, default_config, config=None, render_mode: Optional[str]=None, root=None):
+
+    def __init__(self, default_config, config=None, render_mode: Optional[str] = None, root=None):
         """
         Classic initialization of a class in python.
 
@@ -131,21 +130,23 @@ class AbstractEnv(gym.Env):
         """
         # Define a DEFAULT_CONFIG in sub-class.
         self.config = copy.deepcopy(default_config)
-        self.config["dt"] = self.config.get('dt', 0.01)
+        self.config["dt"] = self.config.get("dt", 0.01)
         if config is not None:
             self.config.update(config)
 
-        self.scene = self.config['scene']
+        self.scene = self.config["scene"]
 
-        self._getState = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getState
-        self._getReward = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getReward
-        self._startCmd = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").startCmd
-        self._getPos = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getPos
-        
+        self._getState = importlib.import_module("sofagym.envs." + self.scene + "." + self.scene + "Toolbox").getState
+        self._getReward = importlib.import_module("sofagym.envs." + self.scene + "." + self.scene + "Toolbox").getReward
+        self._startCmd = importlib.import_module("sofagym.envs." + self.scene + "." + self.scene + "Toolbox").startCmd
+        self._getPos = importlib.import_module("sofagym.envs." + self.scene + "." + self.scene + "Toolbox").getPos
+
         try:
-            self.create_scene = importlib.import_module("sofagym.envs."+self.scene+"." + self.scene + "Scene").createScene
+            self.create_scene = importlib.import_module(
+                "sofagym.envs." + self.scene + "." + self.scene + "Scene"
+            ).createScene
         except Exception as exc:
-            print("sofagym.envs."+self.scene+"." + self.scene + "Scene")
+            print("sofagym.envs." + self.scene + "." + self.scene + "Scene")
             raise NotImplementedError("Importing your SOFA Scene Failed") from exc
 
         self.viewer = None
@@ -160,7 +161,7 @@ class AbstractEnv(gym.Env):
 
         self.np_random = None
 
-        self.seed(self.config['seed'])
+        self.seed(self.config["seed"])
 
         self.timer = 0
         self.timeout = self.config["timeout"]
@@ -187,14 +188,14 @@ class AbstractEnv(gym.Env):
         -------
             None.
         """
-        if 'save_data' in self.config and self.config['save_data']:
-            save_path_results = self.config['save_path']+"/data"
+        if "save_data" in self.config and self.config["save_data"]:
+            save_path_results = self.config["save_path"] + "/data"
             os.makedirs(save_path_results, exist_ok=True)
         else:
             save_path_results = None
 
-        if 'save_image' in self.config and self.config['save_image']:
-            save_path_image = self.config['save_path']+"/img"
+        if "save_image" in self.config and self.config["save_image"]:
+            save_path_image = self.config["save_path"] + "/img"
             os.makedirs(save_path_image, exist_ok=True)
         else:
             save_path_image = None
@@ -207,7 +208,7 @@ class AbstractEnv(gym.Env):
     def initialize_states(self):
         if self.config["randomize_states"]:
             self.init_states = self.randomize_init_states()
-            self.config.update({'init_states': list(self.init_states)})
+            self.config.update({"init_states": list(self.init_states)})
         else:
             self.init_states = self.config["init_states"]
 
@@ -218,7 +219,7 @@ class AbstractEnv(gym.Env):
         -------
             init_states: list
                 List of random initial states for the environment.
-        
+
         Note:
         ----
             This method should be implemented according to needed random initialization.
@@ -229,9 +230,9 @@ class AbstractEnv(gym.Env):
         # Set a new random goal from the list
         goalList = self.config["goalList"]
         id_goal = self.np_random.choice(range(len(goalList)))
-        self.config.update({'goal_node': id_goal})
+        self.config.update({"goal_node": id_goal})
         self.goal = goalList[id_goal]
-        self.config.update({'goalPos': self.goal})
+        self.config.update({"goalPos": self.goal})
 
     def seed(self, seed=None):
         """
@@ -283,7 +284,7 @@ class AbstractEnv(gym.Env):
         elif isinstance(action, np.float64):
             action = float(action)
         elif isinstance(action, tuple):
-             action = self._formatactionTuple(action)
+            action = self._formatactionTuple(action)
         elif isinstance(action, dict):
             action = self._formatactionDict(action)
         return action
@@ -339,10 +340,10 @@ class AbstractEnv(gym.Env):
                 The reward obtain after applying the action in the current state.
             done(bool):
                 Whether the agent reaches the terminal state
-            info(dict): 
+            info(dict):
                 additional information (not used here)
-    
-            
+
+
         """
         # assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
@@ -361,11 +362,11 @@ class AbstractEnv(gym.Env):
         if self.timer >= self.config["timer_limit"]:
             # reward = -150
             truncated = True
-        
-        info = {} #(not use here)
+
+        info = {}  # (not use here)
 
         return obs, reward, done, info
-    
+
     def reset(self):
         """Reset simulation.
 
@@ -380,7 +381,8 @@ class AbstractEnv(gym.Env):
         """
         self.viewer = None
 
-        splib3.animation.animate.manager = None
+        # splib3.animation.animate is shadowed by the animate function, reset the global of the module itself.
+        importlib.import_module("splib3.animation.animate").manager = None
 
         self.timer = 0
         self.past_actions = []
@@ -390,9 +392,9 @@ class AbstractEnv(gym.Env):
         Sofa.Simulation.reset(self.root)
         self.root = None
         self.init_simulation()
-        
+
         obs = np.array(self._getState(self.root), dtype=np.float32)
-        
+
         return obs
 
     def render(self, mode):
@@ -415,8 +417,8 @@ class AbstractEnv(gym.Env):
         # Define the viewer at the first run of render.
         if self.viewer is None:
             display_size = self.config["display_size"]  # Sim display
-            if 'zFar' in self.config:
-                zFar = self.config['zFar']
+            if "zFar" in self.config:
+                zFar = self.config["zFar"]
             else:
                 zFar = 0
             self.viewer = Viewer(self, self.root, display_size, zFar=zFar, save_path=self.config["save_path_image"])
@@ -438,7 +440,7 @@ class AbstractEnv(gym.Env):
         """
         if self.viewer is not None:
             self.viewer.close()
-        
+
         print("All clients are closed. Bye Bye.")
 
     def configure(self, config):
@@ -456,7 +458,7 @@ class AbstractEnv(gym.Env):
         """
         self.config.update(config)
 
-    def init_simulation(self, mode='simu_and_visu'):
+    def init_simulation(self, mode="simu_and_visu"):
         """Function to create scene and initialize all variables.
 
         Parameters:
@@ -480,33 +482,33 @@ class AbstractEnv(gym.Env):
 
         SofaRuntime.importPlugin("Sofa.Component")
         self.create_scene(self.root, self.config, mode=mode)
-        Sofa.Simulation.init(self.root)
+        Sofa.Simulation.initRoot(self.root)
 
         # Realise action from history
-        if self.config['start_from_history'] is not None and self._startCmd is not None:
+        if self.config["start_from_history"] is not None and self._startCmd is not None:
             print(">>   Start from history ...")
-            render = self.config['render']
-            self.config.update({'render': 0})
+            render = self.config["render"]
+            self.config.update({"render": 0})
 
-            for action in self.config['start_from_history']:
+            for action in self.config["start_from_history"]:
                 self.step_simulation(action)
 
-            self.config.update({'render': render})
+            self.config.update({"render": render})
             print(">>   ... Done.")
 
         if self.config["randomize_states"]:
             self.root.StateInitializer.init_state(self.config["init_states"])
 
-        if 'time_before_start' in self.config:
+        if "time_before_start" in self.config:
             print(">>   Time before start:", self.config["time_before_start"], "steps. Initialization ...")
             for _ in range(self.config["time_before_start"]):
                 Sofa.Simulation.animate(self.root, self.config["dt"])
             print(">>   ... Done.")
-            
+
         # Update Reward and GoalSetter
         if self.config["goal"]:
             self.root.GoalSetter.update(self.goal)
-        
+
         self.root.Reward.update(self.goal)
 
     def step_simulation(self, action):
@@ -534,20 +536,20 @@ class AbstractEnv(gym.Env):
 
         """
         if self.config["goal"]:
-            goal = self.config['goalPos']
+            goal = self.config["goalPos"]
             self.root.GoalSetter.set_mo_pos(goal)
-        
-        render = self.config['render']
-        surface_size = self.config['display_size']
+
+        render = self.config["render"]
+        surface_size = self.config["display_size"]
 
         # Create the command from action
-        self._startCmd(self.root, action, self.config["dt"]*(self.config["scale_factor"]-1))
+        self._startCmd(self.root, action, self.config["dt"] * (self.config["scale_factor"] - 1))
         pos = []
         # Realise scale_factor simulation steps of 0.01 s
         for _ in range(self.config["scale_factor"]):
             Sofa.Simulation.animate(self.root, self.config["dt"])
-            
-            #if render == 2:
+
+            # if render == 2:
             #    pos.append(self._getPos(self.root))
             #    if self.viewer is not None:
             #        self.viewer.render_simulation(self.root)

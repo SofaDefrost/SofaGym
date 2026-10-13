@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Fab 3 2021"
@@ -20,13 +19,13 @@ from splib3.animation.animate import Animation
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from sofagym.utils import express_point
 
-
 SofaRuntime.importPlugin("Sofa.Component")
+
 
 class rewardShaper(Sofa.Core.Controller):
     """Compute the reward.
@@ -43,6 +42,7 @@ class rewardShaper(Sofa.Core.Controller):
             The scene.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -65,7 +65,6 @@ class rewardShaper(Sofa.Core.Controller):
             print(">> ERROR: give a max dist for the normalization of the reward.")
             exit(1)
 
-
         self.baseMO = self.rootNode.stempendulum.Beam.MechanicalObject
         self.beam_len = self.rootNode.sceneModerator.stempendulum.beam_len
         self.pos_goal = np.array([0, self.beam_len])
@@ -84,8 +83,8 @@ class rewardShaper(Sofa.Core.Controller):
         """
 
         pos = self._getPos()
-        dist = np.linalg.norm(pos-self.pos_goal)
-        r = -float(dist)/(2*self.beam_len)
+        dist = np.linalg.norm(pos - self.pos_goal)
+        r = -float(dist) / (2 * self.beam_len)
         return r
 
     def update(self, goal=None):
@@ -113,7 +112,7 @@ class sceneModerator(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
-        self.stempendulum=None
+        self.stempendulum = None
         if kwargs["stempendulum"]:
             self.stempendulum = kwargs["stempendulum"]
 
@@ -123,7 +122,9 @@ class sceneModerator(Sofa.Core.Controller):
     def setPos(self, pos):
         self.stempendulum.setPos(pos)
 
+
 ################################################################################
+
 
 def getState(rootNode):
     """Compute the state of the environment/agent.
@@ -144,8 +145,8 @@ def getState(rootNode):
     beam_len = stempendulum.beam_len
 
     angBase = beam.MechanicalObject.position.value.tolist()[0][-2:]
-    omegaBase = beam.MechanicalObject.velocity.value.tolist()[0][-1]/30
-    posTip = [p/beam_len for p in beam.MechanicalObject.position.value.tolist()[-1][:3][:-1]]
+    omegaBase = beam.MechanicalObject.velocity.value.tolist()[0][-1] / 30
+    posTip = [p / beam_len for p in beam.MechanicalObject.position.value.tolist()[-1][:3][:-1]]
 
     state = angBase + [omegaBase] + posTip
 
@@ -153,7 +154,7 @@ def getState(rootNode):
 
 
 def getReward(rootNode):
-    r =  rootNode.Reward.getReward()
+    r = rootNode.Reward.getReward()
     return False, r
 
 
@@ -161,16 +162,19 @@ def getPos(root):
     position = root.sceneModerator.getPos()
     return position
 
+
 def setPos(root, pos):
     root.sceneModerator.setPos(pos)
 
+
 ################################################################################
+
 
 class applyAction(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
-        self.root =  kwargs["root"]
+        self.root = kwargs["root"]
         if "stempendulum" in kwargs:
             print(">>  Init stempendulum...")
             self.stempendulum = kwargs["stempendulum"]
@@ -183,22 +187,22 @@ class applyAction(Sofa.Core.Controller):
 
     def set_max_torque(self, new_max_torque):
         self.max_torque = new_max_torque
-        self.a, self.b =  self.max_torque , 0
+        self.a, self.b = self.max_torque, 0
 
     def _move(self, incr):
         baseForceField = self.stempendulum.beam.ConstantForceField
         force = baseForceField.totalForce.value.tolist()
-        if abs(force[5]+incr)<self.max_torque:
+        if abs(force[5] + incr) < self.max_torque:
             force[5] += incr
         baseForceField.totalForce.value = np.array(force)
 
     def _normalizedAction_to_action(self, action):
-        return self.a*action + self.b
+        return self.a * action + self.b
 
     def compute_action(self, actions, nb_step):
         torque_goal = self._normalizedAction_to_action(actions[0])
         current_torque = self.stempendulum.beam.ConstantForceField.totalForce.value.tolist()[5]
-        incr = (torque_goal - current_torque)/nb_step
+        incr = (torque_goal - current_torque) / nb_step
         return incr
 
     def apply_action(self, incr):
@@ -241,7 +245,7 @@ def startCmd(root, actions, duration):
         None.
 
     """
-    incr = action_to_command(actions, root, duration/root.dt.value + 1)
+    incr = action_to_command(actions, root, duration / root.dt.value + 1)
     startCmd_StemPendulum(root, incr, duration)
 
 
@@ -262,14 +266,13 @@ def startCmd_StemPendulum(rootNode, incr, duration):
         None.
     """
 
-    #Definition of the elements of the animation
+    # Definition of the elements of the animation
     def executeAnimation(rootNode, incr, factor):
         rootNode.applyAction.apply_action(incr)
 
-    #Add animation in the scene
+    # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
         Animation(
-            onUpdate=executeAnimation,
-            params={"rootNode": rootNode,
-                    "incr": incr},
-            duration=duration, mode="once"))
+            onUpdate=executeAnimation, params={"rootNode": rootNode, "incr": incr}, duration=duration, mode="once"
+        )
+    )

@@ -17,8 +17,9 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 def run_python(code):
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(REPO_ROOT), env.get("PYTHONPATH")]))
-    return subprocess.run([sys.executable, "-c", code], cwd=REPO_ROOT, env=env,
-                          capture_output=True, text=True, check=False)
+    return subprocess.run(
+        [sys.executable, "-c", code], cwd=REPO_ROOT, env=env, capture_output=True, text=True, check=False
+    )
 
 
 def test_import_sofagym():

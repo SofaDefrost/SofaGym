@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Create the mesh of the board.
+"""Create the mesh of the board."""
 
-
-"""
-
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "December 1 2021"
@@ -36,14 +33,14 @@ def _addLine(src, end):
 
 def _createQuadrilateral(X, Y, Z):
     assert len(X) == 8 and len(Y) == 8 and len(Z) == 8
-    X_bottom, Y_bottom, Z_bottom  = X[:4], Y[:4], Z[:4]
-    PointTags1 = _addPoint(X_bottom, Y_bottom, Z_bottom, lc = 3)
+    X_bottom, Y_bottom, Z_bottom = X[:4], Y[:4], Z[:4]
+    PointTags1 = _addPoint(X_bottom, Y_bottom, Z_bottom, lc=3)
     LineTags1 = _addLine(PointTags1, [PointTags1[-1]] + PointTags1[:-1])
     WireLoop1 = gmsh.model.occ.addWire(LineTags1)
     SurfaceTag1 = gmsh.model.occ.addPlaneSurface([WireLoop1])
 
     X_up, Y_up, Z_up = X[4:], Y[4:], Z[4:]
-    PointTags2 = _addPoint(X_up, Y_up, Z_up, lc = 3)
+    PointTags2 = _addPoint(X_up, Y_up, Z_up, lc=3)
     LineTags2 = _addLine(PointTags2, [PointTags2[-1]] + PointTags2[:-1])
     WireLoop2 = gmsh.model.occ.addWire(LineTags2)
     SurfaceTag2 = gmsh.model.occ.addPlaneSurface([WireLoop2])
@@ -53,13 +50,13 @@ def _createQuadrilateral(X, Y, Z):
     SurfaceTag3 = []
     for i in range(4):
         id_botoom, id_up = LineTags1[i], LineTags2[i]
-        id_left, id_right = LineTags3[(i-1) % 4],  LineTags3[i]
+        id_left, id_right = LineTags3[(i - 1) % 4], LineTags3[i]
         WireLoop = gmsh.model.occ.addWire([id_botoom, id_left, id_up, id_right])
         SurfaceTag = gmsh.model.occ.addPlaneSurface([WireLoop])
         SurfaceTag3.append(SurfaceTag)
 
     SurfaceTag = SurfaceTag3[:-1] + [SurfaceTag2] + [SurfaceTag3[-1]] + [SurfaceTag1]
-    SurfaceLoopTag  = gmsh.model.occ.addSurfaceLoop(SurfaceTag)
+    SurfaceLoopTag = gmsh.model.occ.addSurfaceLoop(SurfaceTag)
     VolumeTag = gmsh.model.occ.addVolume([SurfaceLoopTag])
 
     return VolumeTag

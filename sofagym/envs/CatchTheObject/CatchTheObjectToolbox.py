@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Fab 3 2021"
@@ -19,7 +18,7 @@ from splib3.animation.animate import Animation
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
@@ -41,6 +40,7 @@ class rewardShaper(Sofa.Core.Controller):
             The scene.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -81,8 +81,8 @@ class rewardShaper(Sofa.Core.Controller):
         pos_ball = self.ball.sphere.sphere_mo.position.value[0]
         pos_goal = self.cart.cart.Goal.GoalMO.position.value[0][:3]
 
-        dist = np.linalg.norm(pos_ball-pos_goal)
-        r = -float(dist)/self.max_dist
+        dist = np.linalg.norm(pos_ball - pos_goal)
+        r = -float(dist) / self.max_dist
 
         under = pos_ball[2] <= 0
 
@@ -103,7 +103,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         pos_goal = goal
-        self.max_dist = np.linalg.norm(np.array([0, self.ball.max_high])-np.array([self.cart.max_move, 0]))
+        self.max_dist = np.linalg.norm(np.array([0, self.ball.max_high]) - np.array([self.cart.max_move, 0]))
 
 
 class goalSetter(Sofa.Core.Controller):
@@ -111,7 +111,7 @@ class goalSetter(Sofa.Core.Controller):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
         self.goalPos = None
-        if 'goalPos' in kwargs:
+        if "goalPos" in kwargs:
             self.goalPos = kwargs["goalPos"]
 
     def update(self, goal):
@@ -170,11 +170,11 @@ def getState(rootNode):
     gripper = rootNode.sceneModerator.gripper
     applyAction = rootNode.applyAction
 
-    pos_ball = ball.sphere.sphere_mo.position.value.tolist()[0][2]/ball.max_high
-    v_ball = ball.sphere.sphere_mo.velocity.value.tolist()[0][2]/175
-    pos_cart = cart.cart.MechanicalObject.position.value.tolist()[0][0]/cart.max_move
-    d_cart = (applyAction.direction - 0.5)*2
-    pressure = gripper.cavities[0].SurfacePressureConstraint.value.value.tolist()[0]/gripper.max_pressure
+    pos_ball = ball.sphere.sphere_mo.position.value.tolist()[0][2] / ball.max_high
+    v_ball = ball.sphere.sphere_mo.velocity.value.tolist()[0][2] / 175
+    pos_cart = cart.cart.MechanicalObject.position.value.tolist()[0][0] / cart.max_move
+    d_cart = (applyAction.direction - 0.5) * 2
+    pressure = gripper.cavities[0].SurfacePressureConstraint.value.value.tolist()[0] / gripper.max_pressure
 
     state = [pos_ball, v_ball, pos_cart, d_cart, pressure]
     return state
@@ -194,6 +194,7 @@ def getPos(root):
     position = root.sceneModerator.getPos()
     return position
 
+
 def setPos(root, pos):
     root.sceneModerator.setPos(pos)
 
@@ -201,7 +202,7 @@ def setPos(root, pos):
 class applyAction(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
-        self.root =  kwargs["root"]
+        self.root = kwargs["root"]
         if "cart" in kwargs:
             print(">>  Init cart...")
             self.cart = kwargs["cart"]
@@ -226,13 +227,13 @@ class applyAction(Sofa.Core.Controller):
     def _moveCart(self, incr):
         cartMO = self.cart.cart.MechanicalObject
         pos = cartMO.position.value.tolist()
-        if abs(pos[0][0]+incr) <= self.max_move+3:
+        if abs(pos[0][0] + incr) <= self.max_move + 3:
             pos[0][0] += incr
         elif self.counter <= 25:
-            self.counter +=1
+            self.counter += 1
         else:
             self.counter = 0
-            self.direction = (self.direction+1) % 2
+            self.direction = (self.direction + 1) % 2
         cartMO.position.value = np.array(pos)
 
     def onAnimateBeginEvent(self, event):
@@ -251,15 +252,15 @@ class applyAction(Sofa.Core.Controller):
 
     def set_max_pressure(self, new_max_pressure):
         self.max_pressure = new_max_pressure
-        self.a, self.b = self.max_pressure/2, self.max_pressure/2
+        self.a, self.b = self.max_pressure / 2, self.max_pressure / 2
 
     def _normalizedAction_to_action(self, action):
-        return self.a*action + self.b
+        return self.a * action + self.b
 
     def compute_action(self, actions, nb_step):
         pressure_goal = self._normalizedAction_to_action(actions[0])
         current_pressure = self.gripper.cavities[0].SurfacePressureConstraint.value.value[0]
-        incr = (pressure_goal - current_pressure)/nb_step
+        incr = (pressure_goal - current_pressure) / nb_step
         return incr
 
     def apply_action(self, incr):
@@ -302,7 +303,7 @@ def startCmd(root, actions, duration):
         None.
 
     """
-    incr = action_to_command(actions, root, duration/root.dt.value + 1)
+    incr = action_to_command(actions, root, duration / root.dt.value + 1)
     _startCmd(root, incr, duration)
 
 
@@ -330,7 +331,6 @@ def _startCmd(rootNode, incr, duration):
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
         Animation(
-            onUpdate=executeAnimation,
-            params={"rootNode": rootNode,
-                    "incr": incr},
-            duration=duration, mode="once"))
+            onUpdate=executeAnimation, params={"rootNode": rootNode, "incr": incr}, duration=duration, mode="once"
+        )
+    )

@@ -4,10 +4,10 @@ import pathlib
 import sys
 from math import *
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-mesh_path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
+mesh_path = os.path.dirname(os.path.abspath(__file__)) + "/mesh/"
 
 import Sofa
 from actuatedarm import ActuatedArm
@@ -41,29 +41,36 @@ def Tripod(name="Tripod", radius=60, numMotors=3, angleShift=180.0):
         for i in range(0, numstep):
             translation, eulerRotation = __getTransform(i, numstep, angleShift, radius)
 
-            box = addOrientedBoxRoi(self, position=[list(i) for i in deformableObject.dofs.rest_position.value],
-                                    name="BoxROI" + str(i),
-                                    translation=vec3.vadd(translation, [0.0, 25.0, 0.0]),
-                                    eulerRotation=eulerRotation, scale=[45, 15, 30])
+            box = addOrientedBoxRoi(
+                self,
+                position=[list(i) for i in deformableObject.dofs.rest_position.value],
+                name="BoxROI" + str(i),
+                translation=vec3.vadd(translation, [0.0, 25.0, 0.0]),
+                eulerRotation=eulerRotation,
+                scale=[45, 15, 30],
+            )
 
             box.drawBoxes = False
             box.init()
             groupIndices.append([ind for ind in box.indices.value])
-            frames.append(vec3.vadd(translation, [0.0, 25.0, 0.0]) + list(
-                Quat.createFromEuler([0, float(i) * 360 / float(numstep), 0], inDegree=True)))
+            frames.append(
+                vec3.vadd(translation, [0.0, 25.0, 0.0])
+                + list(Quat.createFromEuler([0, float(i) * 360 / float(numstep), 0], inDegree=True))
+            )
 
         effectorPos = [0, 30, 0]
-        o = deformableObject.addObject('SphereROI', name='roi', template='Rigid3',
-                                       centers=effectorPos, radii=[7.5], drawSphere=False)
+        o = deformableObject.addObject(
+            "SphereROI", name="roi", template="Rigid3", centers=effectorPos, radii=[7.5], drawSphere=False
+        )
         o.init()
         groupIndices.append(list(o.indices.value))
 
-        frames.append([effectorPos[0], effectorPos[1],
-                       effectorPos[2], 0, 0, 0, 1])
+        frames.append([effectorPos[0], effectorPos[1], effectorPos[2], 0, 0, 0, 1])
 
         # Rigidify the deformable part at extremity to attach arms
-        rigidifiedstruct = Rigidify(self, deformableObject, groupIndices=groupIndices, frames=frames,
-                                    name="RigidifiedStructure")
+        rigidifiedstruct = Rigidify(
+            self, deformableObject, groupIndices=groupIndices, frames=frames, name="RigidifiedStructure"
+        )
 
     def __attachToActuatedArms(self):
 
@@ -71,18 +78,29 @@ def Tripod(name="Tripod", radius=60, numMotors=3, angleShift=180.0):
         for arm in self.actuatedarms:
             arm.ServoMotor.Articulation.ServoWheel.addChild(rigidParts)
 
-        freeCenter = self.RigidifiedStructure.addChild('FreeCenter')
-        freeCenter.addObject('MechanicalObject', name="dofs", template="Rigid3", position=[0, 30, 0, 0, 0, 0, 1],
-                             showObject=False, showObjectScale=10)
+        freeCenter = self.RigidifiedStructure.addChild("FreeCenter")
+        freeCenter.addObject(
+            "MechanicalObject",
+            name="dofs",
+            template="Rigid3",
+            position=[0, 30, 0, 0, 0, 0, 1],
+            showObject=False,
+            showObjectScale=10,
+        )
         freeCenter.addChild(rigidParts)
 
-        rigidParts.addObject('SubsetMultiMapping',
-                             name="mapping",
-                             input=[self.actuatedarms[0].ServoMotor.Articulation.ServoWheel.getLinkPath(),
-                                    self.actuatedarms[1].ServoMotor.Articulation.ServoWheel.getLinkPath(),
-                                    self.actuatedarms[2].ServoMotor.Articulation.ServoWheel.getLinkPath(),
-                                    freeCenter.getLinkPath()],
-                             output='@./', indexPairs=[0, 1, 1, 1, 2, 1, 3, 0])
+        rigidParts.addObject(
+            "SubsetMultiMapping",
+            name="mapping",
+            input=[
+                self.actuatedarms[0].ServoMotor.Articulation.ServoWheel.getLinkPath(),
+                self.actuatedarms[1].ServoMotor.Articulation.ServoWheel.getLinkPath(),
+                self.actuatedarms[2].ServoMotor.Articulation.ServoWheel.getLinkPath(),
+                freeCenter.getLinkPath(),
+            ],
+            output="@./",
+            indexPairs=[0, 1, 1, 1, 2, 1, 3, 0],
+        )
 
     self = Sofa.Core.Node(name)
     self.actuatedarms = []
@@ -102,9 +120,14 @@ def Tripod(name="Tripod", radius=60, numMotors=3, angleShift=180.0):
     __attachToActuatedArms(self)
 
     def addCollision():
-        CollisionMesh(self.ElasticBody.MechanicalModel,
-                      surfaceMeshFileName=mesh_path+"tripod_low.stl", name="CollisionModel",
-                      translation=[0.0, 30, 0.0], rotation=[90, 0, 0], collisionGroup=1)
+        CollisionMesh(
+            self.ElasticBody.MechanicalModel,
+            surfaceMeshFileName=mesh_path + "tripod_low.stl",
+            name="CollisionModel",
+            translation=[0.0, 30, 0.0],
+            rotation=[90, 0, 0],
+            collisionGroup=1,
+        )
 
     self.addCollision = addCollision
 
@@ -114,10 +137,10 @@ def Tripod(name="Tripod", radius=60, numMotors=3, angleShift=180.0):
 def createScene(rootNode):
     scene = Scene(rootNode, gravity=[0.0, -9810, 0.0], iterative=False)
     scene.addMainHeader()
-    scene.addObject('DefaultVisualManagerLoop')
-    scene.addObject('FreeMotionAnimationLoop')
-    scene.addObject('BlockGaussSeidelConstraintSolver', maxIterations=50, tolerance=1e-5)
-    scene.Simulation.addObject('GenericConstraintCorrection')
+    scene.addObject("DefaultVisualManagerLoop")
+    scene.addObject("FreeMotionAnimationLoop")
+    scene.addObject("BlockGaussSeidelConstraintSolver", maxIterations=50, tolerance=1e-5)
+    scene.Simulation.addObject("GenericConstraintCorrection")
     scene.Settings.mouseButton.stiffness = 10
     scene.Simulation.TimeIntegrationSchema.rayleighStiffness = 0.05
     scene.VisualStyle.displayFlags = "showBehavior"
@@ -131,8 +154,13 @@ def createScene(rootNode):
 
     # Use this to activate some rendering on the rigidified object ######################################
     setData(tripod.RigidifiedStructure.RigidParts.dofs, showObject=True, showObjectScale=10, drawMode=2)
-    setData(tripod.RigidifiedStructure.RigidParts.RigidifiedParticules.dofs, showObject=True, showObjectScale=1,
-            drawMode=1, showColor=[1., 1., 0., 1.])
+    setData(
+        tripod.RigidifiedStructure.RigidParts.RigidifiedParticules.dofs,
+        showObject=True,
+        showObjectScale=1,
+        drawMode=1,
+        showColor=[1.0, 1.0, 0.0, 1.0],
+    )
     setData(tripod.RigidifiedStructure.DeformableParts.dofs, showObject=True, showObjectScale=1, drawMode=2)
     #####################################################################################################
 
@@ -140,6 +168,6 @@ def createScene(rootNode):
 
     def myanimate(targets, factor):
         for arm in targets:
-            arm.angleIn = -factor * math.pi / 4.
+            arm.angleIn = -factor * math.pi / 4.0
 
     animate(myanimate, {"targets": [tripod.ActuatedArm0, tripod.ActuatedArm1, tripod.ActuatedArm2]}, duration=1)

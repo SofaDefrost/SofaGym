@@ -34,46 +34,46 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
             The loaded and initialized scene.
 
     """
-    scene = config['scene']
+    scene = config["scene"]
     # Import the create_scene corresponding to the environment
 
     try:
-        create_scene = importlib.import_module("sofagym.envs."+scene+"." + scene + "Scene").createScene
+        create_scene = importlib.import_module("sofagym.envs." + scene + "." + scene + "Scene").createScene
     except:
-        print("sofagym.envs."+scene+"." + scene + "Scene")
+        print("sofagym.envs." + scene + "." + scene + "Scene")
         raise NotImplementedError("Importing your SOFA Scene Failed")
 
     # Load the scene
     root = Sofa.Core.Node("root")
     SofaRuntime.importPlugin("Sofa.Component")
-    create_scene(root,  config, mode = mode)
-    Sofa.Simulation.init(root)
+    create_scene(root, config, mode=mode)
+    Sofa.Simulation.initRoot(root)
 
     # Realise action from history
-    if config['start_from_history'] is not None and _startCmd is not None:
+    if config["start_from_history"] is not None and _startCmd is not None:
         print(">>   Start from history ...")
-        render = config['render']
-        config.update({'render': 0})
+        render = config["render"]
+        config.update({"render": 0})
 
-        for action in config['start_from_history']:
+        for action in config["start_from_history"]:
             step_simulation(root, config, action, _startCmd, None)
 
-        config.update({'render': render})
+        config.update({"render": render})
         print(">>   ... Done.")
 
     if config["randomize_states"]:
         root.StateInitializer.init_state(config["init_states"])
 
-    if 'time_before_start' in config:
+    if "time_before_start" in config:
         print(">>   Time before start:", config["time_before_start"], "steps. Initialization ...")
         for i in range(config["time_before_start"]):
             Sofa.Simulation.animate(root, config["dt"])
         print(">>   ... Done.")
-        
+
     # Update Reward and GoalSetter
     if config["goal"]:
-        root.GoalSetter.update(config['goalPos'])
-        root.Reward.update(config['goalPos'])
+        root.GoalSetter.update(config["goalPos"])
+        root.Reward.update(config["goalPos"])
     else:
         root.Reward.update()
 
@@ -105,15 +105,14 @@ def step_simulation(root, config, action, _startCmd, _getPos, viewer=None):
 
     """
     if config["goal"]:
-        goal = config['goalPos']
+        goal = config["goalPos"]
         root.GoalSetter.set_mo_pos(goal)
-    
-    render = config['render']
-    surface_size = config['display_size']
 
+    render = config["render"]
+    surface_size = config["display_size"]
 
     # Create the command from action
-    _startCmd(root, action, config["dt"]*(config["scale_factor"]-1))
+    _startCmd(root, action, config["dt"] * (config["scale_factor"] - 1))
     pos = []
     # Realise scale_factor simulation steps of 0.01 s
     for i in range(config["scale_factor"]):

@@ -1,7 +1,7 @@
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
@@ -15,227 +15,285 @@ from splib3.numerics import Vec3, Quat
 from TrunkToolbox import rewardShaper, goalSetter
 
 import os
-path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
+
+path = os.path.dirname(os.path.abspath(__file__)) + "/mesh/"
+
+
+from Sofa.Units.Definitions import kg, s, mm
+from Sofa.Units.UnitSystem import MechanicalUnitSystem
+
+# Units of the scene: SOFA values (gravity, stiffness, pressure, ...) are expressed in this system.
+UNITS = MechanicalUnitSystem(time=s, length=mm, mass=kg)
 
 
 def add_goal_node(root):
     goal = root.addChild("Goal")
-    goal.addObject('VisualStyle', displayFlags="showCollisionModels")
-    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=3,
-                             showColor=[0, 1, 0, 1], position=[0.0, -100.0, 100.0])
+    goal.addObject("VisualStyle", displayFlags="showCollisionModels")
+    goal_mo = goal.addObject(
+        "MechanicalObject",
+        name="GoalMO",
+        showObject=True,
+        drawMode="1",
+        showObjectScale=3,
+        showColor=[0, 1, 0, 1],
+        position=[0.0, -100.0, 100.0],
+    )
     return goal_mo
 
 
-def effectorTarget(parentNode, position=[0., 0., 200]):
+def effectorTarget(parentNode, position=[0.0, 0.0, 200]):
     target = parentNode.addChild("Target")
     target.addObject("EulerImplicitIntegrationScheme", firstOrder=True)
     target.addObject("CGLinearSolver")
-    target.addObject("MechanicalObject", name="dofs", position=position, showObject=True, showObjectScale=3,
-                     drawMode=2, showColor=[1., 1., 1., 1.])
+    target.addObject(
+        "MechanicalObject",
+        name="dofs",
+        position=position,
+        showObject=True,
+        showObjectScale=3,
+        drawMode=2,
+        showColor=[1.0, 1.0, 1.0, 1.0],
+    )
     target.addObject("UncoupledConstraintCorrection")
     return target
 
 
-#@SofaPrefab
+# @SofaPrefab
 class Trunk(SofaObject):
-    """ This prefab is implementing a soft robot inspired by the elephant's trunk.
-        The robot is entirely soft and actuated with 8 cables.
-        The prefab is composed of:
-        - a visual model
-        - a collision model
-        - a mechanical model for the deformable structure
-        The prefab has the following parameters:
-        - youngModulus
-        - poissonRatio
-        - totalMass
+    """This prefab is implementing a soft robot inspired by the elephant's trunk.
+    The robot is entirely soft and actuated with 8 cables.
+    The prefab is composed of:
+    - a visual model
+    - a collision model
+    - a mechanical model for the deformable structure
+    The prefab has the following parameters:
+    - youngModulus
+    - poissonRatio
+    - totalMass
     """
 
     def __init__(self, parentNode, youngModulus=450, poissonRatio=0.45, totalMass=0.042, inverseMode=False):
 
         self.inverseMode = inverseMode
-        self.node = parentNode.addChild('Trunk')
+        self.node = parentNode.addChild("Trunk")
 
-        self.node.addObject('MeshVTKLoader', name='loader', filename=path+'trunk.vtk')
-        self.node.addObject('TetrahedronSetTopologyContainer', position="@loader.position", tetrahedra="@loader.tetrahedra", name='container')
-        self.node.addObject('TetrahedronSetTopologyModifier')
-        self.node.addObject('TetrahedronSetGeometryAlgorithms')
+        self.node.addObject("MeshVTKLoader", name="loader", filename=path + "trunk.vtk")
+        self.node.addObject(
+            "TetrahedronSetTopologyContainer",
+            position="@loader.position",
+            tetrahedra="@loader.tetrahedra",
+            name="container",
+        )
+        self.node.addObject("TetrahedronSetTopologyModifier")
+        self.node.addObject("TetrahedronSetGeometryAlgorithms")
 
-        self.node.addObject('MechanicalObject', name='dofs', template='Vec3d', showIndices='false',
-                            showIndicesScale='4e-5')
-        self.node.addObject('UniformMass', totalMass=totalMass)
-        self.node.addObject('TetrahedronFEMForceField', template='Vec3d', name='FEM', method='large',
-                            poissonRatio=poissonRatio,  youngModulus=youngModulus)
+        self.node.addObject(
+            "MechanicalObject", name="dofs", template="Vec3d", showIndices="false", showIndicesScale="4e-5"
+        )
+        self.node.addObject("UniformMass", totalMass=totalMass)
+        self.node.addObject(
+            "TetrahedronFEMForceField",
+            template="Vec3d",
+            name="FEM",
+            method="large",
+            poissonRatio=poissonRatio,
+            youngModulus=youngModulus,
+        )
 
         self.__addCables()
 
     def __addCables(self):
-        length1 = 10.
-        length2 = 2.
-        lengthTrunk = 195.
+        length1 = 10.0
+        length2 = 2.0
+        lengthTrunk = 195.0
 
-        pullPoint = [[0., length1, 0.], [-length1, 0., 0.], [0., -length1, 0.], [length1, 0., 0.]]
-        direction = Vec3(0., length2-length1, lengthTrunk)
+        pullPoint = [[0.0, length1, 0.0], [-length1, 0.0, 0.0], [0.0, -length1, 0.0], [length1, 0.0, 0.0]]
+        direction = Vec3(0.0, length2 - length1, lengthTrunk)
         direction.normalize()
 
         nbCables = 4
 
         self.cables = []
         for i in range(0, nbCables):
-            theta = 1.57*i
-            q = Quat(0., 0., sin(theta/2.), cos(theta/2.))
+            theta = 1.57 * i
+            q = Quat(0.0, 0.0, sin(theta / 2.0), cos(theta / 2.0))
 
-            position = [[0., 0., 0.]]*20
+            position = [[0.0, 0.0, 0.0]] * 20
             for k in range(0, 20, 2):
-                v = Vec3(direction[0], direction[1]*17.5*(k/2)+length1, direction[2]*17.5*(k/2)+21)
+                v = Vec3(direction[0], direction[1] * 17.5 * (k / 2) + length1, direction[2] * 17.5 * (k / 2) + 21)
                 position[k] = v.rotateFromQuat(q)
-                v = Vec3(direction[0], direction[1]*17.5*(k/2)+length1, direction[2]*17.5*(k/2)+27)
-                position[k+1] = v.rotateFromQuat(q)
+                v = Vec3(direction[0], direction[1] * 17.5 * (k / 2) + length1, direction[2] * 17.5 * (k / 2) + 27)
+                position[k + 1] = v.rotateFromQuat(q)
 
-            cableL = self.node.addChild('cableL'+str(i))
-            cableL.addObject('MechanicalObject', name='meca', position=pullPoint[i]+[pos.toList() for pos in position])
+            cableL = self.node.addChild("cableL" + str(i))
+            cableL.addObject(
+                "MechanicalObject", name="meca", position=pullPoint[i] + [pos.toList() for pos in position]
+            )
 
             idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-            cableL.addObject('CableConstraint' if not self.inverseMode else 'CableActuator', template='Vec3d',
-                             name="cable", hasPullPoint="0", indices=idx, maxPositiveDisp='70', maxDispVariation="1",
-                             minForce=0)
-            cableL.addObject('BarycentricMapping', name='mapping',  mapForces=False, mapMasses=False)
+            cableL.addObject(
+                "CableConstraint" if not self.inverseMode else "CableActuator",
+                template="Vec3d",
+                name="cable",
+                hasPullPoint="0",
+                indices=idx,
+                maxPositiveDisp="70",
+                maxDispVariation="1",
+                minForce=0,
+            )
+            cableL.addObject("BarycentricMapping", name="mapping", mapForces=False, mapMasses=False)
             self.cables.append(cableL)
 
         for i in range(0, nbCables):
-            theta = 1.57*i
-            q = Quat(0., 0., sin(theta/2.), cos(theta/2.))
+            theta = 1.57 * i
+            q = Quat(0.0, 0.0, sin(theta / 2.0), cos(theta / 2.0))
 
-            position = [[0., 0., 0.]]*10
+            position = [[0.0, 0.0, 0.0]] * 10
             for k in range(0, 9, 2):
-                v = Vec3(direction[0], direction[1]*17.5*(k/2)+length1, direction[2]*17.5*(k/2)+21)
+                v = Vec3(direction[0], direction[1] * 17.5 * (k / 2) + length1, direction[2] * 17.5 * (k / 2) + 21)
                 position[k] = v.rotateFromQuat(q)
-                v = Vec3(direction[0], direction[1]*17.5*(k/2)+length1, direction[2]*17.5*(k/2)+27)
-                position[k+1] = v.rotateFromQuat(q)
+                v = Vec3(direction[0], direction[1] * 17.5 * (k / 2) + length1, direction[2] * 17.5 * (k / 2) + 27)
+                position[k + 1] = v.rotateFromQuat(q)
 
-            cableS = self.node.addChild('cableS'+str(i))
-            cableS.addObject('MechanicalObject', name='meca', position=pullPoint[i]+[pos.toList() for pos in position])
+            cableS = self.node.addChild("cableS" + str(i))
+            cableS.addObject(
+                "MechanicalObject", name="meca", position=pullPoint[i] + [pos.toList() for pos in position]
+            )
 
             idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            cableS.addObject('CableConstraint' if not self.inverseMode else 'CableActuator', template='Vec3d',
-                             name="cable", hasPullPoint="0", indices=idx, maxPositiveDisp='40', maxDispVariation="1",
-                             minForce=0)
-            cableS.addObject('BarycentricMapping', name='mapping',  mapForces='false', mapMasses='false')
+            cableS.addObject(
+                "CableConstraint" if not self.inverseMode else "CableActuator",
+                template="Vec3d",
+                name="cable",
+                hasPullPoint="0",
+                indices=idx,
+                maxPositiveDisp="40",
+                maxDispVariation="1",
+                minForce=0,
+            )
+            cableS.addObject("BarycentricMapping", name="mapping", mapForces="false", mapMasses="false")
             self.cables.append(cableS)
 
-    def addVisualModel(self, color=[1., 1., 1., 1.]):
-        trunkVisu = self.node.addChild('VisualModel')
-        trunkVisu.addObject('MeshSTLLoader', filename=path+"trunk.stl")
-        trunkVisu.addObject('OglModel', template='Vec3d', color=color)
-        trunkVisu.addObject('BarycentricMapping')
+    def addVisualModel(self, color=[1.0, 1.0, 1.0, 1.0]):
+        trunkVisu = self.node.addChild("VisualModel")
+        trunkVisu.addObject("MeshSTLLoader", filename=path + "trunk.stl")
+        trunkVisu.addObject("OglModel", template="Vec3d", color=color)
+        trunkVisu.addObject("BarycentricMapping")
 
     def addCollisionModel(self, selfCollision=False):
-        trunkColli = self.node.addChild('CollisionModel')
+        trunkColli = self.node.addChild("CollisionModel")
         for i in range(2):
-            part = trunkColli.addChild("Part"+str(i+1))
-            part.addObject('MeshSTLLoader', name="loader", filename=path+"trunk_colli"+str(i+1)+".stl")
-            part.addObject('MeshTopology', src="@loader")
-            part.addObject('MechanicalObject')
+            part = trunkColli.addChild("Part" + str(i + 1))
+            part.addObject("MeshSTLLoader", name="loader", filename=path + "trunk_colli" + str(i + 1) + ".stl")
+            part.addObject("MeshTopology", src="@loader")
+            part.addObject("MechanicalObject")
             # SOFA 26 update: commented out because TTriangleModel, TLineModel and TPointModel were removed from
             # SOFA (since v20.06). Inspect this change: TriangleCollisionModel, LineCollisionModel and
             # PointCollisionModel are the likely replacements.
             # part.addObject('TTriangleModel', group=1 if not selfCollision else i)
             # part.addObject('TLineModel', group=1 if not selfCollision else i)
             # part.addObject('TPointModel', group=1 if not selfCollision else i)
-            part.addObject('BarycentricMapping')
+            part.addObject("BarycentricMapping")
 
     def fixExtremity(self):
-        self.node.addObject('BoxROI', name='boxROI', box=[[-20, -20, 0], [20, 20, 20]], drawBoxes=False)
-        self.node.addObject('PartialFixedProjectiveConstraint', fixedDirections="1 1 1", indices="@boxROI.indices")
+        self.node.addObject("BoxROI", name="boxROI", box=[[-20, -20, 0], [20, 20, 20]], drawBoxes=False)
+        self.node.addObject("PartialFixedProjectiveConstraint", fixedDirections="1 1 1", indices="@boxROI.indices")
 
-    def addEffectors(self, target, position=[0., 0., 195.]):
+    def addEffectors(self, target, position=[0.0, 0.0, 195.0]):
         effectors = self.node.addChild("Effectors")
         effectors.addObject("MechanicalObject", position=position)
         effectors.addObject("BarycentricMapping", mapForces=False, mapMasses=False)
 
 
-def createScene(rootNode, config={"source": [-600.0, -25, 100],
-                                  "target": [30, -25, 100],
-                                  "goalPos": [0, 0, 0],
-                                  "dt": 0.01}, mode='simu_and_visu'):
+def createScene(
+    rootNode,
+    config={"source": [-600.0, -25, 100], "target": [30, -25, 100], "goalPos": [0, 0, 0], "dt": 0.01},
+    mode="simu_and_visu",
+):
 
     # Chose the mode: visualization or computations (or both)
     visu, simu = False, False
-    if 'visu' in mode:
+    if "visu" in mode:
         visu = True
-    if 'simu' in mode:
+    if "simu" in mode:
         simu = True
 
-    rootNode.addObject("RequiredPlugin", name="SoftRobots")
-    rootNode.addObject('RequiredPlugin', name='BeamAdapter')
-
-    pluginList = ["Sofa.Component.AnimationLoop",
-                  "Sofa.Component.Collision.Detection.Algorithm",
-                  "Sofa.Component.Collision.Detection.Intersection",
-                  "Sofa.Component.Collision.Response.Contact",
-                  "Sofa.Component.Constraint.Lagrangian.Correction",
-                  "Sofa.Component.Constraint.Lagrangian.Solver",
-                  "Sofa.Component.Constraint.Projective",
-                  "Sofa.Component.Engine.Select",
-                  "Sofa.Component.IO.Mesh",
-                  "Sofa.Component.IntegrationScheme.Backward",
-                  "Sofa.Component.LinearSolver.Direct",
-                  "Sofa.Component.LinearSolver.Iterative",
-                  "Sofa.Component.Mapping.Linear",
-                  "Sofa.Component.Mass",
-                  "Sofa.Component.Setting",
-                  "Sofa.Component.SolidMechanics.FEM.Elastic",
-                  "Sofa.Component.StateContainer",
-                  "Sofa.Component.Topology.Container.Constant",
-                  "Sofa.Component.Topology.Container.Dynamic",
-                  "Sofa.Component.Visual",
-                  "Sofa.GL.Component.Rendering3D",
-                  "Sofa.GL.Component.Shader"]
-    rootNode.addObject('RequiredPlugin', pluginName=pluginList)
+    pluginList = [
+        "SoftRobots",
+        "BeamAdapter",
+        "Sofa.Component.AnimationLoop",
+        "Sofa.Component.Collision.Detection.Algorithm",
+        "Sofa.Component.Collision.Detection.Intersection",
+        "Sofa.Component.Collision.Response.Contact",
+        "Sofa.Component.Constraint.Lagrangian.Correction",
+        "Sofa.Component.Constraint.Lagrangian.Solver",
+        "Sofa.Component.Constraint.Projective",
+        "Sofa.Component.Engine.Select",
+        "Sofa.Component.IO.Mesh",
+        "Sofa.Component.IntegrationScheme.Backward",
+        "Sofa.Component.LinearSolver.Direct",
+        "Sofa.Component.LinearSolver.Iterative",
+        "Sofa.Component.Mapping.Linear",
+        "Sofa.Component.Mass",
+        "Sofa.Component.Setting",
+        "Sofa.Component.SolidMechanics.FEM.Elastic",
+        "Sofa.Component.StateContainer",
+        "Sofa.Component.Topology.Container.Constant",
+        "Sofa.Component.Topology.Container.Dynamic",
+        "Sofa.Component.Visual",
+        "Sofa.GL.Component.Rendering3D",
+        "Sofa.GL.Component.Shader",
+    ]
+    rootNode.addObject("RequiredPlugin", pluginName=pluginList)
 
     if visu:
         source = config["source"]
         target = config["target"]
-        rootNode.addObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels hideCollisionModels '
-                                                       'hideMappings hideForceFields showWireframe')
+        rootNode.addObject(
+            "VisualStyle",
+            displayFlags="showVisualModels hideBehaviorModels hideCollisionModels "
+            "hideMappings hideForceFields showWireframe",
+        )
         rootNode.addObject("LightManager")
 
-        spotLoc = [2*source[0], 0, 0]
+        spotLoc = [2 * source[0], 0, 0]
         rootNode.addObject("SpotLight", position=spotLoc, direction=[-np.sign(source[0]), 0.0, 0.0])
-        rootNode.addObject("InteractiveCamera", name='camera', position=source, lookAt=target, zFar=500)
-        rootNode.addObject('BackgroundSetting', color=[1, 1, 1, 1])
+        rootNode.addObject("InteractiveCamera", name="camera", position=source, lookAt=target, zFar=500)
+        rootNode.addObject("BackgroundSetting", color=[1, 1, 1, 1])
     if simu:
-        rootNode.addObject('CollisionPipeline')
-        rootNode.addObject('FreeMotionAnimationLoop')
-        rootNode.addObject('BlockGaussSeidelConstraintSolver', tolerance="1e-6", maxIterations="1000")
-        rootNode.addObject('BruteForceDetection')
-        rootNode.addObject('RuleBasedContactManager', responseParams="mu="+str(0.3), name='Response',
-                           response='FrictionContactConstraint')
-        rootNode.addObject('LocalMinDistance', alarmDistance=10, contactDistance=5, angleCone=0.01)
+        # SOFA 26 update: the collision pipeline is removed, the scene has no collision model.
+        rootNode.addObject("FreeMotionAnimationLoop")
+        rootNode.addObject("BlockGaussSeidelConstraintSolver", tolerance="1e-6", maxIterations="1000")
 
         rootNode.addObject(AnimationManagerController(rootNode))
 
-        rootNode.gravity.value = [0., -9810., 0.]
+        rootNode.gravity.value = [0.0, -9810.0, 0.0]
 
     rootNode.dt.value = config["dt"]
 
     simulation = rootNode.addChild("Simulation")
 
     if simu:
-        simulation.addObject('EulerImplicitIntegrationScheme', name='odesolver', firstOrder="0", rayleighMass="0.1",
-                             rayleighStiffness="0.1")
-        simulation.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
-        simulation.addObject('GenericConstraintCorrection', linearSolver="@linearSolver")
+        simulation.addObject(
+            "EulerImplicitIntegrationScheme",
+            name="odesolver",
+            firstOrder="0",
+            rayleighMass="0.1",
+            rayleighStiffness="0.1",
+        )
+        simulation.addObject("EigenSimplicialLDLT", template="CompressedRowSparseMatrixd", name="linearSolver")
+        simulation.addObject("GenericConstraintCorrection", linearSolver="@linearSolver")
 
     trunk = Trunk(simulation, inverseMode=False)
     rootNode.trunk = trunk
 
     if visu:
-        trunk.addVisualModel(color=[1., 1., 1., 0.8])
+        trunk.addVisualModel(color=[1.0, 1.0, 1.0, 0.8])
     trunk.fixExtremity()
 
     goal_mo = add_goal_node(rootNode)
 
-    rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, goalPos=config['goalPos']))
-    rootNode.addObject(goalSetter(name="GoalSetter", goalMO=goal_mo, goalPos=config['goalPos']))
+    rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, goalPos=config["goalPos"]))
+    rootNode.addObject(goalSetter(name="GoalSetter", goalMO=goal_mo, goalPos=config["goalPos"]))
 
     return rootNode

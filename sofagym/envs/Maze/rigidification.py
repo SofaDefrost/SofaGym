@@ -20,12 +20,12 @@ Contributors:
         damien.marchal@univ-lille.fr
         eulalie.coevoet@inria.fr
 """
+
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
-
 
 
 import Sofa
@@ -33,31 +33,32 @@ from splib3.numerics import Vec3, Quat
 
 
 def Rigidify(targetObject, sourceObject, groupIndices, frames=None, name=None, frameOrientation=None):
-    """ Transform a deformable object into a mixed one containing both rigid and deformable parts.
+    """Transform a deformable object into a mixed one containing both rigid and deformable parts.
 
-        :param targetObject: parent node where to attach the final object.
-        :param sourceObject: node containing the deformable object. The object should be following
-                             the ElasticMaterialObject template.
-        :param list groupIndices: array of array indices to rigidify. The length of the array should be equal to the number
-                                  of rigid component.
-        :param list frames: array of frames. The length of the array should be equal to the number
-                            of rigid component. The orientation are given in eulerAngles (in degree) by passing
-                            three values or using a quaternion by passing four values.
-                            [[rx,ry,rz], [qx,qy,qz,w]]
-                            User can also specify the position of the frame by passing six values (position and orientation in degree)
-                            or seven values (position and quaternion).
-                            [[x,y,z,rx,ry,rz], [x,y,z,qx,qy,qz,w]]
-                            If the position is not specified, the position of the rigids will be the barycenter of the region to rigidify.
-        :param str name: specify the name of the Rigidified object, is none provided use the name of the SOurceObject.
+    :param targetObject: parent node where to attach the final object.
+    :param sourceObject: node containing the deformable object. The object should be following
+                         the ElasticMaterialObject template.
+    :param list groupIndices: array of array indices to rigidify. The length of the array should be equal to the number
+                              of rigid component.
+    :param list frames: array of frames. The length of the array should be equal to the number
+                        of rigid component. The orientation are given in eulerAngles (in degree) by passing
+                        three values or using a quaternion by passing four values.
+                        [[rx,ry,rz], [qx,qy,qz,w]]
+                        User can also specify the position of the frame by passing six values (position and orientation in degree)
+                        or seven values (position and quaternion).
+                        [[x,y,z,rx,ry,rz], [x,y,z,qx,qy,qz,w]]
+                        If the position is not specified, the position of the rigids will be the barycenter of the region to rigidify.
+    :param str name: specify the name of the Rigidified object, is none provided use the name of the SOurceObject.
     """
     # Deprecation Warning
     if frameOrientation is not None:
-        Sofa.msg_warning("The parameter frameOrientations of the function Rigidify is now deprecated. "
-                         "Please use frames instead.")
+        Sofa.msg_warning(
+            "The parameter frameOrientations of the function Rigidify is now deprecated. " "Please use frames instead."
+        )
         frames = frameOrientation
 
     if frames is None:
-        frames = [[0., 0., 0.]]*len(groupIndices)
+        frames = [[0.0, 0.0, 0.0]] * len(groupIndices)
 
     assert len(groupIndices) == len(frames), "size mismatch."
 
@@ -121,18 +122,21 @@ def Rigidify(targetObject, sourceObject, groupIndices, frames=None, name=None, f
     indexPairs = [v for kv in Kd.values() for v in kv]
 
     freeParticules = ero.addChild("DeformableParts")
-    freeParticules.addObject("MechanicalObject", template="Vec3", name="dofs",
-                             position=[allPositions[i] for i in otherIndices])
+    freeParticules.addObject(
+        "MechanicalObject", template="Vec3", name="dofs", position=[allPositions[i] for i in otherIndices]
+    )
 
     rigidParts = ero.addChild("RigidParts")
     rigidParts.addObject("MechanicalObject", template="Rigid3d", name="dofs", reserve=len(rigids), position=rigids)
 
     rigidifiedParticules = rigidParts.addChild("RigidifiedParticules")
-    rigidifiedParticules.addObject("MechanicalObject", template="Vec3", name="dofs",
-                                   position=[allPositions[i] for i in selectedIndices])
+    rigidifiedParticules.addObject(
+        "MechanicalObject", template="Vec3", name="dofs", position=[allPositions[i] for i in selectedIndices]
+    )
 
-    rigidifiedParticules.addObject("RigidMapping", name="mapping", globalToLocalCoords='true',
-                                   rigidIndexPerPoint=indicesMap)
+    rigidifiedParticules.addObject(
+        "RigidMapping", name="mapping", globalToLocalCoords="true", rigidIndexPerPoint=indicesMap
+    )
 
     sourceObject.removeObject(sourceObject.solver)
     sourceObject.removeObject(sourceObject.integration)
@@ -145,9 +149,14 @@ def Rigidify(targetObject, sourceObject, groupIndices, frames=None, name=None, f
     if hasattr(sourceObject, "node"):
         coupling = sourceObject.node
 
-    coupling.addObject("SubsetMultiMapping", name="mapping", template="Vec3,Vec3",
-                       input=freeParticules.dofs.getLinkPath()+" "+rigidifiedParticules.dofs.getLinkPath(),
-                       output=sourceObject.dofs.getLinkPath(), indexPairs=indexPairs)
+    coupling.addObject(
+        "SubsetMultiMapping",
+        name="mapping",
+        template="Vec3,Vec3",
+        input=freeParticules.dofs.getLinkPath() + " " + rigidifiedParticules.dofs.getLinkPath(),
+        output=sourceObject.dofs.getLinkPath(),
+        indexPairs=indexPairs,
+    )
 
     rigidifiedParticules.addChild(coupling)
     freeParticules.addChild(coupling)

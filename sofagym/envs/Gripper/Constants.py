@@ -6,7 +6,7 @@ Created on Wed Aug 28 15:20:50 2019
 @author: stefan
 """
 
-FingerMesh = 'FingerWithCavities_NewIteration_Full.step'
+FingerMesh = "FingerWithCavities_NewIteration_Full.step"
 # FingerMesh = 'FingerWithCavitiesV6.step'
 Volumetric_CharacteristicLengthFactor = 1
 Volumetric_CharacteristicLengthMax = 5
@@ -27,7 +27,7 @@ FixedBoxCoords = [-50, -30, -30, -25, 30, 30]
 # Material params
 
 PoissonRation = 0.48
-YoungsModulus = 12000+8000
+YoungsModulus = 12000 + 8000
 
 # Cable locations
 

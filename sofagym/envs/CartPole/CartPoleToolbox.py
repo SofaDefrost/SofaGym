@@ -9,7 +9,7 @@ import Sofa.Simulation
 import SofaRuntime
 from splib3.animation.animate import Animation
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 SofaRuntime.importPlugin("Sofa.Component")
@@ -29,6 +29,7 @@ class StateInitializer(Sofa.Core.Controller):
             The scene.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -107,6 +108,7 @@ class RewardShaper(Sofa.Core.Controller):
             The scene.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -129,7 +131,7 @@ class RewardShaper(Sofa.Core.Controller):
             self.max_angle = kwargs["max_angle"]
         if kwargs["pole_length"] is not None:
             self.pole_length = kwargs["pole_length"]
-        
+
         self.cart = self.rootNode.Modeling.Cart
         self.pole = self.rootNode.Modeling.Pole
 
@@ -146,7 +148,7 @@ class RewardShaper(Sofa.Core.Controller):
 
         """
         pole_theta = self.pole.MechanicalObject.position.value.tolist()[0][5]
-        
+
         return 1, pole_theta, self.max_angle
 
     def update(self, goal=None):
@@ -223,9 +225,9 @@ class ApplyAction(Sofa.Core.Controller):
 
     def _move(self, incr):
         cartForceField = self.cart.CartForce
-        force = cartForceField.force.value.tolist()
+        force = cartForceField.totalForce.value.tolist()
         force[0] = incr
-        cartForceField.force.value = np.array(force)
+        cartForceField.totalForce.value = np.array(force)
 
     def compute_action(self, actions):
         if actions == 0:
@@ -275,7 +277,7 @@ def startCmd(root, actions, duration):
         None.
 
     """
-    incr = action_to_command(actions, root, duration/root.dt.value + 1)
+    incr = action_to_command(actions, root, duration / root.dt.value + 1)
     startCmd_CartPole(root, incr, duration)
 
 
@@ -297,14 +299,13 @@ def startCmd_CartPole(rootNode, incr, duration):
     """
 
     # Definition of the elements of the animation
-    
+
     def executeAnimation(rootNode, incr, factor):
         rootNode.ApplyAction.apply_action(incr)
 
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
         Animation(
-            onUpdate=executeAnimation,
-            params={"rootNode": rootNode,
-                    "incr": incr},
-            duration=duration, mode="once"))
+            onUpdate=executeAnimation, params={"rootNode": rootNode, "incr": incr}, duration=duration, mode="once"
+        )
+    )

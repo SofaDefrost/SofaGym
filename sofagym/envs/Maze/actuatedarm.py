@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-""" ActuatedArm for the tripod robot.
-    This model is part of the SoftRobot toolkit available at:
-        https://github.com/SofaDefrost/SoftRobots
-    Available prefab:
-        - ActuatedArm
-        - ServoArm
+"""ActuatedArm for the tripod robot.
+This model is part of the SoftRobot toolkit available at:
+    https://github.com/SofaDefrost/SoftRobots
+Available prefab:
+    - ActuatedArm
+    - ServoArm
 """
 
 import math
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from s90servo import ServoMotor
@@ -20,70 +20,97 @@ from splib3.objectmodel import *
 from stlib3.scene import Scene
 from stlib3.visuals import VisualModel
 
-mesh_path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
+mesh_path = os.path.dirname(os.path.abspath(__file__)) + "/mesh/"
 
 
 class ServoArm(Sofa.Prefab):
     """ServoArm is a reusable sofa model of a servo arm for the S90 servo motor
 
-       Parameters:
-            parent:        node where the ServoArm will be attached
-            mappingInput:  the rigid mechanical object that will control the orientation of the servo arm
-            indexInput: (int) index of the rigid the ServoArm should be mapped to
+    Parameters:
+         parent:        node where the ServoArm will be attached
+         mappingInput:  the rigid mechanical object that will control the orientation of the servo arm
+         indexInput: (int) index of the rigid the ServoArm should be mapped to
     """
 
     prefabData = [
-        {'name': 'mappingInputLink', 'type': 'string',
-         'help': 'the rigid mechanical object that will control the orientation of the servo arm', 'default': ''},
-        {'name': 'indexInput', 'type': 'int', 'help': 'index of the rigid the ServoArm should be mapped to',
-         'default': 1}]
+        {
+            "name": "mappingInputLink",
+            "type": "string",
+            "help": "the rigid mechanical object that will control the orientation of the servo arm",
+            "default": "",
+        },
+        {
+            "name": "indexInput",
+            "type": "int",
+            "help": "index of the rigid the ServoArm should be mapped to",
+            "default": 1,
+        },
+    ]
 
     def __init__(self, *args, **kwargs):
         Sofa.Prefab.__init__(self, *args, **kwargs)
 
     def init(self):
-        self.addObject('MechanicalObject',
-                       name='dofs',
-                       size=1,
-                       template='Rigid3',
-                       showObject=True,
-                       showObjectScale=5,
-                       translation=[0, 25, 0])
+        self.addObject(
+            "MechanicalObject",
+            name="dofs",
+            size=1,
+            template="Rigid3",
+            showObject=True,
+            showObjectScale=5,
+            translation=[0, 25, 0],
+        )
 
     def setRigidMapping(self, path):
-        self.addObject('RigidMapping', name='mapping', input=path, index=self.indexInput.value)
+        self.addObject("RigidMapping", name="mapping", input=path, index=self.indexInput.value)
 
-        visual = self.addChild(VisualModel(visualMeshPath=mesh_path+'SG90_servoarm.stl', translation=[0., -25., 0.],
-                                           color=[1., 1., 1., 0.75]))
+        visual = self.addChild(
+            VisualModel(
+                visualMeshPath=mesh_path + "SG90_servoarm.stl",
+                translation=[0.0, -25.0, 0.0],
+                color=[1.0, 1.0, 1.0, 0.75],
+            )
+        )
         visual.OglModel.writeZTransparent = False
-        visual.addObject('RigidMapping', name='mapping')
+        visual.addObject("RigidMapping", name="mapping")
 
 
 class ActuatedArm(Sofa.Prefab):
     """ActuatedArm is a reusable sofa model of a S90 servo motor and the tripod actuation arm.
-           Parameters:
-             - translation the position in space of the structure
-             - eulerRotation the orientation of the structure
+    Parameters:
+      - translation the position in space of the structure
+      - eulerRotation the orientation of the structure
 
-           Structure:
-           Node : {
-                name : 'ActuatedArm'
-                MechanicalObject     // Rigid position of the motor
-                ServoMotor           // The s90 servo motor with its actuated wheel
-                ServoArm             // The actuation arm connected to ServoMotor.ServoWheel
-            }
+    Structure:
+    Node : {
+         name : 'ActuatedArm'
+         MechanicalObject     // Rigid position of the motor
+         ServoMotor           // The s90 servo motor with its actuated wheel
+         ServoArm             // The actuation arm connected to ServoMotor.ServoWheel
+     }
     """
+
     prefabParameters = [
-        {'name': 'rotation', 'type': 'Vec3d', 'help': 'Rotation', 'default': [0.0, 0.0, 0.0]},
-        {'name': 'translation', 'type': 'Vec3d', 'help': 'Translation', 'default': [0.0, 0.0, 0.0]},
-        {'name': 'scale', 'type': 'Vec3d', 'help': 'Scale 3d', 'default': [1.0, 1.0, 1.0]}
+        {"name": "rotation", "type": "Vec3d", "help": "Rotation", "default": [0.0, 0.0, 0.0]},
+        {"name": "translation", "type": "Vec3d", "help": "Translation", "default": [0.0, 0.0, 0.0]},
+        {"name": "scale", "type": "Vec3d", "help": "Scale 3d", "default": [1.0, 1.0, 1.0]},
     ]
 
     prefabData = [
-        {'name': 'angleIn', 'group': 'ArmProperties', 'help': 'angle of rotation (in radians) of the arm',
-         'type': 'float', 'default':0},
-        {'name': 'angleOut', 'group': 'ArmProperties', 'type': 'float', 'help': 'angle of rotation (in radians) of '
-                                                                                'the arm', 'default': 0}
+        {
+            "name": "angleIn",
+            "group": "ArmProperties",
+            "help": "angle of rotation (in radians) of the arm",
+            "type": "float",
+            "default": 0,
+        },
+        {
+            "name": "angleOut",
+            "group": "ArmProperties",
+            "type": "float",
+            "help": "angle of rotation (in radians) of " "the arm",
+            "default": 0,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -92,8 +119,9 @@ class ActuatedArm(Sofa.Prefab):
         self.servomotor = None
 
     def init(self):
-        self.servomotor = self.addChild(ServoMotor(name="ServoMotor", translation=self.translation.value,
-                                                   rotation=self.rotation.value))
+        self.servomotor = self.addChild(
+            ServoMotor(name="ServoMotor", translation=self.translation.value, rotation=self.rotation.value)
+        )
         self.servoarm = self.addChild(ServoArm(name="ServoArm"))
         self.servoarm.setRigidMapping(self.ServoMotor.Articulation.ServoWheel.dofs.getLinkPath())
 
@@ -103,27 +131,40 @@ class ActuatedArm(Sofa.Prefab):
         # connect the public attribute to the internal one.
         self.angleOut.setParent(self.ServoMotor.angleOut)
 
-def createScene(rootNode):
-    scene = Scene(rootNode, plugins=["ArticulatedSystemPlugin",
-                                     "Sofa.Component.AnimationLoop", "Sofa.Component.Constraint.Lagrangian.Correction",
-                                     "Sofa.Component.Constraint.Lagrangian.Solver",
-                                     "Sofa.Component.Constraint.Projective", "Sofa.Component.IO.Mesh",
-                                     "Sofa.Component.LinearSolver.Direct", "Sofa.Component.Mass", "Sofa.Component.SolidMechanics.Spring",
-                                     "Sofa.Component.Topology.Container.Constant", "Sofa.Component.Visual",
-                                     "Sofa.GL.Component.Rendering3D", "Sofa.GUI.Component", ], iterative=False)
-    scene.addMainHeader()
-    scene.addObject('DefaultVisualManagerLoop')
-    scene.addObject('FreeMotionAnimationLoop')
-    scene.addObject('BlockGaussSeidelConstraintSolver', maxIterations=50, tolerance=1e-5)
-    scene.Simulation.addObject('GenericConstraintCorrection')
-    scene.VisualStyle.displayFlags = 'showBehavior'
-    scene.dt = 0.01
-    scene.gravity = [0., -9810., 0.]
 
-    arm = scene.Modelling.addChild(ActuatedArm(rootNode, name='ActuatedArm', translation=[0.0, 0.0, 0.0]))
+def createScene(rootNode):
+    scene = Scene(
+        rootNode,
+        plugins=[
+            "ArticulatedSystemPlugin",
+            "Sofa.Component.AnimationLoop",
+            "Sofa.Component.Constraint.Lagrangian.Correction",
+            "Sofa.Component.Constraint.Lagrangian.Solver",
+            "Sofa.Component.Constraint.Projective",
+            "Sofa.Component.IO.Mesh",
+            "Sofa.Component.LinearSolver.Direct",
+            "Sofa.Component.Mass",
+            "Sofa.Component.SolidMechanics.Spring",
+            "Sofa.Component.Topology.Container.Constant",
+            "Sofa.Component.Visual",
+            "Sofa.GL.Component.Rendering3D",
+            "Sofa.GUI.Component",
+        ],
+        iterative=False,
+    )
+    scene.addMainHeader()
+    scene.addObject("DefaultVisualManagerLoop")
+    scene.addObject("FreeMotionAnimationLoop")
+    scene.addObject("BlockGaussSeidelConstraintSolver", maxIterations=50, tolerance=1e-5)
+    scene.Simulation.addObject("GenericConstraintCorrection")
+    scene.VisualStyle.displayFlags = "showBehavior"
+    scene.dt = 0.01
+    scene.gravity = [0.0, -9810.0, 0.0]
+
+    arm = scene.Modelling.addChild(ActuatedArm(rootNode, name="ActuatedArm", translation=[0.0, 0.0, 0.0]))
 
     def myanimate(target, factor):
         target.angleIn.value = math.cos(factor * 2 * math.pi)
 
-    animate(myanimate, {'target': arm}, duration=10., mode='loop')
+    animate(myanimate, {"target": arm}, duration=10.0, mode="loop")
     scene.Simulation.addChild(scene.Modelling)

@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Create the mesh of the board.
+"""Create the mesh of the board."""
 
-
-"""
-
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "December 1 2021"
@@ -41,16 +38,16 @@ SPACE = 0.15
 
 # Step 1: Create board and cavity
 
-BoxInTag = gmsh.model.occ.addBox(0, 0, 0, BOARD_DIM+2, BOARD_DIM+2, HIGHEDGE)
-BoxOutTag = gmsh.model.occ.addBox(1, 1, 1, BOARD_DIM, BOARD_DIM, HIGHEDGE-1)
+BoxInTag = gmsh.model.occ.addBox(0, 0, 0, BOARD_DIM + 2, BOARD_DIM + 2, HIGHEDGE)
+BoxOutTag = gmsh.model.occ.addBox(1, 1, 1, BOARD_DIM, BOARD_DIM, HIGHEDGE - 1)
 
 # Note: (dim, tag)
 Board = gmsh.model.occ.cut([(3, BoxInTag)], [(3, BoxOutTag)])
 BoardTag = Board[0][0][1]
 
-cavity_len = (BOARD_DIM-4*SPACE)/3  # len_box - 4* interval / nb_cavity
-X = [1+SPACE, 1+2*SPACE+cavity_len, 1+3*SPACE+2*cavity_len]  # edge + (n+1)*sepration + n*cavity_len
-Y = [1+SPACE, 1+2*SPACE+cavity_len, 1+3*SPACE+2*cavity_len]
+cavity_len = (BOARD_DIM - 4 * SPACE) / 3  # len_box - 4* interval / nb_cavity
+X = [1 + SPACE, 1 + 2 * SPACE + cavity_len, 1 + 3 * SPACE + 2 * cavity_len]  # edge + (n+1)*sepration + n*cavity_len
+Y = [1 + SPACE, 1 + 2 * SPACE + cavity_len, 1 + 3 * SPACE + 2 * cavity_len]
 Z = 0.25
 for i in range(3):
     for j in range(3):
@@ -79,7 +76,7 @@ for i in range(3):
         gmsh.model.occ.synchronize()
         gmsh.model.mesh.generate(2)
         gmsh.model.occ.synchronize()
-        gmsh.write("./mesh/Cavity_Surface_"+str(id)+".stl")
+        gmsh.write("./mesh/Cavity_Surface_" + str(id) + ".stl")
 
         id += 1
 
