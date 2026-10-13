@@ -71,8 +71,7 @@ class ServerEnv(AbstractEnv):
 
         info = {}  # (not use here)
 
-        if self.config["planning"]:
-            self.clean()
+        # In planning, the steps of the planner explore branches: the agent calls clean() after its real actions.
         return obs, reward, done, info
 
     def async_step(self, action):
@@ -132,6 +131,8 @@ class ServerEnv(AbstractEnv):
 
         self.timer = 0
         self.past_actions = []
+        # Before the env starts the first client with its config.
+        self.draw_scene_seed()
 
         return
 
@@ -139,7 +140,9 @@ class ServerEnv(AbstractEnv):
         """Function to clean the registery .
 
         Close clients who are processing unused sequences of actions (for
-        planning)
+        planning): the clients outside the subtree of past_actions, but the
+        root. A planning agent calls it after each of its real actions, which
+        make the other branches unreachable.
 
         Parameters:
         ----------

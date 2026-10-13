@@ -11,7 +11,7 @@ import os
 import numpy as np
 import sys
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, EnvWrapper
 from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
@@ -20,7 +20,7 @@ from gym import spaces
 from typing import Optional
 
 
-class TrunkEnv:
+class TrunkEnv(EnvWrapper):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -83,11 +83,6 @@ class TrunkEnv:
 
         if self.env.root is None and not self.use_server:
             self.env.init_root()
-
-    # called when an attribute is not found:
-    def __getattr__(self, name):
-        # assume it is implemented by self.instance
-        return self.env.__getattribute__(name)
 
     def reset(self):
         """Reset simulation."""

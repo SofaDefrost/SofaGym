@@ -9,7 +9,7 @@ __date__ = "Feb 3 2021"
 
 import os, sys
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, EnvWrapper
 from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
@@ -20,7 +20,7 @@ import numpy as np
 from typing import Optional
 
 
-class CartStemContactEnv:
+class CartStemContactEnv(EnvWrapper):
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -91,11 +91,6 @@ class CartStemContactEnv:
 
         if self.env.root is None and not self.use_server:
             self.env.init_root()
-
-    # called when an attribute is not found:
-    def __getattr__(self, name):
-        # assume it is implemented by self.instance
-        return self.env.__getattribute__(name)
 
     def initialize_states(self):
         self.env.initialize_states()

@@ -7,7 +7,7 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Robocath, CNRS, Inria"
 __date__ = "Dec 01 2021"
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, EnvWrapper
 from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
@@ -20,7 +20,7 @@ import numpy as np
 from typing import Optional
 
 
-class ConcentricTubeRobotEnv:
+class ConcentricTubeRobotEnv(EnvWrapper):
     """Sub-class of AbstractEnv, dedicated to the trunk scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -89,11 +89,6 @@ class ConcentricTubeRobotEnv:
 
         if self.env.root is None and not self.use_server:
             self.env.init_root()
-
-    # called when an attribute is not found:
-    def __getattr__(self, name):
-        # assume it is implemented by self.instance
-        return self.env.__getattribute__(name)
 
     def init_goal(self):
         # Set a new random goal from the list

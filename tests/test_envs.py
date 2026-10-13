@@ -6,11 +6,10 @@ Each env runs in a subprocess through env_runner.py.
 
 import importlib.util
 import os
-import re
 
 import pytest
 
-from helpers import REPO_ROOT, run_script
+from helpers import registered_env_ids, run_script
 
 pytestmark = [
     pytest.mark.skipif(
@@ -18,12 +17,6 @@ pytestmark = [
     ),
     pytest.mark.skipif(importlib.util.find_spec("gym") is None, reason="gym is not installed"),
 ]
-
-
-def registered_env_ids():
-    """Ids registered in sofagym/envs/__init__.py, read without importing SOFA in the test process."""
-    source = (REPO_ROOT / "sofagym" / "envs" / "__init__.py").read_text()
-    return sorted(re.findall(r"""id\s*=\s*['"]([^'"]+)['"]""", source))
 
 
 ENV_IDS = registered_env_ids()

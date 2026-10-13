@@ -10,7 +10,7 @@ __date__ = "Oct 7 2020"
 import os, sys
 import numpy as np
 
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, EnvWrapper
 from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
@@ -19,7 +19,7 @@ from gym import spaces
 from typing import Optional
 
 
-class GripperEnv:
+class GripperEnv(EnvWrapper):
     """Sub-class of AbstractEnv, dedicated to the gripper scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -83,11 +83,6 @@ class GripperEnv:
 
         if self.env.root is None and not self.use_server:
             self.env.init_root()
-
-    # called when an attribute is not found:
-    def __getattr__(self, name):
-        # assume it is implemented by self.instance
-        return self.env.__getattribute__(name)
 
     def reset(self):
         """Reset simulation."""

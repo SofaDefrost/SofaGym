@@ -98,6 +98,11 @@ def run_episode(env, actions, video=None):
     env.seed(0)
     random.seed(0)
     np.random.seed(0)
+    # Since the SOFA 26 update, the env seeds the global generators of the scene at each reset (from its own seed): seed
+    # them as when the references were recorded, at 0 before the reset.
+    if hasattr(env, "draw_scene_seed"):
+        inner = getattr(env, "env", env)
+        inner.draw_scene_seed = lambda: inner.config.update(scene_seed=0)
     episode = {
         "requested_actions": len(actions),
         "actions": [],

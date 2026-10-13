@@ -387,9 +387,6 @@ class SB3Agent(SofaBaseAgent):
 
             _, _ = evaluate_policy(eval_model, eval_env, n_eval_episodes=1, deterministic=True, render=True)
 
-            if record:
-                eval_env.close_video_recorder()
-
         eval_env.close()
 
         print(f"Reward: {mean_reward}, Standard Devation: {std_reward}")

@@ -13,6 +13,20 @@ import Sofa
 import SofaRuntime
 
 import importlib
+import random
+
+import numpy as np
+
+
+def seed_scene_rngs(seed):
+    """Seed the global random generators some scenes draw their initial conditions from (e.g. Gripper, StemPendulum).
+
+    The envs draw `seed` from their own generator at each reset (config["scene_seed"]), so that the same env seed gives
+    the same scenes, locally and in the clients of the server.
+    """
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
 
 
 def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
@@ -46,20 +60,9 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
     # Load the scene
     root = Sofa.Core.Node("root")
     SofaRuntime.importPlugin("Sofa.Component")
+    seed_scene_rngs(config.get("scene_seed"))
     create_scene(root, config, mode=mode)
     Sofa.Simulation.initRoot(root)
-
-    # Realise action from history
-    if config["start_from_history"] is not None and _startCmd is not None:
-        print(">>   Start from history ...")
-        render = config["render"]
-        config.update({"render": 0})
-
-        for action in config["start_from_history"]:
-            step_simulation(root, config, action, _startCmd, None)
-
-        config.update({"render": render})
-        print(">>   ... Done.")
 
     if config["randomize_states"]:
         root.StateInitializer.init_state(config["init_states"])
@@ -76,6 +79,18 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
         root.Reward.update(config["goalPos"])
     else:
         root.Reward.update()
+
+    # Realise action from history, as the first steps of an episode: after the initial state, goal and reward.
+    if config["start_from_history"] is not None and _startCmd is not None:
+        print(">>   Start from history ...")
+        render = config["render"]
+        config.update({"render": 0})
+
+        for action in config["start_from_history"]:
+            step_simulation(root, config, action, _startCmd, None)
+
+        config.update({"render": render})
+        print(">>   ... Done.")
 
     return root
 

@@ -17,6 +17,7 @@ import copy
 import os
 
 
+from sofagym.simulate import seed_scene_rngs
 from sofagym.viewer import Viewer
 
 import importlib
@@ -150,7 +151,8 @@ class AbstractEnv(gym.Env):
             raise NotImplementedError("Importing your SOFA Scene Failed") from exc
 
         self.viewer = None
-        self.render_mode = render_mode
+        # The envs render images (gym >= 0.26 and SB3 read render_mode) when their config asks for rendering.
+        self.render_mode = render_mode or ("rgb_array" if self.config["render"] else None)
 
         self.past_actions = []
 
@@ -251,6 +253,10 @@ class AbstractEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def draw_scene_seed(self):
+        """Draw the seed of the next scene from the generator of the env (see simulate.seed_scene_rngs)."""
+        self.config["scene_seed"] = int(self.np_random.integers(2**31))
+
     def get_available_actions(self):
         """Gives the actions available in the environment.
 
@@ -260,8 +266,10 @@ class AbstractEnv(gym.Env):
 
         Returns:
         -------
-            list of the action available in the environment.
+            list of the action available in the environment (the action space itself when it is continuous).
         """
+        if isinstance(self.action_space, gym.spaces.Discrete):
+            return list(range(self.action_space.n))
         return self.action_space
 
     def _formataction(self, action):
@@ -381,9 +389,6 @@ class AbstractEnv(gym.Env):
         """
         self.viewer = None
 
-        # splib3.animation.animate is shadowed by the animate function, reset the global of the module itself.
-        importlib.import_module("splib3.animation.animate").manager = None
-
         self.timer = 0
         self.past_actions = []
         self.pos = []
@@ -391,13 +396,14 @@ class AbstractEnv(gym.Env):
 
         Sofa.Simulation.reset(self.root)
         self.root = None
+        self.draw_scene_seed()
         self.init_simulation()
 
         obs = np.array(self._getState(self.root), dtype=np.float32)
 
         return obs
 
-    def render(self, mode):
+    def render(self, mode=None):
         """See the current state of the environment.
 
         Get the OpenGL Context to render an image (snapshot) of the simulation
@@ -412,7 +418,7 @@ class AbstractEnv(gym.Env):
         -------
             None.
         """
-        self.render_mode = mode
+        self.render_mode = mode or self.render_mode or "rgb_array"
 
         # Define the viewer at the first run of render.
         if self.viewer is None:
@@ -477,24 +483,17 @@ class AbstractEnv(gym.Env):
                 The loaded and initialized scene.
 
         """
+        # Each scene gets its own splib3 animation manager (a global, kept from the previous scene of the process).
+        # splib3.animation.animate is shadowed by the animate function, reset the global of the module itself.
+        importlib.import_module("splib3.animation.animate").manager = None
+
         # Load the scene
         self.root = Sofa.Core.Node("root")
 
         SofaRuntime.importPlugin("Sofa.Component")
+        seed_scene_rngs(self.config.get("scene_seed"))
         self.create_scene(self.root, self.config, mode=mode)
         Sofa.Simulation.initRoot(self.root)
-
-        # Realise action from history
-        if self.config["start_from_history"] is not None and self._startCmd is not None:
-            print(">>   Start from history ...")
-            render = self.config["render"]
-            self.config.update({"render": 0})
-
-            for action in self.config["start_from_history"]:
-                self.step_simulation(action)
-
-            self.config.update({"render": render})
-            print(">>   ... Done.")
 
         if self.config["randomize_states"]:
             self.root.StateInitializer.init_state(self.config["init_states"])
@@ -510,6 +509,18 @@ class AbstractEnv(gym.Env):
             self.root.GoalSetter.update(self.goal)
 
         self.root.Reward.update(self.goal)
+
+        # Realise action from history, as the first steps of an episode: after the initial state, goal and reward.
+        if self.config["start_from_history"] is not None and self._startCmd is not None:
+            print(">>   Start from history ...")
+            render = self.config["render"]
+            self.config.update({"render": 0})
+
+            for action in self.config["start_from_history"]:
+                self.step_simulation(action)
+
+            self.config.update({"render": render})
+            print(">>   ... Done.")
 
     def step_simulation(self, action):
         """Realise one step in the simulation.
@@ -558,3 +569,24 @@ class AbstractEnv(gym.Env):
             pos.append(self._getPos(self.root))
 
         return pos
+
+
+class EnvWrapper:
+    """Base of the env classes, which wrap an AbstractEnv or a ServerEnv (`self.env`) and expose its attributes."""
+
+    def __getattr__(self, name):
+        # Only called for the attributes the wrapper does not have. "env" is missing while copy.deepcopy rebuilds the
+        # wrapper: looking it up in itself would recurse.
+        if name == "env":
+            raise AttributeError(name)
+        return getattr(self.env, name)
+
+    @property
+    def past_actions(self):
+        """The actions since the reset, which identify the state in planning: set it to step from another state."""
+        return self.env.past_actions
+
+    @past_actions.setter
+    def past_actions(self, value):
+        # A copy: step() appends to it, which would change the caller's list.
+        self.env.past_actions = list(value)

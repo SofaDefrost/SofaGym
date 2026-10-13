@@ -3,7 +3,7 @@ import warnings
 
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.vec_env import VecMonitor, VecVideoRecorder, sync_envs_normalization
+from stable_baselines3.common.vec_env import VecMonitor, VecVideoRecorder
 
 
 class SaveCallback(CheckpointCallback):
@@ -158,15 +158,14 @@ class VideoRecordCallback(BaseCallback):
     def _init_callback(self) -> None:
         assert self.parent is not None, "``VideoRecordCallback`` callback must be used with an ``EvalCallback``"
 
-        self.eval_env = self.parent.eval_env
-        self.eval_env = VecVideoRecorder(
-            self.eval_env,
+        self.recorder = VecVideoRecorder(
+            self.parent.eval_env,
             self.save_path,
             record_video_trigger=lambda x: x == 0,
             video_length=self.video_length,
             name_prefix="eval_callback_video",
         )
-        self.eval_env = VecMonitor(self.eval_env, self.log_dir)
+        self.eval_env = VecMonitor(self.recorder, self.log_dir)
 
         # Does not work in some corner cases, where the wrapper is not the same
         if not isinstance(self.training_env, type(self.eval_env)):
@@ -177,17 +176,7 @@ class VideoRecordCallback(BaseCallback):
             os.makedirs(self.save_path, exist_ok=True)
 
     def _on_step(self) -> bool:
-        # Sync training and eval env if there is VecNormalize
-        if self.model.get_vec_normalize_env() is not None:
-            try:
-                sync_envs_normalization(self.training_env, self.eval_env)
-            except AttributeError as e:
-                raise AssertionError(
-                    "Training and eval env are not wrapped the same way, "
-                    "see https://stable-baselines3.readthedocs.io/en/master/guide/callbacks.html#evalcallback "
-                    "and warning above."
-                ) from e
-
+        # The parent EvalCallback has synchronized the normalization of its eval env, which this one wraps.
         episode_rewards, episode_lengths = evaluate_policy(
             self.model,
             self.eval_env,
@@ -198,7 +187,9 @@ class VideoRecordCallback(BaseCallback):
             warn=True,
         )
 
-        self.eval_env.close_video_recorder()
+        # SB3 >= 2 has no public way to save a video shorter than video_length without closing the env.
+        if self.recorder.recording:
+            self.recorder._stop_recording()
 
         return True
 

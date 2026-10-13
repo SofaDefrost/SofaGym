@@ -167,7 +167,6 @@ class SofaTestAgent(ABC):
         """
         env.seed(self.seed)
         env.action_space.seed(self.seed)
-        env.action_space.np_random.seed(self.seed)
 
     def policy(self, obs):
         """

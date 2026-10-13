@@ -38,3 +38,9 @@ def run_script(script, *args, success_marker):
         f"SOFA errors:\n" + "\n".join(errors[:20]) + f"\n\nOutput tail:\n{output[-5000:]}"
     )
     return result.stdout
+
+
+def registered_env_ids():
+    """Ids registered in sofagym/envs/__init__.py, read without importing SOFA in the test process."""
+    source = (REPO_ROOT / "sofagym" / "envs" / "__init__.py").read_text()
+    return sorted(re.findall(r"""id\s*=\s*['"]([^'"]+)['"]""", source))

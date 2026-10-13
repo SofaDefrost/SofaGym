@@ -5,12 +5,12 @@ from typing import Optional
 
 import numpy as np
 from gym import spaces
-from sofagym.AbstractEnv import AbstractEnv
+from sofagym.AbstractEnv import AbstractEnv, EnvWrapper
 from sofagym.ServerEnv import ServerEnv
 from sofagym.rpc_server import start_scene
 
 
-class CartPoleEnv:
+class CartPoleEnv(EnvWrapper):
     """Sub-class of AbstractEnv, dedicated to the cart pole scene.
 
     See the class AbstractEnv for arguments and methods.
@@ -90,11 +90,6 @@ class CartPoleEnv:
 
         if self.env.root is None and not self.use_server:
             self.env.init_root()
-
-    # called when an attribute is not found:
-    def __getattr__(self, name):
-        # assume it is implemented by self.instance
-        return self.env.__getattribute__(name)
 
     def initialize_states(self):
         if self.env.config["randomize_states"]:

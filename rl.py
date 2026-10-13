@@ -15,9 +15,6 @@ __date__ = "Nov 10 2020"
 
 import argparse
 
-from agents.RLberryAgent import RLberryAgent
-from agents.SB3Agent import SB3Agent
-
 from agents.utils import args_check
 
 import sofagym
@@ -93,7 +90,11 @@ if __name__ == "__main__":
         if train == "continue" or (train == "none" and test):
             parser.error("Valid argument --model_dir must be provided where previous model training files are saved")
 
-    Agent = eval(framework + "Agent")
+    # Each framework only needs its own dependencies.
+    if framework == "SB3":
+        from agents.SB3Agent import SB3Agent as Agent
+    else:
+        from agents.RLberryAgent import RLberryAgent as Agent
 
     if train == "new":
         agent = Agent(env_name, algo_name, seed, results_dir, max_episode_steps, n_envs)
