@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "emenager"
 __contact__ = "etienne.menager@ens-rennes.fr"
@@ -40,6 +39,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -75,11 +75,11 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         trunkTips = self._computeTips()
-        current_dist = np.linalg.norm(np.array(trunkTips)-np.array(self.goal_pos))
-        reward = max((self.prev_dist - current_dist)/self.prev_dist, 0)
+        current_dist = np.linalg.norm(np.array(trunkTips) - np.array(self.goal_pos))
+        reward = max((self.prev_dist - current_dist) / self.prev_dist, 0)
         self.prev_dist = current_dist
 
-        return min(reward**(1/2), 1.0), current_dist
+        return min(reward ** (1 / 2), 1.0), current_dist
 
     def update(self, goal=None):
         """Update function.
@@ -97,7 +97,7 @@ class rewardShaper(Sofa.Core.Controller):
         """
         self.goal_pos = goal
         trunkTips = self._computeTips()
-        self.init_dist = np.linalg.norm(np.array(trunkTips)-np.array(self.goal_pos))
+        self.init_dist = np.linalg.norm(np.array(trunkTips) - np.array(self.goal_pos))
         self.prev_dist = self.init_dist
 
     def _computeTips(self):
@@ -116,7 +116,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         trunkTips = np.zeros(3)
         for cable in cables:
-            trunkTips += cable.meca.position[-1]/size
+            trunkTips += cable.meca.position[-1] / size
 
         return trunkTips
 
@@ -176,7 +176,8 @@ class goalSetter(Sofa.Core.Controller):
         """
         self.goalPos = goal
         with self.goalMO.position.writeable() as position:
-            position += self.goalPos
+            # Not added to the initial position of the GoalMO: the goal of the reward.
+            position[0] = self.goalPos
 
     def set_mo_pos(self, goal):
         """Modify the goal.
@@ -225,7 +226,7 @@ def getState(rootNode):
         for cable in cables:
             c = cable.meca.position[i]
             point += c
-        point = [round(float(k), cs)/4 for k in point]
+        point = [round(float(k), cs) / 4 for k in point]
         points += point
 
     goalPos = _getGoalPos(rootNode).tolist()
@@ -293,7 +294,10 @@ def displace(cable, displacement):
         None.
 
     """
-    cable.cable.value = [cable.cable.value[0] + displacement]
+    # A cable can only pull: actions never make its displacement negative (initially negative cables, set by the
+    # scene, can only go back towards 0).
+    old = cable.cable.value[0]
+    cable.cable.value = [max(old + displacement, min(old, 0.0))]
 
 
 def startCmd_Trunk(rootNode, cable, displacement, duration):
@@ -323,9 +327,11 @@ def startCmd_Trunk(rootNode, cable, displacement, duration):
     rootNode.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"cable": cable,
-                    "displacement": displacement},
-            duration=duration, mode="once"))
+            params={"cable": cable, "displacement": displacement},
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action):
@@ -356,7 +362,7 @@ def action_to_command(action):
         num_cable, displacement = 6, 1
     elif action == 7:
         num_cable, displacement = 7, 1
-    elif   action == 8:
+    elif action == 8:
         num_cable, displacement = 0, -1
     elif action == 9:
         num_cable, displacement = 1, -1

@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Create the mesh of the board.
+"""Create the mesh of the board."""
 
-
-"""
-
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "December 1 2021"

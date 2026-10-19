@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "PSC"
 __contact__ = "pierre.schegg@robocath.com"
@@ -11,7 +10,7 @@ __date__ = "Mar 23 2021"
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
@@ -25,47 +24,73 @@ from splib3.animation.animate import Animation
 from splib3.numerics import Quat
 from MazeTools import Graph, dijkstra
 
-
 SofaRuntime.importPlugin("Sofa.Component")
 
-def addRigidObject(node, filename, collisionFilename=None, position=[0,0,0,0,0,0,1], scale=[1,1,1], textureFilename='', color=[1,1,1], density=0.002, name='Object', withSolver=True, collisionGroup = 0, withCollision=True):
+
+def addRigidObject(
+    node,
+    filename,
+    collisionFilename=None,
+    position=[0, 0, 0, 0, 0, 0, 1],
+    scale=[1, 1, 1],
+    textureFilename="",
+    color=[1, 1, 1],
+    density=0.002,
+    name="Object",
+    withSolver=True,
+    collisionGroup=0,
+    withCollision=True,
+):
 
     if collisionFilename == None:
         collisionFilename = filename
 
     object = node.addChild(name)
-    object.addObject('RequiredPlugin', name='SofaPlugins', pluginName='SofaRigid SofaLoader')
-    object.addObject('MechanicalObject', template='Rigid3', position=position, showObject=False, showObjectScale=5)
+    object.addObject(
+        "RequiredPlugin",
+        name="SofaPlugins",
+        pluginName="Sofa.Component.Collision.Geometry "
+        "Sofa.Component.Constraint.Lagrangian.Correction "
+        "Sofa.Component.Engine.Generate "
+        "Sofa.Component.IO.Mesh "
+        "Sofa.Component.IntegrationScheme.Backward "
+        "Sofa.Component.LinearSolver.Iterative "
+        "Sofa.Component.Mapping.NonLinear "
+        "Sofa.Component.Mass "
+        "Sofa.Component.StateContainer "
+        "Sofa.Component.Topology.Container.Constant "
+        "Sofa.GL.Component.Rendering3D",
+    )
+    object.addObject("MechanicalObject", template="Rigid3", position=position, showObject=False, showObjectScale=5)
 
     if withSolver:
-        object.addObject('EulerImplicitSolver')
-        object.addObject('CGLinearSolver', tolerance=1e-5, iterations=25, threshold = 1e-5)
-        object.addObject('UncoupledConstraintCorrection')
+        object.addObject("EulerImplicitIntegrationScheme")
+        object.addObject("CGLinearSolver", tolerance=1e-5, iterations=25, threshold=1e-5)
+        object.addObject("UncoupledConstraintCorrection")
 
-    visu = object.addChild('Visu')
-    visu.addObject('MeshOBJLoader', name='loader', filename=filename, scale3d=scale)
-    visu.addObject('OglModel', src='@loader',  color=color if textureFilename =='' else '')
-    visu.addObject('RigidMapping')
+    visu = object.addChild("Visu")
+    visu.addObject("MeshOBJLoader", name="loader", filename=filename, scale3d=scale)
+    visu.addObject("OglModel", src="@loader", color=color if textureFilename == "" else "")
+    visu.addObject("RigidMapping")
 
-    object.addObject('GenerateRigidMass', name='mass', density=density, src=visu.loader.getLinkPath())
+    object.addObject("GenerateRigidMass", name="mass", density=density, src=visu.loader.getLinkPath())
     object.mass.init()
     translation = list(object.mass.centerToOrigin.value)
-    object.addObject('UniformMass', vertexMass="@mass.rigidMass")
+    object.addObject("UniformMass", vertexMass="@mass.rigidMass")
 
     visu.loader.translation = translation
 
     if withCollision:
-        collision = object.addChild('Collision')
-        collision.addObject('MeshOBJLoader', name='loader', filename=collisionFilename, scale3d=scale)
-        collision.addObject('MeshTopology', src='@loader')
-        collision.addObject('MechanicalObject', translation=translation)
-        collision.addObject('TriangleCollisionModel', group = collisionGroup)
-        collision.addObject('LineCollisionModel', group = collisionGroup)
-        collision.addObject('PointCollisionModel', group = collisionGroup)
-        collision.addObject('RigidMapping')
+        collision = object.addChild("Collision")
+        collision.addObject("MeshOBJLoader", name="loader", filename=collisionFilename, scale3d=scale)
+        collision.addObject("MeshTopology", src="@loader")
+        collision.addObject("MechanicalObject", translation=translation)
+        collision.addObject("TriangleCollisionModel", group=collisionGroup)
+        collision.addObject("LineCollisionModel", group=collisionGroup)
+        collision.addObject("PointCollisionModel", group=collisionGroup)
+        collision.addObject("RigidMapping")
 
     return object
-
 
 
 class rewardShaper(Sofa.Core.Controller):
@@ -89,6 +114,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -136,9 +162,10 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         pos = self.ball_mo.position.value[0]
-        dist_to_path = [{'id': k, 'dist': np.linalg.norm(pos - path_point)}
-                        for k, path_point in enumerate(self.path_pos)]
-        sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
+        dist_to_path = [
+            {"id": k, "dist": np.linalg.norm(pos - path_point)} for k, path_point in enumerate(self.path_pos)
+        ]
+        sorted_dist = sorted(dist_to_path, key=lambda item: item["dist"])
         if len(sorted_dist) < 2:
             print("error")
             return 0.0, True
@@ -147,7 +174,7 @@ class rewardShaper(Sofa.Core.Controller):
             return 0.0, True
         closest_points = [sorted_dist[0]["id"], sorted_dist[1]["id"]]
 
-        new_ratio = max(self.path_length[closest_points[0]], 0)/self.path_length[-1]
+        new_ratio = max(self.path_length[closest_points[0]], 0) / self.path_length[-1]
         # if new_ratio < self.prev_ratio:
         #     return 0.0, None
         if new_ratio > self.prev_ratio:
@@ -174,7 +201,16 @@ class rewardShaper(Sofa.Core.Controller):
         edges = []
         with self.path_mesh.edges.writeable() as Topoedges:
             for edge in Topoedges:
-                edges += [(edge[0], edge[1], np.linalg.norm(np.array(self.path_mesh.position.value[edge[0]])-np.array(self.path_mesh.position.value[edge[1]])))]
+                edges += [
+                    (
+                        edge[0],
+                        edge[1],
+                        np.linalg.norm(
+                            np.array(self.path_mesh.position.value[edge[0]])
+                            - np.array(self.path_mesh.position.value[edge[1]])
+                        ),
+                    )
+                ]
 
         self.path_graph = Graph()
         for edge in edges:
@@ -318,9 +354,9 @@ def getReward(root):
 
     spheres = root.Sphere.sphere_mo.position.value[:3]
     goal = root.Goal.GoalMO.position.value[:3]
-    if np.linalg.norm(spheres-goal) <= 10:
+    if np.linalg.norm(spheres - goal) <= 10:
         print("Terminal State")
-        print(np.linalg.norm(spheres-goal))
+        print(np.linalg.norm(spheres - goal))
         return True, 1.0
 
     reward, terminal = root.Reward.getReward()
@@ -368,9 +404,9 @@ def displace(root, prev_theta_x, prev_theta_z, displacement, factor):
 
     theta_x, theta_z = displacement
     pos = root.model.rigid_maze_mo.position.value[0][:3]
-    quat = Quat.createFromEuler([prev_theta_x + (theta_x - prev_theta_x) * factor,
-                                 0,
-                                 prev_theta_z + (theta_z - prev_theta_z) * factor])
+    quat = Quat.createFromEuler(
+        [prev_theta_x + (theta_x - prev_theta_x) * factor, 0, prev_theta_z + (theta_z - prev_theta_z) * factor]
+    )
     root.model.rigid_maze_mo.rest_position = [[pos[0], pos[1], pos[2], quat[0], quat[1], quat[2], quat[3]]]
 
 
@@ -402,11 +438,16 @@ def startCmd_Maze(root, displacement, duration):
     root.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"root": root,
-                    "prev_theta_x": prev_theta_x,
-                    "prev_theta_z": prev_theta_z,
-                    "displacement": displacement},
-            duration=duration, mode="once"))
+            params={
+                "root": root,
+                "prev_theta_x": prev_theta_x,
+                "prev_theta_z": prev_theta_z,
+                "displacement": displacement,
+            },
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action):

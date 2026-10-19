@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Visualise the evolution of the scene in a runSofa way.
+"""Visualise the evolution of the scene in a runSofa way."""
 
-"""
-
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "May 4 2021"
 
 import sys
 import pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 import json
@@ -37,7 +36,7 @@ def get_config(path="./config.txt"):
         The configuration.
 
     """
-    with open(path, 'r') as outfile:
+    with open(path, "r") as outfile:
         config = json.load(outfile)
     return config
 
@@ -63,6 +62,7 @@ class ApplyAction(Sofa.Core.Controller):
     -------
         __init__: classical init function.
     """
+
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
         self.root = kwargs["root"]

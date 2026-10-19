@@ -1,0 +1,29 @@
+# SofaGym (SOFA, SofaPython3 and the plugins of the scenes are installed separately, see README.md)
+gymnasium>=1.0
+numpy
+psutil
+pygame
+pyopengl
+pillow
+imageio
+pyquaternion
+
+# Training (agents/, rl.py)
+stable-baselines3>=2.0
+torch
+pyyaml
+colorama
+tensorboard
+tqdm
+rich
+moviepy
+
+# Experiments (experiments/: figures)
+matplotlib
+
+# Planning (tree search on the server's planning mode)
+rl-agents @ git+https://github.com/eleurent/rl-agents.git
+
+# Tests (run in parallel, see pytest.ini)
+pytest
+pytest-xdist

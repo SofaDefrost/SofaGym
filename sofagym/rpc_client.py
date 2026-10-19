@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Client to run sofa scene.
-"""
+"""Client to run sofa scene."""
 
 __authors__ = ("PSC", "dmarchal", "emenager")
 __contact__ = ("pierre.schegg@robocath.com", "damien.marchal@univ-lille.fr", "etienne.menager@ens-rennes.fr")
@@ -19,7 +18,8 @@ import random
 import importlib
 
 import pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../../../")
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../../../")
 
 from sofagym.simulate import init_simulation, step_simulation
 
@@ -76,8 +76,8 @@ def do_animate(task, _getReward_, _getState_, _startCmd, _getPos):
     """
     global stateId, config, path, position
 
-    scene = config['scene']
-    save_data = config['save_data']
+    scene = config["scene"]
+    save_data = config["save_data"]
 
     action = task["action"]
 
@@ -90,14 +90,10 @@ def do_animate(task, _getReward_, _getState_, _startCmd, _getPos):
     obs = _getState(root)
     done, reward = _getReward(root)
 
-    if config['save_data']:
-        data = {"history": history,
-                "configuration": config,
-                "state": state,
-                "action": action,
-                "obs": obs}
-        filename = config['save_path_results'] + "/" + scene + str(history) + ".json"
-        with open(filename, 'w') as outfile:
+    if config["save_data"]:
+        data = {"history": history, "configuration": config, "state": state, "action": action, "obs": obs}
+        filename = config["save_path_results"] + "/" + scene + str(history) + ".json"
+        with open(filename, "w") as outfile:
             json.dump(data, outfile)
 
     # Notify the server that the task is done
@@ -144,11 +140,7 @@ def make_result(state_id, obs, reward, done):
 
     """
 
-    return {"stateId": state_id,
-            "observation": obs,
-            "reward": float(reward),
-            "done": done,
-            "info": {}}
+    return {"stateId": state_id, "observation": obs, "reward": float(reward), "done": done, "info": {}}
 
 
 if __name__ == "__main__":
@@ -160,42 +152,47 @@ if __name__ == "__main__":
     nb_actions = sys.argv[2]
     port_rpc = sys.argv[3]
 
-    scene = config['scene']
+    scene = config["scene"]
 
     # Register the first instance to the manager
-    s = xmlrpc.client.ServerProxy('http://localhost:' + port_rpc)
+    s = xmlrpc.client.ServerProxy("http://localhost:" + port_rpc)
     s.registerInstance(0, os.getpid(), [])
 
-    _getState = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").getState
-    _getReward = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").getReward
-    _startCmd = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").startCmd
-    _getPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").getPos
+    _getState = importlib.import_module("sofagym.envs." + scene + "." + scene + "Toolbox").getState
+    _getReward = importlib.import_module("sofagym.envs." + scene + "." + scene + "Toolbox").getReward
+    _startCmd = importlib.import_module("sofagym.envs." + scene + "." + scene + "Toolbox").startCmd
+    _getPos = importlib.import_module("sofagym.envs." + scene + "." + scene + "Toolbox").getPos
 
-    root = init_simulation(config, _startCmd, mode='simu')
+    root = init_simulation(config, _startCmd, mode="simu")
 
     s.registerFirstObservation(make_result(stateId, _getState(root), 0.0, False))
 
     command = None
 
-    while command != "exit":
-        task = s.getNextTask(stateId)
-        command = task["command"]
-        if command == "fork":
-            do_fork(task["stateId"], history)
+    # The forked clients run this loop too. When the env is closed, its server goes away while clients may still be
+    # working: there is nothing left to do.
+    try:
+        while command != "exit":
+            task = s.getNextTask(stateId)
+            command = task["command"]
+            if command == "fork":
+                do_fork(task["stateId"], history)
 
-        elif command == "animate":
-            history.append(task["action"])
-            do_animate(task, _getReward, _getState, _startCmd, _getPos)
-
-        elif command == "fork_and_animate":
-            action = task["action"]
-            pid = do_fork(task["stateId"], history + [task["action"]])
-            if pid == 0:
-                history.append(action)
+            elif command == "animate":
+                history.append(task["action"])
                 do_animate(task, _getReward, _getState, _startCmd, _getPos)
 
-        elif command == "get_position":
-            send_position()
+            elif command == "fork_and_animate":
+                action = task["action"]
+                pid = do_fork(task["stateId"], history + [task["action"]])
+                if pid == 0:
+                    history.append(action)
+                    do_animate(task, _getReward, _getState, _startCmd, _getPos)
+
+            elif command == "get_position":
+                send_position()
+    except ConnectionError:
+        sys.exit(0)
 
     # Avoid that all client exit in the same time
     time.sleep(random.random())

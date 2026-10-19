@@ -516,20 +516,20 @@ envs = {
 
 # Step 5: Train and Evaluate an RL Agent for the New Environment
 
-To train the RL agent, the [`rl.py`](https://github.com/SofaDefrost/SofaGym/blob/main/rl.py) script could be used. Some training parameters can be specified using command line arguments: `-a` for the RL algorithm, `-fr` to choose the framework either `Stable Baselines3` or `rlberry`, `-ep` to specify the number of training epochs, and `-ne` to specify the number of training environments. 
+To train the RL agent, the [`rl.py`](https://github.com/SofaDefrost/SofaGym/blob/main/rl.py) script could be used. Some training parameters can be specified using command line arguments: `-a` for the RL algorithm (with Stable Baselines3), `-ep` to specify the number of training epochs, and `-ne` to specify the number of training environments. 
 
-Training hyperparameters specific to the chosen algorithm and framework can be defined in the appropriate [hyperparameters YAML file](https://github.com/SofaDefrost/SofaGym/tree/main/agents/hyperparameters).
+Training hyperparameters specific to the chosen algorithm can be defined in the appropriate [hyperparameters YAML file](https://github.com/SofaDefrost/SofaGym/tree/main/agents/hyperparameters).
 
 To train this agent, we will be using the tuned hyperparameters for the `CartPole-v1` environment from [Rl Baselines3 Zoo](https://github.com/DLR-RM/rl-baselines3-zoo/blob/660f2d354ef9d63cd7a478390780dffa0cadb80c/hyperparams/ppo.yml#L31-L43), and we will train the agent for `3` epochs, which is `300000` total timesteps of training.
 
 ```bash
-python rl.py -e cartpole-v0 -a PPO -fr SB3 -ep 3 -ne 8
+python rl.py -e cartpole-v0 -a PPO -ep 3 -ne 8
 ```
 
 To evaluate our trained agent, we also use the `rl.py` script, but instead of training, we choose to test the agent by setting the training argument `-tr` to none and adding the testing flag argument `-te`. The number of evaluation episodes is set to `5` using the number of testing episodes argument `-tn`. We also need to specify the path of the saved model to be evaluated `-md`, which should be in the working directory with the following format "`Results/env_name/algo_name/model_name`".
 
 ```bash
-python rl.py -e cartpole-v0 -a PPO -fr SB3 -tr none -te -tn 5 -md Results/cartpole-v0/PPO/model_name
+python rl.py -e cartpole-v0 -a PPO -tr none -te -tn 5 -md Results/cartpole-v0/PPO/model_name
 ```
 
 The results of the evaluation could be recorded as a video such as the following one:

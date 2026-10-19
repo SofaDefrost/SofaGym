@@ -3,7 +3,7 @@ from abc import ABC
 from statistics import mean
 from typing import Optional
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch as th
 from agents.utils import mkdirp
@@ -11,7 +11,7 @@ from agents.utils import mkdirp
 
 class SofaTestAgent(ABC):
     """
-    Test class for creating and testing reinforcement learning policies in a SOFA scene 
+    Test class for creating and testing reinforcement learning policies in a SOFA scene
     with gym environment.
 
     Parameters
@@ -24,9 +24,9 @@ class SofaTestAgent(ABC):
         The output directory to save the environment results.
     max_episode_steps : int, default=None
         The maximum number of steps that an agent can take in an episode of the environment.
-        Once this limit is reached, the episode is terminated. If None, the episode will 
+        Once this limit is reached, the episode is terminated. If None, the episode will
         continue until the goal is done or a termination condition happens.
-    
+
     Attributes
     ----------
     env_id : str
@@ -37,19 +37,20 @@ class SofaTestAgent(ABC):
         The output directory to save the environment results.
     max_episode_steps : int
         The maximum number of steps that an agent can take in an episode of the environment.
-        Once this limit is reached, the episode is terminated. If None, the episode will 
+        Once this limit is reached, the episode is terminated. If None, the episode will
         continue until the goal is done or a termination condition happens.
     test_env : gym.Env
         The test environment instance.
-    
+
     Notes:
     -----
-    This class is used to only test the environment and the agent without any reinforcement learning training done.    
+    This class is used to only test the environment and the agent without any reinforcement learning training done.
 
     Usage:
     -----
     Use the reset method before launching the environment.
     """
+
     def __init__(
         self,
         env_id: str,
@@ -70,7 +71,7 @@ class SofaTestAgent(ABC):
             The output directory to save the environment results.
         max_episode_steps : int, default=None
             The maximum number of steps that an agent can take in an episode of the environment.
-            Once this limit is reached, the episode is terminated. If None, the episode will 
+            Once this limit is reached, the episode is terminated. If None, the episode will
             continue until the goal is done or a termination condition happens.
         """
         self.env_id = env_id
@@ -84,7 +85,7 @@ class SofaTestAgent(ABC):
     def seed(self):
         """
         Getter method for the seed used for the environment.
-        
+
         Returns
         -------
         _seed : int
@@ -95,9 +96,9 @@ class SofaTestAgent(ABC):
     @seed.setter
     def seed(self, seed):
         """
-        Setter method to set the seed used for random number generators in Python, PyTorch, 
+        Setter method to set the seed used for random number generators in Python, PyTorch,
         and NumPy.
-        
+
         Parameters
         ----------
         seed : int
@@ -112,7 +113,7 @@ class SofaTestAgent(ABC):
     def output_dir(self):
         """
         Getter method for the output directory.
-        
+
         Returns
         -------
         _output_dir : str
@@ -123,9 +124,9 @@ class SofaTestAgent(ABC):
     @output_dir.setter
     def output_dir(self, output_dir):
         """
-        Setter method to set the output directory for saving results and create the directory 
+        Setter method to set the output directory for saving results and create the directory
         if it doesn't exist.
-        
+
         Parameters
         ----------
         output_dir : str
@@ -136,15 +137,17 @@ class SofaTestAgent(ABC):
 
     def env_make(self):
         """
-        Create a gym environment for the provided scene initialized with the set `seed` and 
-        wrapped using TimeLimit to limit the maximum number of steps per episode that 
+        Create a gym environment for the provided scene initialized with the set `seed` and
+        wrapped using TimeLimit to limit the maximum number of steps per episode that
         an agent can take according to `max_episode_steps`.
-        
+
         Returns
         -------
         env : gym.Env
             the created instance of the gym environment.
         """
+        import sofagym.envs  # noqa: F401, registers the environments
+
         env = gym.make(self.env_id)
 
         if self.max_episode_steps:
@@ -157,28 +160,27 @@ class SofaTestAgent(ABC):
     def env_seed(self, env):
         """
         Set the seed for the environment and its action space.
-        
+
         Parameters
         ----------
         env : gym.Env
             The gym environment instance to set the seed for.
-        
+
         """
-        env.seed(self.seed)
+        env.reset(seed=self.seed)
         env.action_space.seed(self.seed)
-        env.action_space.np_random.seed(self.seed)
 
     def policy(self, obs):
         """
-        Choose an action for the agent to take in the environment according to 
+        Choose an action for the agent to take in the environment according to
         a random sampling policy.
-        
+
         Parameters
         ----------
         obs
             "The observation which refers to the current state of the environment as perceived by
             the agent.
-        
+
         Returns
         -------
         a tuple containing two values:
@@ -193,16 +195,16 @@ class SofaTestAgent(ABC):
         """
         Test a reinforcement learning policy by running a specified number of episodes and
         returning the mean reward.
-        
+
         Parameters
         ----------
         n_episodes : int, default=1
-            The number of episodes to run during testing. An episode is a complete run of 
+            The number of episodes to run during testing. An episode is a complete run of
             the environment from the initial state to a terminal state.
         render: bool, default=False
-            A boolean parameter that determines whether to render the environment during testing 
+            A boolean parameter that determines whether to render the environment during testing
             or not.
-        
+
         Returns
         -------
         mean(episodes_rewards) : float
@@ -211,8 +213,8 @@ class SofaTestAgent(ABC):
         episodes_rewards = []
 
         for episode in range(n_episodes):
-            print("Start >> Episode", episode+1)
-            obs = self.test_env.reset()
+            print("Start >> Episode", episode + 1)
+            obs, _ = self.test_env.reset()
 
             if render:
                 self.test_env.render()
@@ -223,19 +225,31 @@ class SofaTestAgent(ABC):
 
             while not done:
                 action, _states = self.policy(obs)
-                obs, reward, done, info = self.test_env.step(action)
+                obs, reward, terminated, truncated, info = self.test_env.step(action)
+                done = terminated or truncated
 
                 if render:
-                    print("Episode", episode+1, "- Step ", step+1, "- Took action: ", action,
-                          "- Current State: ", obs, "- Got reward: ", reward, "- Done: ", done)
+                    print(
+                        "Episode",
+                        episode + 1,
+                        "- Step ",
+                        step + 1,
+                        "- Took action: ",
+                        action,
+                        "- Current State: ",
+                        obs,
+                        "- Got reward: ",
+                        reward,
+                        "- Done: ",
+                        done,
+                    )
                     self.test_env.render()
 
                 steps_rewards.append(reward)
                 step += 1
 
-            episode_reward = sum(steps_rewards)[0]
-            print("Done >> Episode", episode+1, "- Reward = ",
-                  steps_rewards, "- Sum reward:", episode_reward)
+            episode_reward = sum(steps_rewards)
+            print("Done >> Episode", episode + 1, "- Reward = ", steps_rewards, "- Sum reward:", episode_reward)
             episodes_rewards.append(episode_reward)
 
         print("[INFO]  >> Mean reward: ", mean(episodes_rewards))

@@ -5,8 +5,8 @@
 Units: cm, kg, s.
 """
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "August 12 2021"
@@ -18,7 +18,7 @@ import importlib
 import pathlib
 import numpy as np
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from sofagym.header import addHeader as header
@@ -30,33 +30,64 @@ from StemPendulumToolbox import rewardShaper, sceneModerator, applyAction
 from Controller import ControllerStemPendulum
 
 
-def createScene(rootNode, config = {"source": [0, 0, 30],
-                                    "target": [0, 0, 0],
-                                    "seed": None,
-                                    "zFar":4000,
-                                    "max_torque": 500,
-                                    "dt": 0.01},
-                         mode = 'simu_and_visu'):
+from Sofa.Units.Definitions import kg, s, cm
+from Sofa.Units.UnitSystem import MechanicalUnitSystem
 
-    header(rootNode, alarmDistance=1.0, contactDistance=0.1, tolerance = 1e-6, maxIterations=100, gravity = [0,-981.0,0], dt = config['dt'])
+# Units of the scene: SOFA values (gravity, stiffness, pressure, ...) are expressed in this system.
+UNITS = MechanicalUnitSystem(time=s, length=cm, mass=kg)
+
+
+def createScene(
+    rootNode,
+    config={
+        "source": [0, 0, 30],
+        "target": [0, 0, 0],
+        "seed": None,
+        "zFar": 4000,
+        "max_torque": 500,
+        "dt": 0.01,
+        "keyboard_controller": True,
+    },
+    mode="simu_and_visu",
+):
+
+    header(
+        rootNode,
+        alarmDistance=1.0,
+        contactDistance=0.1,
+        tolerance=1e-6,
+        maxIterations=100,
+        gravity=[0, -981.0, 0],
+        dt=config["dt"],
+    )
 
     position_spot = [[0, 0, -25]]
     direction_spot = [[0.0, 0, 1]]
-    visu(rootNode, config, position_spot, direction_spot, cutoff = 250)
+    visu(rootNode, config, position_spot, direction_spot, cutoff=250)
 
-    init_or = 360*np.random.random()
-    beam_config = {'init_pos': [0, 0, 0], 'tot_length': 10, 'nbSections': 10}
-    stempendulum_config = {"init_or": init_or, "base_size":  [0.05, 0.05, 0.05], "dt": config["dt"],
-                            "beam_config":beam_config, "max_torque": config["max_torque"]}
+    init_or = 360 * np.random.random()
+    beam_config = {"init_pos": [0, 0, 0], "tot_length": 10, "nbSections": 10}
+    stempendulum_config = {
+        "init_or": init_or,
+        "base_size": [0.05, 0.05, 0.05],
+        "dt": config["dt"],
+        "beam_config": beam_config,
+        "max_torque": config["max_torque"],
+    }
 
-    stempendulum = StemPendulum(stempendulum_config = stempendulum_config)
+    stempendulum = StemPendulum(stempendulum_config=stempendulum_config)
     stempendulum.onEnd(rootNode)
 
-    rootNode.addObject(sceneModerator(name="sceneModerator",  stempendulum = stempendulum))
+    rootNode.addObject(sceneModerator(name="sceneModerator", stempendulum=stempendulum))
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode))
-    rootNode.addObject(applyAction(name="applyAction", root= rootNode, stempendulum=stempendulum))
+    rootNode.addObject(applyAction(name="applyAction", root=rootNode, stempendulum=stempendulum))
 
-    # rootNode.addObject(ControllerStemPendulum(name="Controller", root= rootNode, stempendulum = stempendulum, max_torque = config['max_torque']))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(
+            ControllerStemPendulum(
+                name="Controller", root=rootNode, stempendulum=stempendulum, max_torque=config["max_torque"]
+            )
+        )
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")

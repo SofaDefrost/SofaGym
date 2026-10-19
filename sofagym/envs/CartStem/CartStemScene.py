@@ -5,8 +5,8 @@
 Units: cm, kg, s.
 """
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "August 12 2021"
@@ -16,7 +16,7 @@ VISUALISATION = False
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from sofagym.header import addHeader as header
@@ -24,40 +24,68 @@ from sofagym.header import addVisu as visu
 
 from CartStem import CartStem
 from CartStemToolbox import rewardShaper, sceneModerator, applyAction
+from Controller import ControllerCartStem
 
 
-def createScene(rootNode, config={"source": [0, -70, 10],
-                                  "target": [0, 0, 10],
-                                  "seed": None,
-                                  "zFar":4000,
-                                  "init_x": 0,
-                                  "max_move": 40,
-                                  "dt": 0.01},
-                mode='simu_and_visu'):
+from Sofa.Units.Definitions import kg, s, cm
+from Sofa.Units.UnitSystem import MechanicalUnitSystem
 
-    header(rootNode, alarmDistance=1.0, contactDistance=0.1, tolerance = 1e-6, maxIterations=100,
-           gravity=[0, 0, -981.0], dt=config['dt'])
+# Units of the scene: SOFA values (gravity, stiffness, pressure, ...) are expressed in this system.
+UNITS = MechanicalUnitSystem(time=s, length=cm, mass=kg)
+
+
+def createScene(
+    rootNode,
+    config={
+        "source": [0, -70, 10],
+        "target": [0, 0, 10],
+        "seed": None,
+        "zFar": 4000,
+        "init_x": 0,
+        "max_move": 40,
+        "dt": 0.01,
+        "keyboard_controller": True,
+    },
+    mode="simu_and_visu",
+):
+
+    header(
+        rootNode,
+        alarmDistance=1.0,
+        contactDistance=0.1,
+        tolerance=1e-6,
+        maxIterations=100,
+        gravity=[0, 0, -981.0],
+        dt=config["dt"],
+    )
 
     position_spot = [[0, -50, 10]]
     direction_spot = [[0.0, 1, 0]]
-    visu(rootNode, config, position_spot, direction_spot, cutoff = 250)
+    visu(rootNode, config, position_spot, direction_spot, cutoff=250)
 
-    max_move = config['max_move']
+    max_move = config["max_move"]
     init_x = config["init_x"]
 
-    cosserat_config = {'init_pos': [init_x, 0, 0], 'tot_length': 25, 'nbSectionS': 1, 'nbFramesF': 20}
-    cartstem_config = {"init_pos": [init_x, 0, 0], "cart_size": [2, 2, 5], "max_move": max_move,  "max_v": 2,
-                       "dt": config["dt"],  "cosserat_config": cosserat_config}
+    cosserat_config = {"init_pos": [init_x, 0, 0], "tot_length": 25, "nbSectionS": 1, "nbFramesF": 20}
+    cartstem_config = {
+        "init_pos": [init_x, 0, 0],
+        "cart_size": [2, 2, 5],
+        "max_move": max_move,
+        "max_v": 2,
+        "dt": config["dt"],
+        "cosserat_config": cosserat_config,
+    }
 
     cartstem = CartStem(cartstem_config=cartstem_config)
     cartstem.onEnd(rootNode)
-    cartstem.cart.addObject('ConstantForceField', totalForce=[0, 0, 0, 0, 0, 0])
+    cartstem.cart.addObject("ConstantForceField", totalForce=[0, 0, 0, 0, 0, 0])
 
-    rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, max_dist= cartstem_config['max_move']))
-    rootNode.addObject(sceneModerator(name="sceneModerator",  cartstem = cartstem))
-    rootNode.addObject(applyAction(name="applyAction", root= rootNode, cartstem=cartstem))
+    rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, max_dist=cartstem_config["max_move"]))
+    rootNode.addObject(sceneModerator(name="sceneModerator", cartstem=cartstem))
+    rootNode.addObject(applyAction(name="applyAction", root=rootNode, cartstem=cartstem))
 
-    # rootNode.addObject(ControllerCartStem(name="Controller", root= rootNode, cartstem = cartstem))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(ControllerCartStem(name="Controller", root=rootNode, cartstem=cartstem))
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")

@@ -5,8 +5,8 @@
 Units: cm, kg, s.
 """
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "March 8 2021"
@@ -33,7 +33,8 @@ class ControllerBubbleMotion(Sofa.Core.Controller):
         self.current_id = 0
         self.cavity = self.cavities[self.current_id]
 
-        self.incr = 1
+        # Same pressure step as on v23.06, see the 1/dt scaling in BubbleMotion.
+        self.incr = 1 / self.root.dt.value
         print(">>  Init done.")
 
     def _addPressure(self, cavity, incr):
@@ -73,7 +74,7 @@ class ControllerBubbleMotion(Sofa.Core.Controller):
     #     print(">>  dist: ", dist)
 
     def onKeypressedEvent(self, event):
-        key = event['key']
+        key = event["key"]
 
         if ord(key) == 18:  # left
             self.current_id = (self.current_id - 1) % 9

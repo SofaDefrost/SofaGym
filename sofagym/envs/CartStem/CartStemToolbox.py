@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "Fab 3 2021"
@@ -19,7 +18,7 @@ from splib3.animation.animate import Animation
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
@@ -41,6 +40,7 @@ class rewardShaper(Sofa.Core.Controller):
             The scene.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -83,7 +83,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         sphere_pos = self._getSpherePos()
         cart_pos = self._getCartPos()
-        dist = abs(sphere_pos-cart_pos)
+        dist = abs(sphere_pos - cart_pos)
         return 1, dist
 
     def update(self, goal=None):
@@ -115,7 +115,7 @@ class sceneModerator(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
-        self.cartstem=None
+        self.cartstem = None
         if kwargs["cartstem"]:
             self.cartstem = kwargs["cartstem"]
 
@@ -183,7 +183,7 @@ class applyAction(Sofa.Core.Controller):
         self.incr = 1000
 
         factor_sphere = 0.05
-        self.init_sphere = -factor_sphere + 2*factor_sphere*np.random.random()
+        self.init_sphere = -factor_sphere + 2 * factor_sphere * np.random.random()
         self.changed = 0
 
         print(">>  Init done.")
@@ -202,9 +202,9 @@ class applyAction(Sofa.Core.Controller):
 
     def _move(self, incr):
         cartForceField = self.cartstem.cart.ConstantForceField
-        force = cartForceField.force.value.tolist()
+        force = cartForceField.totalForce.value.tolist()
         force[0] = incr
-        cartForceField.force.value = np.array(force)
+        cartForceField.totalForce.value = np.array(force)
 
     def compute_action(self, actions, nb_step):
         if actions == 0:
@@ -254,7 +254,7 @@ def startCmd(root, actions, duration):
         None.
 
     """
-    incr = action_to_command(actions, root, duration/root.dt.value + 1)
+    incr = action_to_command(actions, root, duration / root.dt.value + 1)
     startCmd_CartStem(root, incr, duration)
 
 
@@ -282,7 +282,6 @@ def startCmd_CartStem(rootNode, incr, duration):
     # Add animation in the scene
     rootNode.AnimationManager.addAnimation(
         Animation(
-            onUpdate=executeAnimation,
-            params={"rootNode": rootNode,
-                    "incr": incr},
-            duration=duration, mode="once"))
+            onUpdate=executeAnimation, params={"rootNode": rootNode, "incr": incr}, duration=duration, mode="once"
+        )
+    )

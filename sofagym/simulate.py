@@ -13,6 +13,20 @@ import Sofa
 import SofaRuntime
 
 import importlib
+import random
+
+import numpy as np
+
+
+def seed_scene_rngs(seed):
+    """Seed the global random generators some scenes draw their initial conditions from (e.g. Gripper, StemPendulum).
+
+    The envs draw `seed` from their own generator at each reset (config["scene_seed"]), so that the same env seed gives
+    the same scenes, locally and in the clients of the server.
+    """
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
 
 
 def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
@@ -34,48 +48,49 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
             The loaded and initialized scene.
 
     """
-    scene = config['scene']
+    scene = config["scene"]
     # Import the create_scene corresponding to the environment
 
     try:
-        create_scene = importlib.import_module("sofagym.envs."+scene+"." + scene + "Scene").createScene
+        create_scene = importlib.import_module("sofagym.envs." + scene + "." + scene + "Scene").createScene
     except:
-        print("sofagym.envs."+scene+"." + scene + "Scene")
+        print("sofagym.envs." + scene + "." + scene + "Scene")
         raise NotImplementedError("Importing your SOFA Scene Failed")
 
     # Load the scene
     root = Sofa.Core.Node("root")
     SofaRuntime.importPlugin("Sofa.Component")
-    create_scene(root,  config, mode = mode)
-    Sofa.Simulation.init(root)
-
-    # Realise action from history
-    if config['start_from_history'] is not None and _startCmd is not None:
-        print(">>   Start from history ...")
-        render = config['render']
-        config.update({'render': 0})
-
-        for action in config['start_from_history']:
-            step_simulation(root, config, action, _startCmd, None)
-
-        config.update({'render': render})
-        print(">>   ... Done.")
+    seed_scene_rngs(config.get("scene_seed"))
+    create_scene(root, config, mode=mode)
+    Sofa.Simulation.initRoot(root)
 
     if config["randomize_states"]:
         root.StateInitializer.init_state(config["init_states"])
 
-    if 'time_before_start' in config:
+    if "time_before_start" in config:
         print(">>   Time before start:", config["time_before_start"], "steps. Initialization ...")
         for i in range(config["time_before_start"]):
             Sofa.Simulation.animate(root, config["dt"])
         print(">>   ... Done.")
-        
+
     # Update Reward and GoalSetter
     if config["goal"]:
-        root.GoalSetter.update(config['goalPos'])
-        root.Reward.update(config['goalPos'])
+        root.GoalSetter.update(config["goalPos"])
+        root.Reward.update(config["goalPos"])
     else:
         root.Reward.update()
+
+    # Realise action from history, as the first steps of an episode: after the initial state, goal and reward.
+    if config["start_from_history"] is not None and _startCmd is not None:
+        print(">>   Start from history ...")
+        render = config["render"]
+        config.update({"render": 0})
+
+        for action in config["start_from_history"]:
+            step_simulation(root, config, action, _startCmd, None)
+
+        config.update({"render": render})
+        print(">>   ... Done.")
 
     return root
 
@@ -105,15 +120,14 @@ def step_simulation(root, config, action, _startCmd, _getPos, viewer=None):
 
     """
     if config["goal"]:
-        goal = config['goalPos']
+        goal = config["goalPos"]
         root.GoalSetter.set_mo_pos(goal)
-    
-    render = config['render']
-    surface_size = config['display_size']
 
+    render = config["render"]
+    surface_size = config["display_size"]
 
     # Create the command from action
-    _startCmd(root, action, config["dt"]*(config["scale_factor"]-1))
+    _startCmd(root, action, config["dt"] * (config["scale_factor"] - 1))
     pos = []
     # Realise scale_factor simulation steps of 0.01 s
     for i in range(config["scale_factor"]):

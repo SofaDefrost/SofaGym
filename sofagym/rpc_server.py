@@ -23,7 +23,7 @@ import sys
 import copy
 import time
 
-path = dirname(dirname(abspath(__file__))) + '/'
+path = dirname(dirname(abspath(__file__))) + "/"
 
 
 class SimpleThreadedXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
@@ -32,7 +32,7 @@ class SimpleThreadedXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
 
 # Restrict to a particular path.
 class RequestHandler(SimpleXMLRPCRequestHandler):
-    rpc_paths = ('/RPC2',)
+    rpc_paths = ("/RPC2",)
 
     def log_message(self, format, *args):
         pass
@@ -57,6 +57,7 @@ class CustomQueue(queue.Queue):
             List to save elements.
 
     """
+
     def __init__(self):
         """Initialization of all arguments.
 
@@ -196,9 +197,11 @@ def get_id_from_actions(actions):
     if k not in actions_to_stateId:
         stateId += 1
         actions_to_stateId[k] = [stateId]
-        instances[stateId] = {"pendingTasks": CustomQueue(),
-                              "pendingResults": CustomQueue(),
-                              "positionResults": CustomQueue()}
+        instances[stateId] = {
+            "pendingTasks": CustomQueue(),
+            "pendingResults": CustomQueue(),
+            "positionResults": CustomQueue(),
+        }
 
     return actions_to_stateId[str(actions)][0]
 
@@ -226,9 +229,11 @@ def get_new_id(actions):
         actions_to_stateId[str(actions)] += [stateId]
     else:
         actions_to_stateId[str(actions)] = [stateId]
-    instances[stateId] = {"pendingTasks": CustomQueue(),
-                          "pendingResults": CustomQueue(),
-                          "positionResults": CustomQueue()}
+    instances[stateId] = {
+        "pendingTasks": CustomQueue(),
+        "pendingResults": CustomQueue(),
+        "positionResults": CustomQueue(),
+    }
 
     return stateId
 
@@ -253,6 +258,7 @@ def registerFirstObservation(obs):
 
 # ################################## API RPC ################################## #
 
+
 def registerInstance(state_id, process_id, history):
     """Update the dictionary associated with an id.
 
@@ -273,8 +279,10 @@ def registerInstance(state_id, process_id, history):
 
     """
     global instances
-    instances[state_id].update({"processId": process_id,
-                               "history": history})
+    # The clients of the branches closed by clean_registry can still call: they are ignored, then told to exit.
+    if state_id not in instances:
+        return "ThankYou"
+    instances[state_id].update({"processId": process_id, "history": history})
 
     return "ThankYou"
 
@@ -293,6 +301,8 @@ def getNextTask(state_id):
             The pending task.
     """
 
+    if state_id not in instances:
+        return make_action("exit")
     res = instances[state_id]["pendingTasks"].get()
     return res
 
@@ -314,6 +324,8 @@ def taskDone(state_id, history, result):
         "ThankYou" to notify the connection.
 
     """
+    if state_id not in instances:
+        return "ThankYou"
     instances[state_id]["history"] = history
     instances[state_id]["pendingResults"].put(result)
 
@@ -335,12 +347,15 @@ def posDone(state_id, pos):
         "ThankYou" to notify the connection.
 
     """
+    if state_id not in instances:
+        return "ThankYou"
     instances[state_id]["positionResults"].put(pos)
 
     return "ThankYou"
 
 
 # #################### API python (on the environment side) #################### #
+
 
 def make_action(command, **kwargs):
     """Add a command in the parameters.
@@ -407,15 +422,15 @@ def start_server(config):
     """
     global planning, port_rpc, deterministic
 
-    planning = config['planning']
-    deterministic = config['deterministic']
+    planning = config["planning"]
+    deterministic = config["deterministic"]
 
     if port_rpc is None:
-        port_rpc= avalaible_port()
+        port_rpc = avalaible_port()
 
         # Register functions
         def dispatch(port_rpc):
-            with SimpleThreadedXMLRPCServer(('localhost', port_rpc), requestHandler=RequestHandler) as server:
+            with SimpleThreadedXMLRPCServer(("localhost", port_rpc), requestHandler=RequestHandler) as server:
                 server.register_function(getNextTask)
                 server.register_function(taskDone)
                 server.register_function(posDone)
@@ -472,21 +487,21 @@ def clean_registry(history):
         for instance in copy_dic.values():
             for i, action in enumerate(history):
 
-                if instance.get('history'):
-                    if len(instance['history']) < len(history) or instance['history'][i] != action:
-                        id = get_id_from_actions(instance['history'])
+                if instance.get("history"):
+                    if len(instance["history"]) < len(history) or instance["history"][i] != action:
+                        id = get_id_from_actions(instance["history"])
                         if id not in id_closed:
                             try:
                                 instances[id]["pendingTasks"].put(make_action("exit"))
                                 id_closed.add(id)
                             except KeyError:
-                                print("KeyError ", get_id_from_actions(instance['history']))
+                                print("KeyError ", get_id_from_actions(instance["history"]))
                                 pass
 
     for id in id_closed:
         # while instances[id]["pendingTasks"].__len__()!=0:
         #     pass
-        actions_to_stateId.pop(str(instances[id]['history']))
+        actions_to_stateId.pop(str(instances[id]["history"]))
         instances.pop(id)
 
 
@@ -512,20 +527,33 @@ def start_scene(config, nb_actions):
 
     # Information of the first client
     stateId = 0
-    actions_to_stateId = {'[]': [0]}
-    instances = {0: {"history": '[]',
-                     "pendingTasks": CustomQueue(),
-                     "pendingResults": CustomQueue(),
-                     "positionResults": CustomQueue()}}
+    actions_to_stateId = {"[]": [0]}
+    instances = {
+        0: {
+            "history": "[]",
+            "pendingTasks": CustomQueue(),
+            "pendingResults": CustomQueue(),
+            "positionResults": CustomQueue(),
+        }
+    }
     firstObservation = CustomQueue()
 
     results = {}
 
     # Run the first client
+    def to_builtin(value):
+        # numpy >= 2 prints scalars as np.float64(x), which the client cannot parse with ast.literal_eval.
+        if isinstance(value, dict):
+            return {key: to_builtin(item) for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return type(value)(to_builtin(item) for item in value)
+        return value.tolist() if hasattr(value, "tolist") else value
+
     def deferredStart():
-        sdict = str(config)
-        subprocess.run([sys.executable, path+"sofagym/rpc_client.py", sdict, str(nb_actions), str(port_rpc)],
-                       check=True)
+        sdict = str(to_builtin(config))
+        subprocess.run(
+            [sys.executable, path + "sofagym/rpc_client.py", sdict, str(nb_actions), str(port_rpc)], check=True
+        )
 
     first_worker_thread = threading.Thread(target=deferredStart)
     first_worker_thread.daemon = True
@@ -558,14 +586,14 @@ def add_new_step(history, new_action):
     id = get_id_from_actions(history)
 
     if planning:
-        if deterministic and str(history+[new_action]) in actions_to_stateId:
+        if deterministic and str(history + [new_action]) in actions_to_stateId:
             # Transition has already been simulated
-            return get_id_from_actions(history+[new_action])
+            return get_id_from_actions(history + [new_action])
 
         if deterministic:
-            nid = get_id_from_actions(history+[new_action])
+            nid = get_id_from_actions(history + [new_action])
         else:
-            nid = get_new_id(history+[new_action])
+            nid = get_new_id(history + [new_action])
         instances[id]["pendingTasks"].put(make_action("fork_and_animate", stateId=nid, action=new_action))
     else:
         nid = id
@@ -600,12 +628,13 @@ def get_result(result_id, timeout=None):
                 res = instances[result_id]["pendingResults"].get(timeout=timeout)
             except queue.Empty:
                 print("TIMEOUT ", timeout)
-                res = {"stateId": result_id,
-                       "observation": "",
-                       "reward": 0.0,
-                       "done": True,
-                       "info": {"error": "TIMEOUT"}
-                       }
+                res = {
+                    "stateId": result_id,
+                    "observation": "",
+                    "reward": 0.0,
+                    "done": True,
+                    "info": {"error": "TIMEOUT"},
+                }
             results[result_id] = res
             return res
 

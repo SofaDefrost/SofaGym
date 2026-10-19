@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Interface to display the simulation rendering.
-"""
+"""Interface to display the simulation rendering."""
 
 __authors__ = ("PSC", "emenager")
 __contact__ = ("pierre.schegg@robocath.com", "etienne.menager@ens-rennes.fr")
@@ -92,26 +91,35 @@ class Viewer:
 
         self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.sim_surface = pygame.Surface((surface_size[0], surface_size[1]))
-        self.agent_surface = pygame.Surface((surface_size[0], surface_size[1]//2))
+        self.agent_surface = pygame.Surface((surface_size[0], surface_size[1] // 2))
 
         self.agent_display = None
         self.frame = 0
 
         if self.env.config["use_server"]:
-            self.root = init_simulation(self.env.config, mode = 'visu')
+            self.root = init_simulation(self.env.config, mode="visu")
         else:
             self.root = root
-        
-        scene = self.env.config['scene']
-        self._setPos = importlib.import_module("sofagym.envs."+scene+"."+scene+"Toolbox").setPos
+
+        scene = self.env.config["scene"]
+        self._setPos = importlib.import_module("sofagym.envs." + scene + "." + scene + "Toolbox").setPos
 
         self.zFar = zFar
 
         if self.create_video is not None:
-            self.writer = imageio.get_writer(self.create_video + datetime.datetime.now().strftime('%Y%m%d-%H%M%S') +
-                                             ".mp4", format='mp4', mode='I', fps=fps)
-        
+            self.writer = imageio.get_writer(
+                self.create_video + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".mp4",
+                format="mp4",
+                mode="I",
+                fps=fps,
+            )
+
         glClearColor(0, 0, 0, 1)
+
+        # The visual models are initialized once per scene: re-initializing them at each frame crashes SOFA.
+        Sofa.SofaGL.glewInit()
+        Sofa.Simulation.initVisual(self.root)
+        Sofa.Simulation.initTextures(self.root)
 
     def render(self, pos=None):
         """See the current state of the environment.
@@ -137,12 +145,12 @@ class Viewer:
         try:
             if pos is None:
                 if self.env.config["use_server"]:
-                    pos = get_position(self.env.past_actions)['position']
+                    pos = get_position(self.env.past_actions)["position"]
                 else:
                     pos = self.env.pos
-            
+
             self.frame += 1
-            
+
             if pos == []:
                 image = np.zeros((self.surface_size[0], self.surface_size[1], 3))
             else:
@@ -159,8 +167,6 @@ class Viewer:
                     glEnable(GL_DEPTH_TEST)
 
                     if self.root:
-                        Sofa.SofaGL.glewInit()
-                        Sofa.Simulation.initVisual(self.root)
                         glMatrixMode(GL_PROJECTION)
                         glLoadIdentity()
                         gluPerspective(45, (self.surface_size[0] / self.surface_size[1]), 0.1, self.zFar)
@@ -171,6 +177,8 @@ class Viewer:
                         cameraMVM = self.root.camera.getOpenGLModelViewMatrix()
 
                         glMultMatrixd(cameraMVM)
+                        # Visual models follow the simulation only when updated (initVisual did it in each frame).
+                        Sofa.Simulation.updateVisual(self.root)
                         Sofa.SofaGL.draw(self.root)
                     else:
                         print("===============> ERROR")
@@ -181,7 +189,7 @@ class Viewer:
                         width, height = self.surface_size[0], self.surface_size[1]
                     buff = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
 
-                    image_array = np.fromstring(buff, np.uint8)
+                    image_array = np.frombuffer(buff, np.uint8)
                     if image_array.shape != (0,):
                         image = image_array.reshape(self.surface_size[1], self.surface_size[0], 3)
                     else:
@@ -189,7 +197,7 @@ class Viewer:
 
                     image = np.flipud(image)
                     image = np.moveaxis(image, 0, 1)
-                    if self.env.config['render'] == 2:
+                    if self.env.config["render"] == 2:
                         # time.sleep(0.1)
 
                         # Update the window
@@ -204,7 +212,7 @@ class Viewer:
                         pygame.display.flip()
 
                         if self.save_path is not None:
-                            self.save_image(image, str(self.frame)+"_"+str(num_im))
+                            self.save_image(image, str(self.frame) + "_" + str(num_im))
                         num_im += 1
 
                         if self.create_video is not None:
@@ -226,7 +234,7 @@ class Viewer:
         # Display the modifications
         pygame.display.flip()
 
-        if self.save_path is not None and self.env.config['render'] == 1:
+        if self.save_path is not None and self.env.config["render"] == 1:
             self.save_image(image, str(self.frame))
 
         if self.create_video is not None:
@@ -249,7 +257,7 @@ class Viewer:
         -------
             None.
         """
-        img = Image.fromarray(image, 'RGB')
+        img = Image.fromarray(image, "RGB")
         print(">> Saving new image at location " + self.save_path + "_" + name + ".png")
         img.save(self.save_path + "/img_" + name + ".png")
 
@@ -285,7 +293,7 @@ class Viewer:
             None.
         """
         self.agent_display = agent_display
-    
+
     def reset(self):
         self.frame = 0
         self.root = init_simulation(self.env.config)
@@ -317,17 +325,20 @@ class LegacyViewer:
         self.screen = pygame.display.set_mode(self.screen_size, pygame.OPENGL | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.agent_display = None
         self.sim_surface = pygame.Surface((surface_size[0], surface_size[1]))
-        self.agent_surface = pygame.Surface((surface_size[0], surface_size[1]//2))
+        self.agent_surface = pygame.Surface((surface_size[0], surface_size[1] // 2))
 
         self.startCmd = startCmd
         self.env.config.update({"render": 0})
         self.root = None
         self.reset()
 
-        self.writer = imageio.get_writer(self.env.config['save_path']
-                                         + datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-                                         + ".mp4", format='mp4', mode='I', fps=10)
-        
+        self.writer = imageio.get_writer(
+            self.env.config["save_path"] + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".mp4",
+            format="mp4",
+            mode="I",
+            fps=10,
+        )
+
         glClearColor(0, 0, 0, 1)
 
     def reset(self):
@@ -413,7 +424,7 @@ class LegacyViewer:
 
         x, y, width, height = glGetIntegerv(GL_VIEWPORT)
         buff = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
-        image_array = np.fromstring(buff, np.uint8)
+        image_array = np.frombuffer(buff, np.uint8)
         if image_array.shape != (0,):
             image = image_array.reshape(self.surface_size[1], self.surface_size[0], 3)
         else:

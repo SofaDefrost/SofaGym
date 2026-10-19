@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "PSC"
 __contact__ = "pierre.schegg@inria.fr"

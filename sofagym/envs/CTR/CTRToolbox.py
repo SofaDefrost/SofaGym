@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "PSC"
 __contact__ = "pierre.schegg@robocath.com"
@@ -15,7 +14,6 @@ import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
 from splib3.animation.animate import Animation
-
 
 SofaRuntime.importPlugin("Sofa.Component")
 
@@ -41,6 +39,7 @@ class RewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -79,12 +78,12 @@ class RewardShaper(Sofa.Core.Controller):
 
         """
         tip = self.root.InstrumentCombined.DOFs.position[-1][:3]
-        current_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
-        reward = max((self.prev_dist - current_dist)/self.prev_dist, 0)
+        current_dist = np.linalg.norm(np.array(tip) - np.array(self.goal_pos))
+        reward = max((self.prev_dist - current_dist) / self.prev_dist, 0)
         if current_dist < self.prev_dist:
             self.prev_dist = current_dist
 
-        return min(3*reward**(1/2), 1.0), current_dist
+        return min(3 * reward ** (1 / 2), 1.0), current_dist
 
     def update(self, goal=None):
         """Update function.
@@ -102,7 +101,7 @@ class RewardShaper(Sofa.Core.Controller):
         """
         self.goal_pos = goal
         tip = self.root.InstrumentCombined.DOFs.position[-1][:3]
-        self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
+        self.init_dist = np.linalg.norm(np.array(tip) - np.array(self.goal_pos))
         self.prev_dist = self.init_dist
 
 
@@ -245,8 +244,10 @@ def get_ircontroller_state(node, instrument=0):
     """
     Get state (translation, rotation) of th Interventional Radiology Controller
     """
-    return [float(node.m_ircontroller.xtip.value[instrument]),
-            float(node.m_ircontroller.rotationInstrument.value[instrument])]
+    return [
+        float(node.m_ircontroller.xtip.value[instrument]),
+        float(node.m_ircontroller.rotationInstrument.value[instrument]),
+    ]
 
 
 def startCmd(root, action, duration):
@@ -266,12 +267,13 @@ def startCmd(root, action, duration):
         None.
 
     """
-    scale = int(duration/0.01 + 1)
+    scale = int(duration / 0.01 + 1)
     controlled_instrument, cmd_translation, cmd_rotation = action_to_command(action, scale)
     source = get_ircontroller_state(root.InstrumentCombined, instrument=controlled_instrument)
     target_translation = source[0] + cmd_translation
     target = [target_translation if target_translation > 0 else 0.1, source[1] + cmd_rotation]
     start_cmd(root, root.InstrumentCombined, source, target, duration, controlled_instrument)
+
 
 def start_cmd(rootNode, IRC_node, source, target, duration, instrument=0):
     def execute_animation(controller, anim_source, anim_target, factor, anim_instrument):
@@ -287,11 +289,16 @@ def start_cmd(rootNode, IRC_node, source, target, duration, instrument=0):
     rootNode.AnimationManager.addAnimation(
         Animation(
             onUpdate=execute_animation,
-            params={"controller": IRC_node.m_ircontroller,
-                    "anim_source": source,
-                    "anim_target": target,
-                    "anim_instrument": instrument},
-            duration=duration, mode="once"))
+            params={
+                "controller": IRC_node.m_ircontroller,
+                "anim_source": source,
+                "anim_target": target,
+                "anim_instrument": instrument,
+            },
+            duration=duration,
+            mode="once",
+        )
+    )
 
     return
 
@@ -315,11 +322,11 @@ def action_to_command(action, scale):
     elif action == 1:
         controlled_instrument = 0
         cmd_translation = 0.0
-        cmd_rotation = 1/15 * scale / 2.0
+        cmd_rotation = 1 / 15 * scale / 2.0
     elif action == 2:
         controlled_instrument = 0
         cmd_translation = 0.0
-        cmd_rotation = -1/15 * scale / 2.0
+        cmd_rotation = -1 / 15 * scale / 2.0
     elif action == 3:
         controlled_instrument = 0
         cmd_translation = -0.7 * scale / 2.0
@@ -332,11 +339,11 @@ def action_to_command(action, scale):
     elif action == 5:
         controlled_instrument = 1
         cmd_translation = 0.0
-        cmd_rotation = 1/15 * scale / 2.5
+        cmd_rotation = 1 / 15 * scale / 2.5
     elif action == 6:
         controlled_instrument = 1
         cmd_translation = 0.0
-        cmd_rotation = -1/15 * scale / 2.5
+        cmd_rotation = -1 / 15 * scale / 2.5
     elif action == 7:
         controlled_instrument = 1
         cmd_translation = -0.7 * scale / 2.5
@@ -349,11 +356,11 @@ def action_to_command(action, scale):
     elif action == 9:
         controlled_instrument = 2
         cmd_translation = 0.0
-        cmd_rotation = 1/15 * scale / 3.0
+        cmd_rotation = 1 / 15 * scale / 3.0
     elif action == 10:
         controlled_instrument = 2
         cmd_translation = 0.0
-        cmd_rotation = -1/15 * scale / 3.0
+        cmd_rotation = -1 / 15 * scale / 3.0
     elif action == 11:
         controlled_instrument = 2
         cmd_translation = -0.7 * scale / 3.0
@@ -381,13 +388,13 @@ def getPos(root):
     cath_xtip = root.InstrumentCombined.m_ircontroller.xtip.value[0].tolist()
     cath_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[0].tolist()
     guide_xtip = root.InstrumentCombined.m_ircontroller.xtip.value[1].tolist()
-    guide_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[1].tolist()    
+    guide_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[1].tolist()
     coils_xtip = root.InstrumentCombined.m_ircontroller.xtip.value[2].tolist()
     coils_rotation = root.InstrumentCombined.m_ircontroller.rotationInstrument.value[2].tolist()
 
     tip = root.InstrumentCombined.DOFs.position.value.tolist()
     collis = root.InstrumentCombined.Collis.CollisionDOFs.position.value.tolist()
-    
+
     return [cath_xtip, cath_rotation, guide_xtip, guide_rotation, coils_xtip, coils_rotation, tip, collis]
 
 
@@ -411,13 +418,13 @@ def setPos(root, pos):
 
     """
     cath_xtip, cath_rotation, guide_xtip, guide_rotation, coils_xtip, coils_rotation, tip, collis = pos
-    
+
     controller = root.InstrumentCombined.m_ircontroller
     with controller.xtip.writeable() as xtip:
         xtip[0] = np.array(cath_xtip)
         xtip[1] = np.array(guide_xtip)
         xtip[2] = np.array(coils_xtip)
-    
+
     with controller.rotationInstrument.writeable() as rotation:
         rotation[0] = np.array(cath_rotation)
         rotation[1] = np.array(guide_rotation)

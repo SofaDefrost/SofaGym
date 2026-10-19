@@ -14,66 +14,66 @@ from sofagym.envs.TrunkCup.TrunkCupEnv import *
 from sofagym.envs.CartPole.CartPoleEnv import *
 from sofagym.envs.CatheterBeam.CatheterBeamEnv import *
 
-
 # registering sofagym envs as gymnasium envs
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
+
 register(
-    id='bubblemotion-v0',
-    entry_point='sofagym.envs:BubbleMotionEnv',
+    id="bubblemotion-v0",
+    entry_point="sofagym.envs:BubbleMotionEnv",
 )
 register(
-    id='cartstem-v0',
-    entry_point='sofagym.envs:CartStemEnv',
+    id="cartstem-v0",
+    entry_point="sofagym.envs:CartStemEnv",
 )
 register(
-    id='catchtheobject-v0',
-    entry_point='sofagym.envs:CatchTheObject',
+    id="catchtheobject-v0",
+    entry_point="sofagym.envs:CatchTheObject",
 )
 register(
-    id='cartstemcontact-v0',
-    entry_point='sofagym.envs:CartStemContactEnv',
+    id="cartstemcontact-v0",
+    entry_point="sofagym.envs:CartStemContactEnv",
 )
 register(
-    id='concentrictuberobot-v0',
-    entry_point='sofagym.envs:ConcentricTubeRobotEnv',
+    id="concentrictuberobot-v0",
+    entry_point="sofagym.envs:ConcentricTubeRobotEnv",
 )
 register(
-    id='diamondrobot-v0',
-    entry_point='sofagym.envs:DiamondRobotEnv',
+    id="diamondrobot-v0",
+    entry_point="sofagym.envs:DiamondRobotEnv",
 )
 register(
-    id='gripper-v0',
-    entry_point='sofagym.envs:GripperEnv',
+    id="gripper-v0",
+    entry_point="sofagym.envs:GripperEnv",
 )
 register(
-    id='maze-v0',
-    entry_point='sofagym.envs:MazeEnv',
+    id="maze-v0",
+    entry_point="sofagym.envs:MazeEnv",
 )
 register(
-    id='multigaitrobot-v0',
-    entry_point='sofagym.envs:MultiGaitRobotEnv',
+    id="multigaitrobot-v0",
+    entry_point="sofagym.envs:MultiGaitRobotEnv",
 )
 register(
-    id='simple_maze-v0',
-    entry_point='sofagym.envs:SimpleMazeEnv',
+    id="simple_maze-v0",
+    entry_point="sofagym.envs:SimpleMazeEnv",
 )
 register(
-    id='stempendulum-v0',
-    entry_point='sofagym.envs:StemPendulumEnv',
+    id="stempendulum-v0",
+    entry_point="sofagym.envs:StemPendulumEnv",
 )
 register(
-    id='trunk-v0',
-    entry_point='sofagym.envs:TrunkEnv',
+    id="trunk-v0",
+    entry_point="sofagym.envs:TrunkEnv",
 )
 register(
-    id='trunkcup-v0',
-    entry_point='sofagym.envs:TrunkCupEnv',
+    id="trunkcup-v0",
+    entry_point="sofagym.envs:TrunkCupEnv",
 )
 register(
-    id='cartpole-v0',
-    entry_point='sofagym.envs:CartPoleEnv',
+    id="cartpole-v0",
+    entry_point="sofagym.envs:CartPoleEnv",
 )
 register(
-    id='catheter_beam-v0',
-    entry_point='sofagym.envs:CatheterBeamEnv',
+    id="catheter_beam-v0",
+    entry_point="sofagym.envs:CatheterBeamEnv",
 )

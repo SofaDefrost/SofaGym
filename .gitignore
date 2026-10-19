@@ -4,5 +4,17 @@ sofagym/envs/Diamond/Results/
 sofagym/envs/CTR/Results/
 sofagym/envs/SimpleMaze/Results/
 Results/
-rlberry_data/
 _tests/
+tests/videos/
+experiments/results/
+
+.pytest_cache
+.vscode
+graphify-out
+
+# Local files
+.env
+.vscode/
+CLAUDE.md
+TODO.md
+SofaGym.pdf

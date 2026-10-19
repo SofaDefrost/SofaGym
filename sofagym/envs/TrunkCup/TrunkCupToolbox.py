@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "emenager"
 __contact__ = "etienne.menager@ens-rennes.fr"
@@ -40,6 +39,7 @@ class rewardShaper(Sofa.Core.Controller):
             Evolution of the distance between object and goal.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initialization of all arguments.
 
@@ -75,7 +75,7 @@ class rewardShaper(Sofa.Core.Controller):
 
         """
         bary = self._computeCupBary()
-        current_dist = np.sum(np.abs(bary-self.goal_pos))
+        current_dist = np.sum(np.abs(bary - self.goal_pos))
 
         return self.init_dist - current_dist, current_dist
 
@@ -95,7 +95,7 @@ class rewardShaper(Sofa.Core.Controller):
         """
         self.goal_pos = goal
         bary = self._computeCupBary()
-        self.init_dist = np.sqrt(np.sum((bary-self.goal_pos)**2))
+        self.init_dist = np.sqrt(np.sum((bary - self.goal_pos) ** 2))
 
     def _computeCupBary(self):
         """Compute the position of the tip.
@@ -112,7 +112,7 @@ class rewardShaper(Sofa.Core.Controller):
         size = cup.shape[0]
         bary = np.zeros(3)
         for point in cup:
-            bary += point/size
+            bary += point / size
 
         return bary
 
@@ -216,13 +216,13 @@ def getState(root):
     cables = [cable_path.cableL0, cable_path.cableL1, cable_path.cableL2, cable_path.cableL3]
     nb_point = cables[0].meca.position.shape[0]
 
-    points= []
+    points = []
     for i in range(nb_point):
         point = np.zeros(3)
         for cable in cables:
             c = cable.meca.position[i]
             point += c
-        point = [round(float(k), cs)/4 for k in point]
+        point = [round(float(k), cs) / 4 for k in point]
         points += point
 
     goalPos = _getGoalPos(root).tolist()
@@ -273,8 +273,16 @@ def startCmd(root, action, duration):
 
     """
     cable_path = root.trunk
-    cables = [cable_path.cableL0, cable_path.cableL1, cable_path.cableL2, cable_path.cableL3,
-              cable_path.cableS0, cable_path.cableS1, cable_path.cableS2, cable_path.cableS3]
+    cables = [
+        cable_path.cableL0,
+        cable_path.cableL1,
+        cable_path.cableL2,
+        cable_path.cableL3,
+        cable_path.cableS0,
+        cable_path.cableS1,
+        cable_path.cableS2,
+        cable_path.cableS3,
+    ]
 
     num_cable, displacement = action_to_command(action)
     startCmd_Trunk(root, cables[num_cable], displacement, duration)
@@ -295,7 +303,10 @@ def displace(cable, displacement):
         None.
 
     """
-    cable.cable.value = [cable.cable.value[0] + displacement]
+    # A cable can only pull: actions never make its displacement negative (initially negative cables, set by the
+    # scene, can only go back towards 0).
+    old = cable.cable.value[0]
+    cable.cable.value = [max(old + displacement, min(old, 0.0))]
 
 
 def startCmd_Trunk(rootNode, cable, displacement, duration):
@@ -325,9 +336,11 @@ def startCmd_Trunk(rootNode, cable, displacement, duration):
     rootNode.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"cable": cable,
-                    "displacement": displacement},
-            duration=duration, mode="once"))
+            params={"cable": cable, "displacement": displacement},
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action):

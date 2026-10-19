@@ -7,63 +7,53 @@ The toolkit provides an API based on the standard Gym API, allowing to train cla
 The toolkit also comprises example scenes based on the SoftRobots plugin for SOFA to illustrate how to include SOFA simulations and train learning algorithms on them.
 
 ## Installation
-### Prerequisites
 
-#### 1) SofaGym needs a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/). Currently supported version is v23.06
-with a mandatory plugin :
-* [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
+### 1) SOFA and its plugins
 
-and optional plugins (mandatory to run the example environments integrated with sofagym): 
-* [BeamAdapter](https://github.com/sofa-framework/BeamAdapter) (fetchable within sofa)
-* [SPLIB](https://github.com/SofaDefrost/SPLIB)
-* [STLIB](https://github.com/SofaDefrost/STLIB)
-* [SoftRobots](https://github.com/SofaDefrost/SoftRobots)
-* [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction)
-* [Cosserat](https://github.com/SofaDefrost/plugin.Cosserat)
+SofaGym needs a [SOFA build](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) with the
+[SofaPython3](https://github.com/sofa-framework/SofaPython3) plugin. It is tested with SOFA 26 (the master branch,
+version 26.12.99); SOFA v23.06 is no longer supported (it is the reference of the behaviour regression tests, see
+`tests/regression/README.md`).
 
-[Plugins installation](https://www.sofa-framework.org/community/doc/plugins/build-a-plugin-from-sources/#in-tree-build) with a in-tree build is preferred.
+The example environments also need these plugins, built [in-tree](https://www.sofa-framework.org/community/doc/plugins/build-a-plugin-from-sources/#in-tree-build):
 
+| Plugin | Used by |
+|---|---|
+| [STLIB](https://github.com/SofaDefrost/STLIB) (provides the `splib3` and `stlib3` Python modules) | most scenes |
+| [SoftRobots](https://github.com/SofaDefrost/SoftRobots) | the soft robots (Trunk, Diamond, Gripper, Maze, ...) |
+| [SoftRobots.Inverse](https://github.com/SofaDefrost/SoftRobots.Inverse) | DiamondSceneInverse |
+| [BeamAdapter](https://github.com/sofa-framework/BeamAdapter) | ConcentricTubeRobot, CatheterBeam |
+| [Cosserat](https://github.com/SofaDefrost/plugin.Cosserat) | CartStem, CartStemContact, CatchTheObject |
+| [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction) | MultiGaitRobot |
 
+### 2) Python environment
 
-#### 2) SofaGym python requirements
-We use python3. Sofagym currently works with gym v0.21.0, stable-baselines3 v1.7.0, and rlberry v0.5.0.
-
-The following packages are required:
-
-* [gym](https://github.com/openai/gym) 
-
-```bash
-pip install gym==0.21.0
-```
-
-* [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
-```bash
-pip install stable-baselines3[extra]==1.7.0
-```
-
-* [rlberry](https://github.com/rlberry-py/rlberry)
+Tested with Python 3.12, in a conda environment. SofaGym works with [Gymnasium](https://gymnasium.farama.org)
+(>= 1.0), [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) (>= 2.0) and
+[rl-agents](https://github.com/eleurent/rl-agents) (tree search planners).
 
 ```bash
-pip install rlberry==0.5.0
+pip install -r requirements.txt   # SofaGym, training, experiments, planning and tests
+pip install -e .                  # SofaGym itself
 ```
 
-* rendering utils
+### 3) Environment variables
+
+SOFA's Python modules must be found: set `SOFA_ROOT` to the SOFA build and add its Python packages to `PYTHONPATH`.
+The scripts of `experiments/` read them from a `.env` file at the root of the repository (not versioned):
 
 ```bash
-pip install psutil pygame glfw pyopengl imageio imageio-ffmpeg
+SOFA_ROOT=/path/to/sofa/build
+PYTHONPATH=/path/to/sofa/build/lib/python3/site-packages
 ```
-
-* tensorboard
 
 ```bash
-pip install tensorboard
+set -a; . ./.env; set +a                       # in each shell
+python test_env.py -e cartstem-v0 -ep 1 -s 10  # check the installation
+pytest                                         # the tests (in parallel, see pytest.ini)
 ```
 
-### Install Sofagym 
-```bash
-python setup.py bdist_wheel
-pip install -v -e .
-```
+Rendering (`render_mode="rgb_array"`, the videos) needs a display.
 
 
 ## Quick Start
@@ -73,7 +63,7 @@ export SOFA_ROOT=/sofa/build_dir/
 export PYTHONPATH=/sofa/build_dir/lib/python3/site-packages:$PYTHONPATH
 ```
 ```python
-import sofagym
+import sofagym.envs  # registers the environments
 ```
 
 ### Test Script
@@ -90,43 +80,43 @@ python test_env.py -e trunk-v0 -ep 100 -s 100
 - -ep, --episodes: number of episodes to run the environment [Optional, default=100]
 - -s, --steps: number of steps to run per episode [Optional, default=100]
 
-### Gym Functions
+### Gymnasium Functions
 
-The Gym framework allows to interact with an environment using well-known keywords:
-- *step(a)*: allows to perform a simulation step when the agent performs the action *a*. Given the current state of the system *obs_t* and the action *a*, the environment then changes to a new state *obs_{t+1}* and the agent receives the reward *rew*. If the goal is reached, the *done* flag changes to *True*.
-- *reset*: resets the environment.
-- *render*: gives a visual representation of *obs_t*.
+The Gymnasium framework allows to interact with an environment using well-known keywords:
+- *step(a)*: allows to perform a simulation step when the agent performs the action *a*. Given the current state of the system *obs_t* and the action *a*, the environment then changes to a new state *obs_{t+1}* and the agent receives the reward *rew*. If the goal is reached, the *terminated* flag changes to *True*; after the *timer_limit* steps of the environment, the *truncated* flag changes to *True*.
+- *reset*: resets the environment, optionally with a seed.
+- *render*: gives a visual representation of *obs_t* (create the environment with `render_mode="rgb_array"`).
 
-The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gym, check the official [documentation page](https://www.gymlibrary.dev/).
+The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gymnasium, check the official [documentation page](https://gymnasium.farama.org).
 
 ### Simple Example Script
 
 ```python
-import gym
+import gymnasium as gym
 import sofagym.envs
 
-env = gym.make('trunk-v0')
-env.seed(42)
-observation = env.reset()
+env = gym.make('trunk-v0', render_mode="rgb_array")
+observation, info = env.reset(seed=42)
 
 done = False
 while not done:
     action = env.action_space.sample()  # this is where you would insert your policy
-    observation, reward, done, info = env.step(action)
-    env.render()
-   
+    observation, reward, terminated, truncated, info = env.step(action)
+    done = terminated or truncated
+    image = env.render()
+
 env.close()
 ```
 
 The classic running of an episode is therefore:
-- *env = gym.make(env_name)*: creation of the environment using the gym interface.
+- *env = gym.make(env_name)*: creation of the environment using the Gymnasium interface.
 - *env.reset()*: Initialization of the environment at its starting point.
 - *action = model(obs_t)* and *env.step(action)*: execution of actions in the environment.
 - *env.close()*: end of simulation and destruction of the environment.
 
 ### Training
 
-RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. Currently, the training in SofaGym can be done using either [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) or [rlberry](https://github.com/rlberry-py/rlberry).
+RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. The training in SofaGym is done with [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3).
 
 To train a model for one of the registered environments of SofaGym, the ```rl.py``` script can be used:
 
@@ -136,14 +126,7 @@ python rl.py -e trunk-v0 -a PPO
 
 Command line arguments can be used to change the training parameters:
 - -e, --environment: environment name from available examples (For list of available examples, see [Environments](https://github.com/SofaDefrost/SofaGym#the-environments))
-- -a, --algorithm: RL algorithm name from the algorithms supported by the supported frameworks.
-  - Options:
-    - Stable Baselines: A2C, DDPG, DQN, PPO, SAC, TD3
-    - RLberry: A2C, DQN, PPO, SAC, REINFORCE
-- -fr, --framework: RL framework name from the supported frameworks [Optional, default='SB3']
-  - Options:
-    - SB3 (Stable Baselines3)
-    - RLberry
+- -a, --algorithm: RL algorithm name: A2C, DDPG, DQN, PPO, SAC, TD3
 - -ne, --env_num: number of environments trained in parallel [Optional, default=1]
 - -s, --seed: seed used to initialize the environment [Optional, default=0]
 - -st, --total_timesteps: number of training steps [Optional, default=None]
@@ -178,6 +161,48 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 
 
 
+
+### Units
+
+Each scene module declares the unit system its SOFA values are expressed in, with SofaPython3's `Sofa.Units`:
+
+```python
+UNITS = MechanicalUnitSystem(time=s, length=cm, mass=kg)
+```
+
+`tests/test_units.py` checks that each scene's gravity is either off or 9.81 m/s² in its declared units.
+
+| Unit system | Scenes |
+|---|---|
+| s, cm, kg | BubbleMotion, CartPole, CartStem, CartStemContact, CatchTheObject, SimpleMaze, StemPendulum |
+| s, mm, kg | Diamond, DiamondSceneInverse, Gripper, Maze, MultiGaitRobot, Trunk, TrunkCup, CTR and CatheterBeam (gravity off) |
+
+Diamond, DiamondSceneInverse and Gripper used a gravity of 9.81 (m/s²) with mm geometry, and TrunkCup 9180: they use 9810 mm/s² since the SOFA 26 update (towards the fixed base, -z, for the Diamond). CTR used 9.81 too: it has no gravity, as CatheterBeam.
+
+### Keyboard Control
+
+Some scenes can be driven by hand from the SOFA GUI, through a keyboard controller defined in the environment's `Controller.py` (`Controllers.py` for the Gripper). The controller is added when the scene config has `"keyboard_controller": True`. This is the case in the scene's default config, which runSofa uses, so opening the scene is enough:
+
+```bash
+$SOFA_ROOT/bin/runSofa -l SofaPython3 sofagym/envs/CartStem/CartStemScene.py
+```
+
+Key presses only reach the scene while a modifier is held: **Ctrl+Shift** in the default SofaGLFW interface (**Ctrl** in the Qt interface).
+
+| Environment | Scene file | Keys |
+|---|---|---|
+| BubbleMotion | `BubbleMotionScene.py` | ←/→ select the cavity, ↑/↓ increase/decrease its pressure |
+| CartStem | `CartStemScene.py` | ←/→ push the cart left/right |
+| CartStemContact | `CartStemContactScene.py` | ←/→ push the cart left/right |
+| CatchTheObject | `CatchTheObjectScene.py` | ←/→ decrease/increase the pressure |
+| StemPendulum | `StemPendulumScene.py` | ←/→ apply torque in either direction |
+| CTR | `CTRScene.py` | 0/1/2 select the tube, ↑/↓ push/pull it, →/← spin it, D drop the tool (built in, see below) |
+| CatheterBeam | `CatheterBeamScene.py` | 0/1/2 select the catheter, guide or coils, ↑/↓ push/pull it, →/← spin it (built in, see below) |
+| Gripper | `GripperScene.py` | ←/→ and ↑/↓ move the fingers horizontally, U/D move them up/down, A/C, 5/6 and 7/8 rotate them around y, x and z, 1/2 pull/release the cables |
+
+The environments set `"keyboard_controller": False` in their `DEFAULT_CONFIG`, so no controller is added in batch mode (training, tests). Pass `config={"keyboard_controller": True}` to the environment to add it anyway.
+
+CTR and CatheterBeam do not use a Python controller: their keys are handled by BeamAdapter's `InterventionalRadiologyController` itself (`listening=True` in the scenes). It is always active in the GUI and is not affected by `keyboard_controller`, and it is not covered by the keyboard tests since SofaPython3 cannot send key events to C++ components.
 
 ### Adding New Environment
 
@@ -221,6 +246,84 @@ In this section we demonstrate some use cases of the environments available in S
 ### Imitation Learning: Learning to imitate an inverse controller with TrunkEnv
 ### Monte Carlo Tree Search: solving MazeEnv with planning
 
+In planning mode, the server architecture keeps a simulation (a forked SOFA process) per sequence of actions, so that a planner can simulate any branch of its tree. The tree search agents of [rl-agents](https://github.com/eleurent/rl-agents) work with it:
+
+```python
+import gymnasium as gym
+import sofagym.envs
+from rl_agents.agents.tree_search.mcts import MCTSAgent
+
+env = gym.make("maze-v0", config={"planning": True}, use_server=True)
+agent = MCTSAgent(env, {"budget": 50, "gamma": 0.9})
+observation, info = env.reset(seed=0)
+done = False
+while not done:
+    action = agent.act(observation)
+    observation, reward, terminated, truncated, info = env.step(action)
+    env.unwrapped.clean()  # close the simulations of the branches the agent left
+    done = terminated or truncated
+env.close()
+```
+
+A planner can also branch by hand: set `env.unwrapped.past_actions` to the actions leading to a state, then `step` from it.
+
+
+## Reproducing the paper
+
+`experiments/` reproduces the experiments of the SofaGym paper (Ménager, Schegg et al., Soft Robotics 2023): the RL
+baseline (PPO and SAC on CartStem, CartStemContact and CatchTheObject, 6 seeds, section 5.1) and the planning with OPD
+(Diamond, ConcentricTubeRobot, Trunk, SimpleMaze, sections 5.3 and 5.4). The runs take days; the script is
+resumable (rerun it to continue, a run whose code changed restarts) and runs them in parallel:
+
+```bash
+set -a; . ./.env; set +a
+experiments/reproduce.sh                                  # everything
+SEEDS="0" ENVS="cartstem-v0" ALGOS=PPO experiments/reproduce.sh   # a subset
+```
+
+To run it in the background with a memory cap, see `experiments/README.md` (systemd unit, `CPUS`, ~2.3 GB per
+process). The results go to `experiments/results/` (not versioned): the models and test rewards of each run, the
+figures (`benchmark/<env>_rewards.png`), the planning summary (`planning/summary.md`) and, with a display, videos of
+the best agents and of the plans (`videos/`, with the goal in green and the effector in red).
+
+Results on SOFA 26 (details, the choices the paper does not give and the differences in `experiments/README.md`):
+
+| Experiment | Paper | Here |
+|---|---|---|
+| CartStem, PPO (final test reward) | ~70-75 | 55.6 ± 9.1 (the stem bends more on SOFA 26) |
+| CartStemContact, SAC / PPO | ~-5, PPO below | -2.6 ± 0.2 / -8.0 ± 1.6 |
+| CatchTheObject, PPO / SAC | ~-3 / ~-3 | -3.0 ± 0.1 / -2.7 ± 0.1 |
+| Diamond, OPD (10 targets) | 3.13 mm, 38 s | 10/10 reached, 3.72 mm, 29 s |
+| ConcentricTubeRobot, OPD (10 targets) | 100% reached | 6/10 reached (budget 192) |
+| SimpleMaze, OPD (4 corners) | 4/4 | 4/4 |
+| Trunk, OPD (2 goals) | similar to Diamond | 2/2 |
+
+Not reproduced: the AVEC variants of PPO and SAC, the QP side of Diamond's table 1, the gripper (section 5.2) and
+the multigait robot (section 5.5).
+
+
+## Known issues
+
+- **Memory leaks.** Each episode builds a new SOFA scene and part of it is never freed: about 0.25 MB per episode for
+  most envs, about 6.5 MB for CatchTheObject (its PPO workers reach 5.5 GB after 40 epochs; the cause is not identified,
+  it is not its gmsh script, which runs offline). Long trainings must restart their processes:
+  `experiments/benchmark.py` exits after a chunk of epochs and resumes from its checkpoint (50 epochs, 10 for
+  CatchTheObject). Count up to ~2.3 GB per process (a PPO run with 4 envs has 5), and cap the memory of long runs (see
+  `experiments/README.md`).
+- **SOFA's teardown** can crash or hang at the exit of the interpreter for some scenes (also after an exception): the
+  scripts and test runners end with `os._exit(0)` after flushing their output.
+- **Broken envs.** MultiGaitRobot needs MechanicalMatrixMapperMOR, removed from ModelOrderReduction;
+  DiamondSceneInverse was already broken on SOFA v23.06. The tests skip MultiGaitRobot and have no case for
+  DiamondSceneInverse.
+- **Behaviour changes since SOFA v23.06** (the regression references): CartStem's stem bends over (the expected
+  behaviour, the tip weight is above the buckling load), CatheterBeam's catheter has a curved tip. Details and the other
+  differences in `tests/regression/README.md`.
+- **Writing scenes for SOFA >= v24:**
+  - add a `DefaultVisualManagerLoop`: it is no longer created implicitly, and rendering a scene without one crashes
+    (segfault in `Sofa.Simulation.initVisual`);
+  - BeamAdapter's `InterventionalRadiologyController` overwrites the DOFs with its `startingPos`: give the orientation
+    of the instruments there, a rotation of the MechanicalObject (`ry=-90`) is ignored;
+  - the data of SoftRobots.Inverse's `SlidingActuator` (e.g. `displacement`) are arrays, one value per actuated index.
 
 ## Citing
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Toolbox: compute reward, create scene, ...
-"""
+"""Toolbox: compute reward, create scene, ..."""
 
 __authors__ = "emenager", "ekhairallah"
 __contact__ = "etienne.menager@ens-rennes.fr"
@@ -14,13 +13,23 @@ from splib3.animation.animate import Animation
 import sys
 import pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 
-from GripperTools import rewardShaper, goalSetter, _getGoalPos, getState, getReward, \
-    getRotationCenter, translateFingers, rotateFingers, displace, getPos, setPos
-
+from GripperTools import (
+    rewardShaper,
+    goalSetter,
+    _getGoalPos,
+    getState,
+    getReward,
+    getRotationCenter,
+    translateFingers,
+    rotateFingers,
+    displace,
+    getPos,
+    setPos,
+)
 
 SofaRuntime.importPlugin("Sofa.Component")
 
@@ -79,11 +88,11 @@ def startCmd_Gripper(rootNode, fingers, rotation, direction, displacement, durat
     rootNode.AnimationManager.addAnimation(
         Animation(
             onUpdate=executeAnimation,
-            params={"fingers": fingers,
-                    "rotation": rotation,
-                    "direction": direction,
-                    "displacement": displacement},
-            duration=duration, mode="once"))
+            params={"fingers": fingers, "rotation": rotation, "direction": direction, "displacement": displacement},
+            duration=duration,
+            mode="once",
+        )
+    )
 
 
 def action_to_command(action):
@@ -116,9 +125,10 @@ def action_to_command(action):
         direction = [0.0, 0.0, 1.0]
     elif action == 5:
         direction = [0.0, 0.0, -1.0]
+    # SOFA 26 update: 0.5 mm of cable per simulation step, 2.5 per env step (was 1 and 5: the fingers closed in 5 steps).
     elif action == 6:
-        displacement = 1
+        displacement = 0.5
     elif action == 7:
-        displacement = -1
+        displacement = -0.5
 
     return rotation, direction, displacement

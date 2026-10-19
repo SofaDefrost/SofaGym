@@ -5,8 +5,8 @@
 Units: cm, kg, s.
 """
 
-__authors__ = ("emenager")
-__contact__ = ("etienne.menager@ens-rennes.fr")
+__authors__ = "emenager"
+__contact__ = "etienne.menager@ens-rennes.fr"
 __version__ = "1.0.0"
 __copyright__ = "(c) 2021, Inria"
 __date__ = "August 12 2021"
@@ -17,7 +17,7 @@ import sys
 import pathlib
 import numpy as np
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 from sofagym.header import addHeader as header
@@ -25,32 +25,61 @@ from sofagym.header import addVisu as visu
 
 from BubbleMotion import BubbleMotion
 from BubbleMotionToolbox import rewardShaper, sceneModerator, applyAction, goalSetter
+from Controller import ControllerBubbleMotion
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
+sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()) + "/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
+
+
+from Sofa.Units.Definitions import kg, s, cm
+from Sofa.Units.UnitSystem import MechanicalUnitSystem
+
+# Units of the scene: SOFA values (gravity, stiffness, pressure, ...) are expressed in this system.
+UNITS = MechanicalUnitSystem(time=s, length=cm, mass=kg)
 
 
 def add_goal_node(root, pos):
     goal = root.addChild("Goal")
-    goal.addObject('VisualStyle', displayFlags="showCollisionModels")
-    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=0.5,
-                             showColor=[0, 1, 0, 0.5], position= pos)
+    goal.addObject("VisualStyle", displayFlags="showCollisionModels")
+    goal_mo = goal.addObject(
+        "MechanicalObject",
+        name="GoalMO",
+        showObject=True,
+        drawMode="1",
+        showObjectScale=0.5,
+        showColor=[0, 1, 0, 0.5],
+        position=pos,
+    )
     return goal_mo
 
 
-def createScene(rootNode, config={"source": [5, -5, 20],
-                                  "target": [5, 5, 0],
-                                  "goalPos": [7, 0, 20],
-                                  "seed": None,
-                                  "zFar":4000,
-                                  "dt": 0.01,
-                                  "max_pressure": 40,
-                                  "init_pos": [5, 5, 5],
-                                  "board_dim": 8},
-                mode='simu_and_visu'):
+def createScene(
+    rootNode,
+    config={
+        "source": [5, -5, 20],
+        "target": [5, 5, 0],
+        "goalPos": [7, 0, 20],
+        "seed": None,
+        "zFar": 4000,
+        "dt": 0.01,
+        "max_pressure": 40,
+        "init_pos": [5, 5, 5],
+        "board_dim": 8,
+        "keyboard_controller": True,
+    },
+    mode="simu_and_visu",
+):
 
-    header(rootNode, alarmDistance=0.3, contactDistance=0.1, tolerance=1e-4, maxIterations=100, gravity=[0, 0, -981.0],
-           dt=config['dt'])
+    header(
+        rootNode,
+        alarmDistance=0.3,
+        contactDistance=0.1,
+        tolerance=1e-4,
+        maxIterations=100,
+        gravity=[0, 0, -981.0],
+        dt=config["dt"],
+    )
+    rootNode.addObject("RequiredPlugin", pluginName="SoftRobots")
 
     position_spot = [[0, 0, -25]]
     direction_spot = [[0.0, 0, 1]]
@@ -61,7 +90,7 @@ def createScene(rootNode, config={"source": [5, -5, 20],
     add_goal_node(rootNode, pos_goal)
 
     init_pos = config["init_pos"]
-    bubblemotion_config = {'init_pos': init_pos, "dt": config["dt"], "max_pressure": config["max_pressure"]}
+    bubblemotion_config = {"init_pos": init_pos, "dt": config["dt"], "max_pressure": config["max_pressure"]}
 
     bubblemotion = BubbleMotion(bubblemotion_config=bubblemotion_config)
     bubblemotion.onEnd(rootNode)
@@ -71,7 +100,12 @@ def createScene(rootNode, config={"source": [5, -5, 20],
     rootNode.addObject(sceneModerator(name="sceneModerator", bubblemotion=bubblemotion))
     rootNode.addObject(applyAction(name="applyAction", root=rootNode, bubblemotion=bubblemotion))
 
-    # rootNode.addObject(ControllerBubbleMotion(name="Controller", root= rootNode, bubblemotion = bubblemotion, max_pressure = config["max_pressure"]))
+    if config.get("keyboard_controller", False):
+        rootNode.addObject(
+            ControllerBubbleMotion(
+                name="Controller", root=rootNode, bubblemotion=bubblemotion, max_pressure=bubblemotion.max_pressure
+            )
+        )
 
     # if VISUALISATION:
     #     print(">> Add runSofa visualisation")
