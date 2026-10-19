@@ -7,36 +7,53 @@ The toolkit provides an API based on the standard Gym API, allowing to train cla
 The toolkit also comprises example scenes based on the SoftRobots plugin for SOFA to illustrate how to include SOFA simulations and train learning algorithms on them.
 
 ## Installation
-### Prerequisites
 
-#### 1) SofaGym needs a [Sofa installation](https://www.sofa-framework.org/community/doc/getting-started/build/linux/). Currently supported version is v23.06
-with a mandatory plugin :
-* [SofaPython3](https://github.com/sofa-framework/SofaPython3) (fetchable within sofa)
+### 1) SOFA and its plugins
 
-and optional plugins (mandatory to run the example environments integrated with sofagym): 
-* [BeamAdapter](https://github.com/sofa-framework/BeamAdapter) (fetchable within sofa)
-* [SPLIB](https://github.com/SofaDefrost/SPLIB)
-* [STLIB](https://github.com/SofaDefrost/STLIB)
-* [SoftRobots](https://github.com/SofaDefrost/SoftRobots)
-* [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction)
-* [Cosserat](https://github.com/SofaDefrost/plugin.Cosserat)
+SofaGym needs a [SOFA build](https://www.sofa-framework.org/community/doc/getting-started/build/linux/) with the
+[SofaPython3](https://github.com/sofa-framework/SofaPython3) plugin. It is tested with SOFA 26 (the master branch,
+version 26.12.99); SOFA v23.06 is no longer supported (it is the reference of the behaviour regression tests, see
+`tests/regression/README.md`).
 
-[Plugins installation](https://www.sofa-framework.org/community/doc/plugins/build-a-plugin-from-sources/#in-tree-build) with a in-tree build is preferred.
+The example environments also need these plugins, built [in-tree](https://www.sofa-framework.org/community/doc/plugins/build-a-plugin-from-sources/#in-tree-build):
 
+| Plugin | Used by |
+|---|---|
+| [STLIB](https://github.com/SofaDefrost/STLIB) (provides the `splib3` and `stlib3` Python modules) | most scenes |
+| [SoftRobots](https://github.com/SofaDefrost/SoftRobots) | the soft robots (Trunk, Diamond, Gripper, Maze, ...) |
+| [SoftRobots.Inverse](https://github.com/SofaDefrost/SoftRobots.Inverse) | DiamondSceneInverse |
+| [BeamAdapter](https://github.com/sofa-framework/BeamAdapter) | ConcentricTubeRobot, CatheterBeam |
+| [Cosserat](https://github.com/SofaDefrost/plugin.Cosserat) | CartStem, CartStemContact, CatchTheObject |
+| [ModelOrderReduction](https://github.com/SofaDefrost/ModelOrderReduction) | MultiGaitRobot |
 
+### 2) Python environment
 
-#### 2) SofaGym python requirements
-We use python3. SofaGym works with [Gymnasium](https://gymnasium.farama.org) (>= 1.0), [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) (>= 2.0) and [rl-agents](https://github.com/eleurent/rl-agents) (tree search planners).
+Tested with Python 3.12, in a conda environment. SofaGym works with [Gymnasium](https://gymnasium.farama.org)
+(>= 1.0), [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) (>= 2.0) and
+[rl-agents](https://github.com/eleurent/rl-agents) (tree search planners).
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt   # SofaGym, training, experiments, planning and tests
+pip install -e .                  # SofaGym itself
 ```
 
-### Install Sofagym 
+### 3) Environment variables
+
+SOFA's Python modules must be found: set `SOFA_ROOT` to the SOFA build and add its Python packages to `PYTHONPATH`.
+The scripts of `experiments/` read them from a `.env` file at the root of the repository (not versioned):
+
 ```bash
-python setup.py bdist_wheel
-pip install -v -e .
+SOFA_ROOT=/path/to/sofa/build
+PYTHONPATH=/path/to/sofa/build/lib/python3/site-packages
 ```
+
+```bash
+set -a; . ./.env; set +a                       # in each shell
+python test_env.py -e cartstem-v0 -ep 1 -s 10  # check the installation
+pytest                                         # the tests (in parallel, see pytest.ini)
+```
+
+Rendering (`render_mode="rgb_array"`, the videos) needs a display.
 
 
 ## Quick Start
@@ -249,6 +266,40 @@ env.close()
 ```
 
 A planner can also branch by hand: set `env.unwrapped.past_actions` to the actions leading to a state, then `step` from it.
+
+
+## Reproducing the paper
+
+`experiments/` reproduces the experiments of the SofaGym paper (Ménager, Schegg et al., Soft Robotics 2023): the RL
+baseline (PPO and SAC on CartStem, CartStemContact and CatchTheObject, 6 seeds, section 5.1) and the planning with OPD
+(Diamond, ConcentricTubeRobot, Trunk, SimpleMaze, sections 5.3 and 5.4). The runs take days; the script is
+resumable (rerun it to continue, a run whose code changed restarts) and runs them in parallel:
+
+```bash
+set -a; . ./.env; set +a
+experiments/reproduce.sh                                  # everything
+SEEDS="0" ENVS="cartstem-v0" ALGOS=PPO experiments/reproduce.sh   # a subset
+```
+
+To run it in the background with a memory cap, see `experiments/README.md` (systemd unit, `CPUS`, ~2.3 GB per
+process). The results go to `experiments/results/` (not versioned): the models and test rewards of each run, the
+figures (`benchmark/<env>_rewards.png`), the planning summary (`planning/summary.md`) and, with a display, videos of
+the best agents and of the plans (`videos/`, with the goal in green and the effector in red).
+
+Results on SOFA 26 (details, the choices the paper does not give and the differences in `experiments/README.md`):
+
+| Experiment | Paper | Here |
+|---|---|---|
+| CartStem, PPO (final test reward) | ~70-75 | 55.6 ± 9.1 (the stem bends more on SOFA 26) |
+| CartStemContact, SAC / PPO | ~-5, PPO below | -2.6 ± 0.2 / -8.0 ± 1.6 |
+| CatchTheObject, PPO / SAC | ~-3 / ~-3 | -3.0 ± 0.1 / -2.7 ± 0.1 |
+| Diamond, OPD (10 targets) | 3.13 mm, 38 s | 10/10 reached, 3.72 mm, 29 s |
+| ConcentricTubeRobot, OPD (10 targets) | 100% reached | 6/10 reached (budget 192) |
+| SimpleMaze, OPD (4 corners) | 4/4 | 4/4 |
+| Trunk, OPD (2 goals) | similar to Diamond | 2/2 |
+
+Not reproduced: the AVEC variants of PPO and SAC, the QP side of Diamond's table 1, the gripper (section 5.2) and
+the multigait robot (section 5.5).
 
 
 ## Known issues

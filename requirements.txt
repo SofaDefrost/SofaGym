@@ -3,7 +3,6 @@ gymnasium>=1.0
 numpy
 psutil
 pygame
-glfw
 pyopengl
 pillow
 imageio
@@ -18,6 +17,9 @@ tensorboard
 tqdm
 rich
 moviepy
+
+# Experiments (experiments/: figures)
+matplotlib
 
 # Planning (tree search on the server's planning mode)
 rl-agents @ git+https://github.com/eleurent/rl-agents.git
