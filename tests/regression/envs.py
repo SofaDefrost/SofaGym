@@ -124,7 +124,15 @@ ENVS = {
         why="the ball departs from v23.06 after 35 random steps",
     ),
     "stempendulum-v0": dict(scene="StemPendulum/StemPendulumScene", steps=20, random=40),
-    "trunk-v0": dict(scene="Trunk/TrunkScene", steps=20, random=40),
+    "trunk-v0": dict(
+        scene="Trunk/TrunkScene",
+        steps=20,
+        random=40,
+        ignore_observations=[63, 64, 65],
+        ignore_objects=["/Goal"],
+        why="the GoalMO (last 3 observations) was at the goal plus its initial position [0, -100, 100] on v23.06, "
+        "it is at the goal of the reward since",
+    ),
     "trunkcup-v0": dict(
         scene="TrunkCup/TrunkCupScene",
         steps=3,

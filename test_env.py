@@ -15,7 +15,7 @@ __date__ = "Oct 7 2020"
 import sys
 import os
 import time
-import gym
+import gymnasium as gym
 import argparse
 from colorama import Fore
 
@@ -62,14 +62,13 @@ if __name__ == "__main__":
     steps = args.steps
 
     try:
-        env = gym.make(env_name)
+        env = gym.make(env_name, render_mode="rgb_array")
     except Exception:
         print(Fore.RED + "[ERROR]   " + Fore.RESET + "Environment name does not exist.")
         raise SystemExit(f"Available environments:\n{[value for value in name.values()]}")
 
     print("Start env ", env_name)
 
-    env.configure({"render": 1})
     env.reset()
 
     env.render()
@@ -90,11 +89,12 @@ if __name__ == "__main__":
             action = env.action_space.sample()
 
             start_time = time.time()
-            state, reward, done, info = env.step(action)
+            state, reward, terminated, truncated, info = env.step(action)
+            done = terminated or truncated
             step_time = time.time() - start_time
             print("[INFO]   >>> Time:", step_time)
 
-            rtf = env.config["dt"] * env.config["scale_factor"] / step_time
+            rtf = env.unwrapped.config["dt"] * env.unwrapped.config["scale_factor"] / step_time
             print("[INFO]   >>> RTF:", rtf)
 
             tot_reward += reward

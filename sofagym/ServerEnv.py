@@ -21,7 +21,7 @@ from sofagym.AbstractEnv import AbstractEnv
 
 class ServerEnv(AbstractEnv):
     def __init__(self, default_config, config=None, render_mode: Optional[str] = None, root=None):
-        super().__init__(default_config, config, root=root)
+        super().__init__(default_config, config, render_mode=render_mode, root=root)
 
         # Start the server which distributes the calculations to its clients
         start_server(self.config)
@@ -42,8 +42,10 @@ class ServerEnv(AbstractEnv):
                 The new state of the agent.
             reward(float):
                 The reward obtain after applying the action in the current state.
-            done(bool):
+            terminated(bool):
                 Whether the agent reaches the terminal state
+            truncated(bool):
+                Whether the episode reached timer_limit steps
             info(dict):
                 additional information (not used here)
         """
@@ -59,20 +61,18 @@ class ServerEnv(AbstractEnv):
         # print("[INFO]   >>> Result id:", result_id)
         results = get_result(result_id, timeout=self.timeout)
 
-        obs = np.array(results["observation"])  # to work with baseline
+        obs = np.array(results["observation"], dtype=np.float32)  # to work with baseline
         reward = results["reward"]
         done = results["done"]
 
-        # Avoid long explorations by using a timer.
+        # Avoid long explorations by using a timer: the depth of the state, the steps of a planner explore branches.
         self.timer += 1
-        if self.timer >= self.config["timer_limit"]:
-            # reward = -150
-            truncated = True
+        truncated = len(self.past_actions) >= self.config["timer_limit"]
 
         info = {}  # (not use here)
 
         # In planning, the steps of the planner explore branches: the agent calls clean() after its real actions.
-        return obs, reward, done, info
+        return obs, reward, done, truncated, info
 
     def async_step(self, action):
         """Executes one action in the environment.
@@ -108,21 +108,28 @@ class ServerEnv(AbstractEnv):
                 obs = results["observation"]
                 reward = results["reward"]
                 done = results["done"]
-                return obs, reward, done, {}
+                return obs, reward, done, False, {}
 
         return LateResult(copy.copy(result_id))
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         """Reset simulation.
+
+        The env starts the first client of the server with its config (start_scene), which gives the observation.
 
         Parameters:
         ----------
-            None.
+            seed: int or None, default = None
+                Seed of the random generator of the env.
+            options: dict or None, default = None
+                Not used.
 
         Returns:
         -------
-            obs, info
+            None.
         """
+        if seed is not None:
+            self.seed(seed)
         self.clean()
         self.viewer = None
 

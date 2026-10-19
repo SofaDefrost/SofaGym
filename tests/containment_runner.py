@@ -104,15 +104,15 @@ def save_cropped(frames, path, margin=60):
 
 
 def run(env_id, insertion=None, steps=None, video=None):
-    import gym
-    from gym.envs.registration import load
+    import gymnasium
+    from gymnasium.envs.registration import load_env_creator
 
     import sofagym.envs  # noqa: F401, registers the environments
 
     importlib.import_module("splib3.animation.animate").manager = None
     random.seed(0)
     np.random.seed(0)
-    env = load(gym.envs.registry[env_id].entry_point)({"render": 1} if video else None)
+    env = load_env_creator(gymnasium.spec(env_id).entry_point)({"render": 1} if video else None)
     failures = []
     for action in PUSH_ACTIONS:
         env.seed(0)

@@ -3,7 +3,7 @@ from abc import ABC
 from statistics import mean
 from typing import Optional
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch as th
 from agents.utils import mkdirp
@@ -146,6 +146,8 @@ class SofaTestAgent(ABC):
         env : gym.Env
             the created instance of the gym environment.
         """
+        import sofagym.envs  # noqa: F401, registers the environments
+
         env = gym.make(self.env_id)
 
         if self.max_episode_steps:
@@ -165,7 +167,7 @@ class SofaTestAgent(ABC):
             The gym environment instance to set the seed for.
 
         """
-        env.seed(self.seed)
+        env.reset(seed=self.seed)
         env.action_space.seed(self.seed)
 
     def policy(self, obs):
@@ -212,7 +214,7 @@ class SofaTestAgent(ABC):
 
         for episode in range(n_episodes):
             print("Start >> Episode", episode + 1)
-            obs = self.test_env.reset()
+            obs, _ = self.test_env.reset()
 
             if render:
                 self.test_env.render()
@@ -223,7 +225,8 @@ class SofaTestAgent(ABC):
 
             while not done:
                 action, _states = self.policy(obs)
-                obs, reward, done, info = self.test_env.step(action)
+                obs, reward, terminated, truncated, info = self.test_env.step(action)
+                done = terminated or truncated
 
                 if render:
                     print(
@@ -245,7 +248,7 @@ class SofaTestAgent(ABC):
                 steps_rewards.append(reward)
                 step += 1
 
-            episode_reward = sum(steps_rewards)[0]
+            episode_reward = sum(steps_rewards)
             print("Done >> Episode", episode + 1, "- Reward = ", steps_rewards, "- Sum reward:", episode_reward)
             episodes_rewards.append(episode_reward)
 

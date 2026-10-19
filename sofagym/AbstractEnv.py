@@ -7,8 +7,8 @@ __version__ = "1.0.0"
 __copyright__ = "(c) 2020, Robocath, CNRS, Inria"
 __date__ = "Oct 7 2020"
 
-import gym
-from gym.utils import seeding
+import gymnasium as gym
+from gymnasium.utils import seeding
 
 from typing import Optional
 
@@ -17,6 +17,7 @@ import copy
 import os
 
 
+from sofagym.rpc_server import start_scene
 from sofagym.simulate import seed_scene_rngs
 from sofagym.viewer import Viewer
 
@@ -151,7 +152,10 @@ class AbstractEnv(gym.Env):
             raise NotImplementedError("Importing your SOFA Scene Failed") from exc
 
         self.viewer = None
-        # The envs render images (gym >= 0.26 and SB3 read render_mode) when their config asks for rendering.
+        # The envs render images when created with a render mode, or when their config asks for rendering (the scene
+        # then keeps what the viewer draws).
+        if render_mode is not None:
+            self.config["render"] = 1
         self.render_mode = render_mode or ("rgb_array" if self.config["render"] else None)
 
         self.past_actions = []
@@ -346,8 +350,10 @@ class AbstractEnv(gym.Env):
                 The new state of the agent.
             reward(float):
                 The reward obtain after applying the action in the current state.
-            done(bool):
+            terminated(bool):
                 Whether the agent reaches the terminal state
+            truncated(bool):
+                Whether the episode reached timer_limit steps
             info(dict):
                 additional information (not used here)
 
@@ -367,26 +373,29 @@ class AbstractEnv(gym.Env):
 
         # Avoid long explorations by using a timer.
         self.timer += 1
-        if self.timer >= self.config["timer_limit"]:
-            # reward = -150
-            truncated = True
+        truncated = self.timer >= self.config["timer_limit"]
 
         info = {}  # (not use here)
 
-        return obs, reward, done, info
+        return obs, reward, done, truncated, info
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         """Reset simulation.
 
         Parameters:
         ----------
-            None.
+            seed: int or None, default = None
+                Seed of the random generator of the env.
+            options: dict or None, default = None
+                Not used.
 
         Returns:
         -------
             obs, info
 
         """
+        if seed is not None:
+            self.seed(seed)
         self.viewer = None
 
         self.timer = 0
@@ -394,14 +403,15 @@ class AbstractEnv(gym.Env):
         self.pos = []
         self.past_pos = []
 
-        Sofa.Simulation.reset(self.root)
+        # Unloading frees the previous scene: a reset only, then a new scene, leaked ~3 MB per episode.
+        Sofa.Simulation.unload(self.root)
         self.root = None
         self.draw_scene_seed()
         self.init_simulation()
 
         obs = np.array(self._getState(self.root), dtype=np.float32)
 
-        return obs
+        return obs, {}
 
     def render(self, mode=None):
         """See the current state of the environment.
@@ -446,6 +456,8 @@ class AbstractEnv(gym.Env):
         """
         if self.viewer is not None:
             self.viewer.close()
+        if self.root is not None:
+            Sofa.Simulation.unload(self.root)
 
         print("All clients are closed. Bye Bye.")
 
@@ -571,8 +583,11 @@ class AbstractEnv(gym.Env):
         return pos
 
 
-class EnvWrapper:
-    """Base of the env classes, which wrap an AbstractEnv or a ServerEnv (`self.env`) and expose its attributes."""
+class EnvWrapper(gym.Env):
+    """Base of the env classes, which wrap an AbstractEnv or a ServerEnv (`self.env`) and expose its attributes.
+
+    The env classes define their configuration, spaces and random initial states; the simulation is done by `self.env`.
+    """
 
     def __getattr__(self, name):
         # Only called for the attributes the wrapper does not have. "env" is missing while copy.deepcopy rebuilds the
@@ -580,6 +595,23 @@ class EnvWrapper:
         if name == "env":
             raise AttributeError(name)
         return getattr(self.env, name)
+
+    # gym.Env defines these on the class, which hides them from __getattr__.
+    @property
+    def np_random(self):
+        return self.env.np_random
+
+    @np_random.setter
+    def np_random(self, value):
+        self.env.np_random = value
+
+    @property
+    def render_mode(self):
+        return self.env.render_mode
+
+    @render_mode.setter
+    def render_mode(self, value):
+        self.env.render_mode = value
 
     @property
     def past_actions(self):
@@ -590,3 +622,31 @@ class EnvWrapper:
     def past_actions(self, value):
         # A copy: step() appends to it, which would change the caller's list.
         self.env.past_actions = list(value)
+
+    def step(self, action):
+        return self.env.step(action)
+
+    def reset(self, seed=None, options=None):
+        """Reset the simulation, with new random initial states (and goal), see AbstractEnv.reset."""
+        if seed is not None:
+            self.env.seed(seed)
+        self.initialize_states()
+
+        if self.env.config["goal"]:
+            self.init_goal()
+
+        self.env.reset()
+
+        if self.use_server:
+            obs = start_scene(self.env.config, self.nb_actions)
+            state = np.array(obs["observation"], dtype=np.float32)
+        else:
+            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
+
+        return state, {}
+
+    def render(self, mode=None):
+        return self.env.render(mode)
+
+    def close(self):
+        self.env.close()

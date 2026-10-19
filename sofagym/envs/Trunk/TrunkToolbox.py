@@ -176,7 +176,8 @@ class goalSetter(Sofa.Core.Controller):
         """
         self.goalPos = goal
         with self.goalMO.position.writeable() as position:
-            position += self.goalPos
+            # Not added to the initial position of the GoalMO: the goal of the reward.
+            position[0] = self.goalPos
 
     def set_mo_pos(self, goal):
         """Modify the goal.

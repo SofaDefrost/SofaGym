@@ -169,25 +169,30 @@ if __name__ == "__main__":
 
     command = None
 
-    while command != "exit":
-        task = s.getNextTask(stateId)
-        command = task["command"]
-        if command == "fork":
-            do_fork(task["stateId"], history)
+    # The forked clients run this loop too. When the env is closed, its server goes away while clients may still be
+    # working: there is nothing left to do.
+    try:
+        while command != "exit":
+            task = s.getNextTask(stateId)
+            command = task["command"]
+            if command == "fork":
+                do_fork(task["stateId"], history)
 
-        elif command == "animate":
-            history.append(task["action"])
-            do_animate(task, _getReward, _getState, _startCmd, _getPos)
-
-        elif command == "fork_and_animate":
-            action = task["action"]
-            pid = do_fork(task["stateId"], history + [task["action"]])
-            if pid == 0:
-                history.append(action)
+            elif command == "animate":
+                history.append(task["action"])
                 do_animate(task, _getReward, _getState, _startCmd, _getPos)
 
-        elif command == "get_position":
-            send_position()
+            elif command == "fork_and_animate":
+                action = task["action"]
+                pid = do_fork(task["stateId"], history + [task["action"]])
+                if pid == 0:
+                    history.append(action)
+                    do_animate(task, _getReward, _getState, _startCmd, _getPos)
+
+            elif command == "get_position":
+                send_position()
+    except ConnectionError:
+        sys.exit(0)
 
     # Avoid that all client exit in the same time
     time.sleep(random.random())

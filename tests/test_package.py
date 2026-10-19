@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The sofagym package can be imported, and scenes helpers do not depend on gym.
+"""The sofagym package can be imported, and scenes helpers do not depend on gym or gymnasium.
 
 Imports run in a subprocess to start from a clean sys.modules.
 """
@@ -29,5 +29,7 @@ def test_import_sofagym():
 
 @pytest.mark.parametrize("module", ["sofagym.header", "sofagym.utils"])
 def test_scene_helpers_do_not_import_gym(module):
-    result = run_python(f"import sys, {module}; assert 'gym' not in sys.modules, 'gym was imported'")
+    result = run_python(
+        f"import sys, {module}; assert not {{'gym', 'gymnasium'}} & set(sys.modules), 'gym or gymnasium was imported'"
+    )
     assert result.returncode == 0, result.stderr[-5000:]

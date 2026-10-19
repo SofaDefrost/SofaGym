@@ -15,7 +15,7 @@ pytestmark = [
     pytest.mark.skipif(
         importlib.util.find_spec("Sofa") is None, reason="SOFA python bindings not found, set SOFA_ROOT and PYTHONPATH"
     ),
-    pytest.mark.skipif(importlib.util.find_spec("gym") is None, reason="gym is not installed"),
+    pytest.mark.skipif(importlib.util.find_spec("gymnasium") is None, reason="gymnasium is not installed"),
 ]
 
 

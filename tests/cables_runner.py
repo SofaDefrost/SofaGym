@@ -26,13 +26,13 @@ def cable_values(root):
 
 
 def run(env_id, release_actions, steps):
-    import gym
-    from gym.envs.registration import load
+    import gymnasium
+    from gymnasium.envs.registration import load_env_creator
 
     import sofagym.envs  # noqa: F401, registers the environments
 
     importlib.import_module("splib3.animation.animate").manager = None
-    env = load(gym.envs.registry[env_id].entry_point)(None)
+    env = load_env_creator(gymnasium.spec(env_id).entry_point)(None)
     failures = []
     for action in release_actions:
         env.seed(0)

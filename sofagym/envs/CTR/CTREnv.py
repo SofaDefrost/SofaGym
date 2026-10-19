@@ -9,11 +9,10 @@ __date__ = "Dec 01 2021"
 
 from sofagym.AbstractEnv import AbstractEnv, EnvWrapper
 from sofagym.ServerEnv import ServerEnv
-from sofagym.rpc_server import start_scene
 from sofagym.viewer import LegacyViewer
 from sofagym.envs.CTR.CTRToolbox import startCmd
 
-from gym import spaces
+from gymnasium import spaces
 import os, sys
 import numpy as np
 
@@ -28,7 +27,7 @@ class ConcentricTubeRobotEnv(EnvWrapper):
 
     # Setting a default configuration
     path = os.path.dirname(os.path.abspath(__file__))
-    metadata = {"render.modes": ["human", "rgb_array"]}
+    metadata = {"render_modes": ["human", "rgb_array"]}
     dim_state = 12
     DEFAULT_CONFIG = {
         "scene": "CTR",
@@ -63,14 +62,14 @@ class ConcentricTubeRobotEnv(EnvWrapper):
         "use_server": False,
     }
 
-    def __init__(self, config=None, root=None, use_server: Optional[bool] = None):
-        if use_server is not None:
-            self.DEFAULT_CONFIG.update({"use_server": use_server})
-        self.use_server = self.DEFAULT_CONFIG["use_server"]
+    def __init__(self, config=None, root=None, use_server: Optional[bool] = None, render_mode: Optional[str] = None):
+        # Not written in DEFAULT_CONFIG, which the class shares: the next envs would use the server too.
+        self.use_server = self.DEFAULT_CONFIG["use_server"] if use_server is None else use_server
+        config = {**(config or {}), "use_server": self.use_server}
         self.env = (
-            ServerEnv(self.DEFAULT_CONFIG, config, root=root)
+            ServerEnv(self.DEFAULT_CONFIG, config, render_mode=render_mode, root=root)
             if self.use_server
-            else AbstractEnv(self.DEFAULT_CONFIG, config, root=root)
+            else AbstractEnv(self.DEFAULT_CONFIG, config, render_mode=render_mode, root=root)
         )
 
         self.initialize_states()
@@ -95,20 +94,3 @@ class ConcentricTubeRobotEnv(EnvWrapper):
         y = -20 + 50 * self.env.np_random.random()
         self.env.goal = [0.0, y, abs(y) + 30 * self.env.np_random.random()]
         self.env.config.update({"goalPos": self.env.goal})
-
-    def reset(self):
-        """Reset simulation."""
-        self.initialize_states()
-
-        if self.env.config["goal"]:
-            self.init_goal()
-
-        self.env.reset()
-
-        if self.use_server:
-            obs = start_scene(self.env.config, self.nb_actions)
-            state = np.array(obs["observation"], dtype=np.float32)
-        else:
-            state = np.array(self.env._getState(self.env.root), dtype=np.float32)
-
-        return state

@@ -40,16 +40,13 @@ envs = {
     15: "catheter_beam-v0",
 }
 
-algos = {1: "SAC", 2: "PPO", 3: "A2C", 4: "DQN", 5: "TD3", 6: "DDPG", 7: "REINFORCE"}
-
-frameworks = {1: "SB3", 2: "RLberry"}
+algos = {1: "SAC", 2: "PPO", 3: "A2C", 4: "DQN", 5: "TD3", 6: "DDPG"}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--environment", help="Name of the environment", type=str, required=True)
     parser.add_argument("-a", "--algorithm", help="RL algorithm", type=str, required=True)
-    parser.add_argument("-fr", "--framework", help="RL framework", type=str, required=False, default="SB3")
     parser.add_argument("-ne", "--env_num", help="Number of parallel envs", type=int, required=False, default=1)
     parser.add_argument("-s", "--seed", help="Seed", type=int, required=False, default=0)
     parser.add_argument(
@@ -74,8 +71,6 @@ if __name__ == "__main__":
     args_check(env_name, envs, "environment")
     algo_name = args.algorithm
     args_check(algo_name, algos, "algorithm")
-    framework = args.framework
-    args_check(framework, frameworks, "framework")
 
     n_envs = args.env_num
     seed = args.seed
@@ -90,11 +85,7 @@ if __name__ == "__main__":
         if train == "continue" or (train == "none" and test):
             parser.error("Valid argument --model_dir must be provided where previous model training files are saved")
 
-    # Each framework only needs its own dependencies.
-    if framework == "SB3":
-        from agents.SB3Agent import SB3Agent as Agent
-    else:
-        from agents.RLberryAgent import RLberryAgent as Agent
+    from agents.SB3Agent import SB3Agent as Agent
 
     if train == "new":
         agent = Agent(env_name, algo_name, seed, results_dir, max_episode_steps, n_envs)

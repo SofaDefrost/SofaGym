@@ -13,7 +13,7 @@ import numpy as np
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
-from gym import spaces
+from gymnasium import spaces
 
 
 class MultiGaitRobotEnv(AbstractEnv):

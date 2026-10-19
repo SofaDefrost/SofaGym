@@ -26,37 +26,10 @@ and optional plugins (mandatory to run the example environments integrated with 
 
 
 #### 2) SofaGym python requirements
-We use python3. Sofagym currently works with gym v0.21.0, stable-baselines3 v1.7.0, and rlberry v0.5.0.
-
-The following packages are required:
-
-* [gym](https://github.com/openai/gym) 
+We use python3. SofaGym works with [Gymnasium](https://gymnasium.farama.org) (>= 1.0), [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) (>= 2.0) and [rl-agents](https://github.com/eleurent/rl-agents) (tree search planners).
 
 ```bash
-pip install gym==0.21.0
-```
-
-* [stable_baseline](https://github.com/DLR-RM/stable-baselines3)
-```bash
-pip install stable-baselines3[extra]==1.7.0
-```
-
-* [rlberry](https://github.com/rlberry-py/rlberry)
-
-```bash
-pip install rlberry==0.5.0
-```
-
-* rendering utils
-
-```bash
-pip install psutil pygame glfw pyopengl imageio imageio-ffmpeg
-```
-
-* tensorboard
-
-```bash
-pip install tensorboard
+pip install -r requirements.txt
 ```
 
 ### Install Sofagym 
@@ -90,43 +63,43 @@ python test_env.py -e trunk-v0 -ep 100 -s 100
 - -ep, --episodes: number of episodes to run the environment [Optional, default=100]
 - -s, --steps: number of steps to run per episode [Optional, default=100]
 
-### Gym Functions
+### Gymnasium Functions
 
-The Gym framework allows to interact with an environment using well-known keywords:
-- *step(a)*: allows to perform a simulation step when the agent performs the action *a*. Given the current state of the system *obs_t* and the action *a*, the environment then changes to a new state *obs_{t+1}* and the agent receives the reward *rew*. If the goal is reached, the *done* flag changes to *True*.
-- *reset*: resets the environment.
-- *render*: gives a visual representation of *obs_t*.
+The Gymnasium framework allows to interact with an environment using well-known keywords:
+- *step(a)*: allows to perform a simulation step when the agent performs the action *a*. Given the current state of the system *obs_t* and the action *a*, the environment then changes to a new state *obs_{t+1}* and the agent receives the reward *rew*. If the goal is reached, the *terminated* flag changes to *True*; after the *timer_limit* steps of the environment, the *truncated* flag changes to *True*.
+- *reset*: resets the environment, optionally with a seed.
+- *render*: gives a visual representation of *obs_t* (create the environment with `render_mode="rgb_array"`).
 
-The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gym, check the official [documentation page](https://www.gymlibrary.dev/).
+The use of this interface allows intuitive interaction with any environment, and this is what SofaGym allows when the environment is a Sofa scene. For more information on Gymnasium, check the official [documentation page](https://gymnasium.farama.org).
 
 ### Simple Example Script
 
 ```python
-import gym
+import gymnasium as gym
 import sofagym.envs
 
-env = gym.make('trunk-v0')
-env.seed(42)
-observation = env.reset()
+env = gym.make('trunk-v0', render_mode="rgb_array")
+observation, info = env.reset(seed=42)
 
 done = False
 while not done:
     action = env.action_space.sample()  # this is where you would insert your policy
-    observation, reward, done, info = env.step(action)
-    env.render()
-   
+    observation, reward, terminated, truncated, info = env.step(action)
+    done = terminated or truncated
+    image = env.render()
+
 env.close()
 ```
 
 The classic running of an episode is therefore:
-- *env = gym.make(env_name)*: creation of the environment using the gym interface.
+- *env = gym.make(env_name)*: creation of the environment using the Gymnasium interface.
 - *env.reset()*: Initialization of the environment at its starting point.
 - *action = model(obs_t)* and *env.step(action)*: execution of actions in the environment.
 - *env.close()*: end of simulation and destruction of the environment.
 
 ### Training
 
-RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. Currently, the training in SofaGym can be done using either [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3) or [rlberry](https://github.com/rlberry-py/rlberry).
+RL algorithms can be used with SofaGym to train RL agents for the provided environments to perform specific tasks. The training in SofaGym is done with [Stable Baselines3](https://github.com/DLR-RM/stable-baselines3).
 
 To train a model for one of the registered environments of SofaGym, the ```rl.py``` script can be used:
 
@@ -136,14 +109,7 @@ python rl.py -e trunk-v0 -a PPO
 
 Command line arguments can be used to change the training parameters:
 - -e, --environment: environment name from available examples (For list of available examples, see [Environments](https://github.com/SofaDefrost/SofaGym#the-environments))
-- -a, --algorithm: RL algorithm name from the algorithms supported by the supported frameworks.
-  - Options:
-    - Stable Baselines: A2C, DDPG, DQN, PPO, SAC, TD3
-    - RLberry: A2C, DQN, PPO, SAC, REINFORCE
-- -fr, --framework: RL framework name from the supported frameworks [Optional, default='SB3']
-  - Options:
-    - SB3 (Stable Baselines3)
-    - RLberry
+- -a, --algorithm: RL algorithm name: A2C, DDPG, DQN, PPO, SAC, TD3
 - -ne, --env_num: number of environments trained in parallel [Optional, default=1]
 - -s, --seed: seed used to initialize the environment [Optional, default=0]
 - -st, --total_timesteps: number of training steps [Optional, default=None]
@@ -263,6 +229,50 @@ In this section we demonstrate some use cases of the environments available in S
 ### Imitation Learning: Learning to imitate an inverse controller with TrunkEnv
 ### Monte Carlo Tree Search: solving MazeEnv with planning
 
+In planning mode, the server architecture keeps a simulation (a forked SOFA process) per sequence of actions, so that a planner can simulate any branch of its tree. The tree search agents of [rl-agents](https://github.com/eleurent/rl-agents) work with it:
+
+```python
+import gymnasium as gym
+import sofagym.envs
+from rl_agents.agents.tree_search.mcts import MCTSAgent
+
+env = gym.make("maze-v0", config={"planning": True}, use_server=True)
+agent = MCTSAgent(env, {"budget": 50, "gamma": 0.9})
+observation, info = env.reset(seed=0)
+done = False
+while not done:
+    action = agent.act(observation)
+    observation, reward, terminated, truncated, info = env.step(action)
+    env.unwrapped.clean()  # close the simulations of the branches the agent left
+    done = terminated or truncated
+env.close()
+```
+
+A planner can also branch by hand: set `env.unwrapped.past_actions` to the actions leading to a state, then `step` from it.
+
+
+## Known issues
+
+- **Memory leaks.** Each episode builds a new SOFA scene and part of it is never freed: about 0.25 MB per episode for
+  most envs, about 6.5 MB for CatchTheObject (its PPO workers reach 5.5 GB after 40 epochs; the cause is not identified,
+  it is not its gmsh script, which runs offline). Long trainings must restart their processes:
+  `experiments/benchmark.py` exits after a chunk of epochs and resumes from its checkpoint (50 epochs, 10 for
+  CatchTheObject). Count up to ~2.3 GB per process (a PPO run with 4 envs has 5), and cap the memory of long runs (see
+  `experiments/README.md`).
+- **SOFA's teardown** can crash or hang at the exit of the interpreter for some scenes (also after an exception): the
+  scripts and test runners end with `os._exit(0)` after flushing their output.
+- **Broken envs.** MultiGaitRobot needs MechanicalMatrixMapperMOR, removed from ModelOrderReduction;
+  DiamondSceneInverse was already broken on SOFA v23.06. The tests skip MultiGaitRobot and have no case for
+  DiamondSceneInverse.
+- **Behaviour changes since SOFA v23.06** (the regression references): CartStem's stem bends over (the expected
+  behaviour, the tip weight is above the buckling load), CatheterBeam's catheter has a curved tip. Details and the other
+  differences in `tests/regression/README.md`.
+- **Writing scenes for SOFA >= v24:**
+  - add a `DefaultVisualManagerLoop`: it is no longer created implicitly, and rendering a scene without one crashes
+    (segfault in `Sofa.Simulation.initVisual`);
+  - BeamAdapter's `InterventionalRadiologyController` overwrites the DOFs with its `startingPos`: give the orientation
+    of the instruments there, a rotation of the MechanicalObject (`ry=-90`) is ignored;
+  - the data of SoftRobots.Inverse's `SlidingActuator` (e.g. `displacement`) are arrays, one value per actuated index.
 
 ## Citing
 

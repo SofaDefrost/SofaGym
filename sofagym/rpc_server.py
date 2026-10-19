@@ -279,6 +279,9 @@ def registerInstance(state_id, process_id, history):
 
     """
     global instances
+    # The clients of the branches closed by clean_registry can still call: they are ignored, then told to exit.
+    if state_id not in instances:
+        return "ThankYou"
     instances[state_id].update({"processId": process_id, "history": history})
 
     return "ThankYou"
@@ -298,6 +301,8 @@ def getNextTask(state_id):
             The pending task.
     """
 
+    if state_id not in instances:
+        return make_action("exit")
     res = instances[state_id]["pendingTasks"].get()
     return res
 
@@ -319,6 +324,8 @@ def taskDone(state_id, history, result):
         "ThankYou" to notify the connection.
 
     """
+    if state_id not in instances:
+        return "ThankYou"
     instances[state_id]["history"] = history
     instances[state_id]["pendingResults"].put(result)
 
@@ -340,6 +347,8 @@ def posDone(state_id, pos):
         "ThankYou" to notify the connection.
 
     """
+    if state_id not in instances:
+        return "ThankYou"
     instances[state_id]["positionResults"].put(pos)
 
     return "ThankYou"

@@ -14,12 +14,12 @@ import numpy as np
 
 
 def run_env(env_id, steps, server, render):
-    import gym
-    from gym.envs.registration import load
+    import gymnasium
+    from gymnasium.envs.registration import load_env_creator
 
     import sofagym.envs  # registers the environments
 
-    env_class = load(gym.envs.registry[env_id].entry_point)
+    env_class = load_env_creator(gymnasium.spec(env_id).entry_point)
     # The env only records the positions the viewer draws when its config has render=1.
     config = {"render": 1} if render else None
     env = env_class(config, use_server=True) if server else env_class(config)
@@ -27,9 +27,9 @@ def run_env(env_id, steps, server, render):
     env.action_space.seed(0)
 
     try:
-        observations = [env.reset()]
+        observations = [env.reset()[0]]
         for _ in range(steps):
-            observation, reward, done, info = env.step(env.action_space.sample())
+            observation, reward, done, truncated, info = env.step(env.action_space.sample())
             observations.append(observation)
             if render:
                 image = np.asarray(env.render("rgb_array"))

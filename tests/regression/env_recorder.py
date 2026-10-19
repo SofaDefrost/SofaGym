@@ -106,7 +106,10 @@ def run_episode(env, actions, video=None):
     episode = {
         "requested_actions": len(actions),
         "actions": [],
-        "observations": [np.asarray(env.reset(), dtype=float).ravel().tolist()],
+        # gymnasium's reset returns (obs, info), gym's obs.
+        "observations": [
+            np.asarray(reset[0] if isinstance(reset := env.reset(), tuple) else reset, dtype=float).ravel().tolist()
+        ],
         "rewards": [],
         "dones": [],
         "objects": {},
@@ -121,7 +124,8 @@ def run_episode(env, actions, video=None):
     # The viewer draws nothing before the first step (black frame), the video starts after it.
     frames = [] if video else None
     for action in actions:
-        observation, reward, done, _ = env.step(np.asarray(action) if isinstance(action, list) else action)
+        # gymnasium's step returns (obs, reward, terminated, truncated, info), gym's (obs, reward, done, info).
+        observation, reward, done = env.step(np.asarray(action) if isinstance(action, list) else action)[:3]
         episode["actions"].append(action)
         episode["observations"].append(np.asarray(observation, dtype=float).ravel().tolist())
         episode["rewards"].append(float(reward))
@@ -138,16 +142,29 @@ def run_episode(env, actions, video=None):
     return episode
 
 
-def record(env_id, episode_steps, random_steps, video_dir=None):
+def env_class(env_id):
+    """The class of a registered env: with gymnasium since the SOFA 26 update, with gym before (the references)."""
+    import sofagym.envs  # noqa: F401, registers the environments
+
+    try:
+        import gymnasium
+        from gymnasium.envs.registration import load_env_creator
+
+        if env_id in gymnasium.registry:
+            return load_env_creator(gymnasium.registry[env_id].entry_point)
+    except ImportError:
+        pass
     import gym
     from gym.envs.registration import load
 
-    import sofagym.envs  # noqa: F401, registers the environments
+    return load(gym.envs.registry[env_id].entry_point)
 
+
+def record(env_id, episode_steps, random_steps, video_dir=None):
     random.seed(0)
     np.random.seed(0)
     # The env only keeps what the viewer draws with render=1.
-    env = load(gym.envs.registry[env_id].entry_point)({"render": 1} if video_dir else None)
+    env = env_class(env_id)({"render": 1} if video_dir else None)
     scripted = (
         list(json.loads(os.environ["RECORD_EPISODES"]).items())
         if os.environ.get("RECORD_EPISODES")

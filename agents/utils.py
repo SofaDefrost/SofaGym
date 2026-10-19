@@ -1,11 +1,8 @@
 import os
 from typing import Optional
 
-import gym
 import gymnasium
-import shimmy
 from colorama import Fore
-from stable_baselines3.common.utils import set_random_seed
 
 
 def make_env(
@@ -43,18 +40,16 @@ def make_env(
         else:
             env_config["seed"] = env_seed
 
-        # gym 0.26's env checker uses np.bool8, removed in NumPy 2.
-        env = gym.make(env_id, config=env_config, disable_env_checker=True)
-        env.seed(env_seed)
-        env.reset()
+        env = gymnasium.make(env_id, config=env_config)
+        env.reset(seed=env_seed)
 
-        # SB3 >= 2 works with gymnasium envs: adapt the gym 0.21 API of the SofaGym envs, with the render mode of the
-        # viewer (SB3's own adapter sets none, which its video recorder refuses).
-        env = shimmy.GymV21CompatibilityV0(env=env, render_mode="rgb_array" if env_config.get("render") else None)
         if max_episode_steps:
             env = gymnasium.wrappers.TimeLimit(env, max_episode_steps=max_episode_steps)
 
         return env
+
+    # Imported here: the env subprocesses load this module, they need neither SB3 nor torch.
+    from stable_baselines3.common.utils import set_random_seed
 
     set_random_seed(seed)
 

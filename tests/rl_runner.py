@@ -7,7 +7,6 @@ run here.
 Usage:
 -----
     python tests/rl_runner.py sb3 cartpole-v0 on-policy --out /tmp/rl
-    python tests/rl_runner.py rlberry cartpole-v0 --out /tmp/rl
     python tests/rl_runner.py planning cartpole-v0
     python tests/rl_runner.py history cartpole-v0
 """
@@ -37,12 +36,12 @@ SMALL_NET = {
 
 
 def env_class(env_id):
-    import gym
-    from gym.envs.registration import load
+    import gymnasium
+    from gymnasium.envs.registration import load_env_creator
 
     import sofagym.envs  # noqa: F401, registers the environments
 
-    return load(gym.envs.registry[env_id].entry_point)
+    return load_env_creator(gymnasium.spec(env_id).entry_point)
 
 
 def new_env(env_id, config=None, **kwargs):
@@ -55,7 +54,7 @@ def new_env(env_id, config=None, **kwargs):
 
 def two_actions(env):
     """Two different actions: the first two of a discrete space, the bounds of a continuous one."""
-    from gym import spaces
+    from gymnasium import spaces
 
     space = env.action_space
     if isinstance(space, spaces.Discrete):
@@ -65,7 +64,7 @@ def two_actions(env):
 
 def sb3(env_id, kind, out):
     """Train an SB3Agent, reload it from its checkpoints, and evaluate it."""
-    from gym import spaces
+    from gymnasium import spaces
 
     env = new_env(env_id)
     discrete = isinstance(env.action_space, spaces.Discrete)
@@ -101,22 +100,6 @@ def sb3(env_id, kind, out):
     loaded.close()
 
 
-def rlberry(env_id, out):
-    """Train an RLberryAgent, reload it and evaluate it."""
-    try:
-        from agents.RLberryAgent import RLberryAgent
-    except Exception as error:  # rlberry missing, or incompatible with the installed gym/gymnasium
-        print(f"RL_SKIP RLberryAgent cannot be imported: {error!r}", flush=True)
-        os._exit(0)
-
-    os.chdir(out)
-    agent = RLberryAgent(env_id, "PPO", 0, "./Results", EPISODE_STEPS, 1)
-    agent.fit(1)
-    model_dir = agent.model_dir
-    loaded = RLberryAgent.load(model_dir)
-    loaded.eval(1)
-
-
 def same(name, observation, expected, failures):
     observation, expected = np.asarray(observation, dtype=float), np.asarray(expected, dtype=float)
     if observation.shape != expected.shape or not np.allclose(observation, expected, rtol=1e-5, atol=1e-6):
@@ -149,6 +132,8 @@ def planning(env_id):
     expected = {}
     for actions in ([a, b], [b]):
         local = new_env(env_id)
+        if local.use_server:
+            failures.append("an env created after a server env uses the server too")
         local.reset()
         expected[str(actions)] = [local.step(action)[0] for action in actions]
         local.close()
@@ -158,6 +143,51 @@ def planning(env_id):
     same("step a again from the root", o_a_again, o_a, failures)
     same("step b after a", o_ab, expected[str([a, b])][1], failures)
     same("step b after a, once a is acted", o_ab_again, o_ab, failures)
+    return failures
+
+
+def planner(env_id, name):
+    """rl-agents plans with the server in planning mode, the agent acts and closes the branches it left."""
+    import gymnasium
+    from gymnasium import spaces
+    from rl_agents.agents.tree_search.deterministic import DeterministicPlannerAgent
+    from rl_agents.agents.tree_search.mcts import MCTSAgent
+
+    import sofagym.envs  # noqa: F401, registers the environments
+
+    importlib.import_module("splib3.animation.animate").manager = None
+    env = gymnasium.make(env_id, config={"planning": True}, use_server=True)
+    if not isinstance(env.action_space, spaces.Discrete):
+        print("RL_SKIP tree search needs discrete actions", flush=True)
+        os._exit(0)
+    agent_class = {"deterministic": DeterministicPlannerAgent, "mcts": MCTSAgent}[name]
+    # The budget covers the expansion of the root (one simulation per action).
+    agent = agent_class(env, {"budget": 2 * env.action_space.n, "gamma": 0.9})
+    failures, skip = [], None
+    try:
+        obs, _ = env.reset(seed=0)
+        for step in range(2):
+            try:
+                action = agent.act(obs)
+            except ValueError as error:
+                if "rewards are normalized in [0, 1]" not in str(error):
+                    raise
+                skip = f"the {name} planner needs rewards in [0, 1], {env_id} has others"
+                break
+            if not env.action_space.contains(action):
+                failures.append(f"step {step}: invalid action {action}")
+                break
+            obs, reward, terminated, truncated, _ = env.step(action)
+            env.unwrapped.clean()
+            if not np.all(np.isfinite(obs)):
+                failures.append(f"step {step}: non finite observation {obs}")
+            if terminated or truncated:
+                break
+    finally:
+        env.close()
+    if skip:
+        print(f"RL_SKIP {skip}", flush=True)
+        os._exit(0)
     return failures
 
 
@@ -171,7 +201,7 @@ def history(env_id):
     local.close()
 
     env = new_env(env_id, {"start_from_history": [formatted]})
-    obs = env.reset()
+    obs = env.reset()[0]
     env.close()
     failures = []
     same("reset after history [a]", obs, o_a, failures)
@@ -180,18 +210,17 @@ def history(env_id):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("check", choices=["sb3", "rlberry", "planning", "history"])
+    parser.add_argument("check", choices=["sb3", "planning", "history", "planner"])
     parser.add_argument("env_id", help="Id of a registered SofaGym environment, e.g. cartpole-v0")
-    parser.add_argument("kind", nargs="?", choices=["on-policy", "off-policy"], help="sb3: kind of algorithm")
-    parser.add_argument("--out", help="sb3, rlberry: directory of the results")
+    parser.add_argument("kind", nargs="?", help="sb3: on-policy or off-policy, planner: deterministic or mcts")
+    parser.add_argument("--out", help="sb3: directory of the results")
     args = parser.parse_args()
 
     if args.check == "sb3":
         sb3(args.env_id, args.kind, args.out)
         failures = []
-    elif args.check == "rlberry":
-        rlberry(args.env_id, args.out)
-        failures = []
+    elif args.check == "planner":
+        failures = planner(args.env_id, args.kind)
     else:
         failures = globals()[args.check](args.env_id)
     print("\n".join(failures) if failures else "RL_OK", flush=True)

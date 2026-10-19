@@ -111,6 +111,8 @@ compares. The videos are not versioned (`tests/videos/`), the references are.
   soft solid (4x4x4 hexahedra, 200 kPa, 30 g) and the cables move 2.5 mm per step: its episodes are only recorded for
   the videos.
 - The stem of CartStem had no visual model (CartStemContact draws its collision model).
+- The goal of Trunk (GoalMO, drawn and in the observation) was at the goal of the reward plus the initial position
+  of the GoalMO, [0, -100, 100]: it is now at the goal of the reward.
 
 ### Known differences
 
